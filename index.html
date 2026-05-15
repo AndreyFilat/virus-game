@@ -295,17 +295,19 @@
             }
         }
         
-        .dna-bubble:hover {
-            transform: scale(1.15) translateZ(30px) rotateY(5deg) rotateX(5deg);
-            box-shadow: 
-                0 0 60px rgba(147, 51, 234, 1),
-                0 0 120px rgba(147, 51, 234, 0.6),
-                0 20px 50px rgba(0, 0, 0, 0.8),
-                0 35px 80px rgba(0, 0, 0, 0.4),
-                inset 0 8px 20px rgba(255, 255, 255, 0.5),
-                inset 0 -12px 25px rgba(0, 0, 0, 0.4),
-                inset -8px -8px 20px rgba(91, 33, 182, 0.7),
-                inset 8px 8px 20px rgba(192, 132, 252, 0.5);
+        @media (hover: hover) {
+            .dna-bubble:hover {
+                transform: scale(1.15) translateZ(30px) rotateY(5deg) rotateX(5deg);
+                box-shadow:
+                    0 0 60px rgba(147, 51, 234, 1),
+                    0 0 120px rgba(147, 51, 234, 0.6),
+                    0 20px 50px rgba(0, 0, 0, 0.8),
+                    0 35px 80px rgba(0, 0, 0, 0.4),
+                    inset 0 8px 20px rgba(255, 255, 255, 0.5),
+                    inset 0 -12px 25px rgba(0, 0, 0, 0.4),
+                    inset -8px -8px 20px rgba(91, 33, 182, 0.7),
+                    inset 8px 8px 20px rgba(192, 132, 252, 0.5);
+            }
         }
         
         .dna-bubble:active {
@@ -350,13 +352,15 @@
             66% { transform: translateY(4px) rotate(-2deg); }
         }
         
-        .dna-bubble:hover {
-            transform: scale(1.15) translateZ(20px);
-            box-shadow: 
-                0 0 60px var(--shadow-glow),
-                0 20px 40px rgba(0, 0, 0, 0.6),
-                inset 0 4px 0 rgba(255, 255, 255, 0.5),
-                inset 0 -4px 8px rgba(0, 0, 0, 0.3);
+        @media (hover: hover) {
+            .dna-bubble:hover {
+                transform: scale(1.15) translateZ(20px);
+                box-shadow:
+                    0 0 60px var(--shadow-glow),
+                    0 20px 40px rgba(0, 0, 0, 0.6),
+                    inset 0 4px 0 rgba(255, 255, 255, 0.5),
+                    inset 0 -4px 8px rgba(0, 0, 0, 0.3);
+            }
         }
         
         .dna-bubble:active {
@@ -555,10 +559,12 @@
             stroke-linecap: round;
         }
         
-        .country:hover {
-            fill: #4ade80;
-            filter: url(#infectionGlow);
-            transform: scale(1.02);
+        @media (hover: hover) {
+            .country:hover {
+                fill: #4ade80;
+                filter: url(#infectionGlow);
+                transform: scale(1.02);
+            }
         }
         
         .country.selected {
@@ -692,9 +698,11 @@
             display: block;
         }
         
-        .action-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 255, 159, 0.3);
+        @media (hover: hover) {
+            .action-button:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 25px rgba(0, 255, 159, 0.3);
+            }
         }
         
         .action-button:active {
@@ -1101,9 +1109,11 @@
             box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
         }
         
-        .feed-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
+        @media (hover: hover) {
+            .feed-button:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
+            }
         }
         
         .feed-text {
@@ -1556,17 +1566,31 @@
             }
             
             bindEvents() {
+                const tap = (el, handler) => {
+                    let handled = false;
+                    el.addEventListener('touchend', (e) => {
+                        handled = true;
+                        e.preventDefault();
+                        handler(e);
+                        setTimeout(() => { handled = false; }, 400);
+                    }, { passive: false });
+                    el.addEventListener('click', (e) => {
+                        if (handled) return;
+                        handler(e);
+                    });
+                };
+
                 // DNA Bubbles
                 document.querySelectorAll('.dna-bubble').forEach(bubble => {
-                    bubble.addEventListener('click', (e) => this.collectDNA(e));
+                    tap(bubble, (e) => this.collectDNA(e));
                 });
-                
+
                 // Evolution Menu
                 const evoBtn = document.getElementById('evolutionMenuBtn');
-                if (evoBtn) evoBtn.addEventListener('click', () => this.showEvolutionMenu());
-                
+                if (evoBtn) tap(evoBtn, () => this.showEvolutionMenu());
+
                 const backBtn = document.getElementById('backToMap');
-                if (backBtn) backBtn.addEventListener('click', () => this.showMapScreen());
+                if (backBtn) tap(backBtn, () => this.showMapScreen());
             }
             
             collectDNA(event) {
@@ -1644,17 +1668,28 @@
                 bubble.style.top = y + 'px';
                 bubble.dataset.dna = Math.floor(Math.random() * 10) + 5; // 5-14 DNA
                 
-                // Add click event
-                bubble.addEventListener('click', (e) => {
+                // Add click/touch event
+                let tapped = false;
+                const collect = (e) => {
+                    if (e) e.preventDefault?.();
                     const dnaAmount = parseInt(bubble.dataset.dna);
                     this.dnaPoints += dnaAmount;
                     this.updateDNACounter();
-                    
+
                     const rect = bubble.getBoundingClientRect();
                     this.createPopEffect(rect.left + rect.width/2, rect.top + rect.height/2, `+${dnaAmount}`);
-                    
+
                     bubble.classList.add('popping');
                     setTimeout(() => bubble.remove(), 800);
+                };
+                bubble.addEventListener('touchend', (e) => {
+                    tapped = true;
+                    collect(e);
+                    setTimeout(() => { tapped = false; }, 400);
+                }, { passive: false });
+                bubble.addEventListener('click', (e) => {
+                    if (tapped) return;
+                    collect(e);
                 });
                 
                 container.appendChild(bubble);
@@ -1722,15 +1757,18 @@
         // Initialize game
         const game = new VirusGame();
         
-        // Prevent zoom on double tap (iOS Safari)
+        // Prevent zoom on double tap (iOS Safari) — only block when target isn't interactive
         let lastTouchEnd = 0;
         document.addEventListener('touchend', function (event) {
-            const now = (new Date()).getTime();
+            const now = Date.now();
             if (now - lastTouchEnd <= 300) {
-                event.preventDefault();
+                const t = event.target;
+                if (!(t.closest && t.closest('.dna-bubble, .map-bubble, button, [role="button"], a'))) {
+                    event.preventDefault();
+                }
             }
             lastTouchEnd = now;
-        }, false);
+        }, { passive: false });
     </script>
 </body>
 </html>
