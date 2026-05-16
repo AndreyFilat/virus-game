@@ -95,9 +95,67 @@
             font-variant-numeric: tabular-nums;
         }
         
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 64px;
+            display: flex;
+            align-items: stretch;
+            justify-content: space-around;
+            background: rgba(13, 20, 33, 0.92);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid var(--border);
+            padding-bottom: env(safe-area-inset-bottom, 0);
+            z-index: 200;
+        }
+
+        .nav-btn {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-family: inherit;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: color 0.2s ease, transform 0.15s ease;
+            -webkit-tap-highlight-color: transparent;
+            padding: 6px 0;
+        }
+
+        .nav-btn .nav-icon {
+            font-size: 22px;
+            line-height: 1;
+            filter: grayscale(0.4) brightness(0.85);
+            transition: filter 0.2s ease, transform 0.2s ease;
+        }
+
+        .nav-btn.active {
+            color: var(--accent-green);
+        }
+
+        .nav-btn.active .nav-icon {
+            filter: none;
+            transform: translateY(-1px) scale(1.08);
+        }
+
+        .nav-btn:active {
+            transform: scale(0.94);
+        }
+
         /* Adjust screen padding to account for higher counter */
         .screen {
             padding-top: 80px;
+            padding-bottom: 80px;
         }
         
         .start-screen {
@@ -164,7 +222,8 @@
         /* Start Screen */
         .start-screen {
             text-align: center;
-            padding: 40px 20px;
+            padding: 60px 20px 96px;
+            justify-content: center;
         }
         
         .game-title {
@@ -193,7 +252,7 @@
             grid-template-columns: repeat(3, 90px);
             gap: 20px;
             justify-content: center;
-            margin-bottom: 80px;
+            margin-top: 24px;
             perspective: 1000px;
         }
         
@@ -743,41 +802,50 @@
         
         /* World Map Screen with embedded image */
         .world-map-screen {
-            padding: 60px 16px 40px;
+            padding: 56px 6px 84px;
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: flex-start;
         }
-        
+
         .world-map-title {
             font-family: 'Space Mono', monospace;
-            font-size: 24px;
+            font-size: 14px;
             font-weight: 700;
-            color: #ffffff;
-            margin-bottom: 24px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
             text-align: center;
-            letter-spacing: 1px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
         }
-        
+
         .world-map-wrapper {
             position: relative;
             width: 100%;
-            max-width: 420px;
-            padding: 20px 12px;
-            background: 
+            flex: 1 1 auto;
+            min-height: 0;
+            padding: 6px;
+            background:
                 radial-gradient(ellipse at 50% 30%, rgba(20, 40, 30, 0.4), transparent 70%),
                 linear-gradient(180deg, rgba(15, 20, 25, 0.95), rgba(8, 12, 16, 0.98));
-            border-radius: 20px;
+            border-radius: 18px;
             border: 1px solid rgba(255, 255, 255, 0.06);
-            box-shadow: 
+            box-shadow:
                 0 20px 50px rgba(0, 0, 0, 0.6),
                 inset 0 1px 0 rgba(255, 255, 255, 0.04);
-            margin-bottom: 24px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
         }
-        
+
         .world-map-image {
             width: 100%;
-            height: auto;
+            height: 100%;
+            max-height: 100%;
+            object-fit: contain;
             display: block;
             filter: drop-shadow(0 6px 20px rgba(0, 0, 0, 0.5)) brightness(1.05);
         }
@@ -824,31 +892,31 @@
         /* Stats below map */
         .world-map-stats {
             width: 100%;
-            max-width: 420px;
+            flex: 0 0 auto;
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
+            gap: 6px;
         }
-        
+
         .map-stat {
             background: rgba(30, 40, 50, 0.7);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 14px;
-            padding: 14px 8px;
+            border-radius: 10px;
+            padding: 8px 6px;
             text-align: center;
         }
-        
+
         .map-stat-value {
             font-family: 'Space Mono', monospace;
-            font-size: 18px;
+            font-size: 15px;
             font-weight: 700;
             color: #4ade80;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
         }
-        
+
         .map-stat-label {
-            font-size: 11px;
+            font-size: 9px;
             color: #9ca3af;
             font-weight: 500;
             text-transform: uppercase;
@@ -862,7 +930,7 @@
         
         /* Evolution Screen */
         .evolution-screen {
-            padding: 60px 20px 40px;
+            padding: 60px 20px 96px;
             background: 
                 radial-gradient(circle at 30% 20%, rgba(147, 51, 234, 0.15), transparent 60%),
                 radial-gradient(circle at 70% 80%, rgba(59, 130, 246, 0.1), transparent 50%),
@@ -1137,9 +1205,9 @@
         
         <!-- Start Screen -->
         <div class="screen start-screen active" id="startScreen">
-            <h1 class="game-title">Вирус</h1>
-            <p class="game-subtitle">Эволюция начинается</p>
-            
+            <h1 class="game-title">Дом</h1>
+            <p class="game-subtitle">Лопай пузырьки — копи ДНК</p>
+
             <div class="dna-bubbles" id="dnaBubbles">
                 <div class="dna-bubble" data-dna="10">
                     <div class="dna-symbol">🧬</div>
@@ -1151,10 +1219,6 @@
                     <div class="dna-symbol">🧬</div>
                 </div>
             </div>
-            
-            <p style="color: var(--text-secondary); font-size: 14px; max-width: 280px; line-height: 1.6;">
-                Соберите ДНК точки чтобы создать свой первый вирус
-            </p>
         </div>
         
         <!-- Global World Map Screen -->
@@ -1534,6 +1598,22 @@
             
             <button class="back-button" id="backToMap">← Назад к карте</button>
         </div>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <button class="nav-btn" data-screen="worldMapScreen" id="navMap">
+                <span class="nav-icon">🗺️</span>
+                <span>Карта</span>
+            </button>
+            <button class="nav-btn active" data-screen="startScreen" id="navHome">
+                <span class="nav-icon">🏠</span>
+                <span>Дом</span>
+            </button>
+            <button class="nav-btn" data-screen="evolutionScreen" id="navVirus">
+                <span class="nav-icon">🦠</span>
+                <span>Вирус</span>
+            </button>
+        </nav>
     </div>
 
     <script>
@@ -1562,60 +1642,67 @@
             init() {
                 this.bindEvents();
                 this.updateDNACounter();
-                this.spawnMapBubbles();
             }
-            
-            bindEvents() {
-                const tap = (el, handler) => {
-                    let handled = false;
-                    el.addEventListener('touchend', (e) => {
-                        handled = true;
-                        e.preventDefault();
-                        handler(e);
-                        setTimeout(() => { handled = false; }, 400);
-                    }, { passive: false });
-                    el.addEventListener('click', (e) => {
-                        if (handled) return;
-                        handler(e);
-                    });
-                };
 
-                // DNA Bubbles
-                document.querySelectorAll('.dna-bubble').forEach(bubble => {
-                    tap(bubble, (e) => this.collectDNA(e));
+            tap(el, handler) {
+                let handled = false;
+                el.addEventListener('touchend', (e) => {
+                    handled = true;
+                    e.preventDefault();
+                    handler(e);
+                    setTimeout(() => { handled = false; }, 400);
+                }, { passive: false });
+                el.addEventListener('click', (e) => {
+                    if (handled) return;
+                    handler(e);
+                });
+            }
+
+            bindEvents() {
+                // Home: DNA bubbles (regenerating)
+                document.querySelectorAll('#startScreen .dna-bubble').forEach(bubble => {
+                    this.tap(bubble, () => this.collectDNA(bubble));
                 });
 
-                // Evolution Menu
-                const evoBtn = document.getElementById('evolutionMenuBtn');
-                if (evoBtn) tap(evoBtn, () => this.showEvolutionMenu());
+                // Bottom nav
+                document.querySelectorAll('.nav-btn').forEach(btn => {
+                    this.tap(btn, () => this.switchScreen(btn.dataset.screen));
+                });
 
+                // Back button on evolution screen → map
                 const backBtn = document.getElementById('backToMap');
-                if (backBtn) tap(backBtn, () => this.showMapScreen());
+                if (backBtn) this.tap(backBtn, () => this.switchScreen('worldMapScreen'));
             }
-            
-            collectDNA(event) {
-                const bubble = event.currentTarget;
+
+            switchScreen(id) {
+                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+                const target = document.getElementById(id);
+                if (target) target.classList.add('active');
+
+                document.querySelectorAll('.nav-btn').forEach(b => {
+                    b.classList.toggle('active', b.dataset.screen === id);
+                });
+            }
+
+            collectDNA(bubble) {
+                if (bubble.classList.contains('popping') || bubble.classList.contains('popped')) return;
+
                 const dnaAmount = parseInt(bubble.dataset.dna);
                 const rect = bubble.getBoundingClientRect();
-                
-                // Add DNA points
+
                 this.dnaPoints += dnaAmount;
                 this.updateDNACounter();
-                
-                // Create elegant pop effect
+
                 this.createPopEffect(rect.left + rect.width/2, rect.top + rect.height/2, `+${dnaAmount}`);
-                
-                // Smooth bubble pop animation
+
                 bubble.classList.add('popping');
-                
                 setTimeout(() => {
                     bubble.classList.add('popped');
-                    
-                    // Check if all bubbles collected
-                    const remainingBubbles = document.querySelectorAll('.dna-bubble:not(.popped)').length;
-                    if (remainingBubbles === 0) {
-                        setTimeout(() => this.showVirusCreation(), 800);
-                    }
+                    // Regenerate the bubble after a short pause
+                    setTimeout(() => {
+                        bubble.dataset.dna = Math.floor(Math.random() * 10) + 8; // 8-17
+                        bubble.classList.remove('popping', 'popped');
+                    }, 1200);
                 }, 800);
             }
             
@@ -1635,23 +1722,6 @@
             
             updateDNACounter() {
                 document.getElementById('dnaCount').textContent = this.dnaPoints;
-            }
-            
-            showVirusCreation() {
-                document.getElementById('startScreen').classList.remove('active');
-                setTimeout(() => {
-                    document.getElementById('worldMapScreen').classList.add('active');
-                }, 200);
-            }
-            
-            spawnMapBubbles() {
-                const territory = document.getElementById('territory');
-                
-                setInterval(() => {
-                    if (document.getElementById('mapScreen').classList.contains('active')) {
-                        this.spawnMapBubble(territory);
-                    }
-                }, 3000 + Math.random() * 4000); // 3-7 seconds
             }
             
             spawnMapBubble(container) {
@@ -1710,20 +1780,6 @@
                 setInterval(() => {
                     this.updateStats();
                 }, 2000);
-            }
-            
-            showEvolutionMenu() {
-                document.getElementById('mapScreen').classList.remove('active');
-                setTimeout(() => {
-                    document.getElementById('evolutionScreen').classList.add('active');
-                }, 200);
-            }
-            
-            showMapScreen() {
-                document.getElementById('evolutionScreen').classList.remove('active');
-                setTimeout(() => {
-                    document.getElementById('mapScreen').classList.add('active');
-                }, 200);
             }
             
             updateStats() {
