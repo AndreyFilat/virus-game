@@ -453,7 +453,7 @@
         
         /* Enhanced bubble pop animation */
         .dna-bubble.popping {
-            animation: smooth-pop 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+            animation: smooth-pop 0.32s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
             pointer-events: none;
         }
         
@@ -465,10 +465,10 @@
         
         @keyframes smooth-pop {
             0%   { transform: scale(1);    opacity: 1; }
-            22%  { transform: scale(0.82); opacity: 1; }   /* anticipation squeeze */
-            46%  { transform: scale(1.55); opacity: 1; }   /* explosive expand */
-            58%  { transform: scale(1.8);  opacity: 0; }   /* shell dissolves */
-            100% { transform: scale(2);    opacity: 0; }
+            32%  { transform: scale(0.78); opacity: 1; }   /* anticipation squeeze */
+            58%  { transform: scale(1.45); opacity: 1; }   /* peak burst — still visible */
+            66%  { transform: scale(1.55); opacity: 0; }   /* shell pops — gone */
+            100% { transform: scale(1.7);  opacity: 0; }
         }
 
         /* Pop visual effects: flash, shockwave, particles, +N text */
@@ -1308,7 +1308,7 @@
         /* When a floating bubble is popping, the burst animation must override
            the floating-bubble-in / float pair from the .floating rule. */
         .dna-bubble.floating.popping {
-            animation: smooth-pop 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+            animation: smooth-pop 0.32s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
         }
 
         .dna-bubble.floating.fading {
@@ -1457,58 +1457,6 @@
             margin-top: 6px;
         }
 
-        /* Virus stat orbs — three small badges arranged around the helix */
-        .stat-orb {
-            position: absolute;
-            width: 116px;
-            padding: 6px 10px 7px;
-            background: rgba(20, 28, 40, 0.82);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.14);
-            border-radius: 12px;
-            z-index: 5;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
-        }
-        .stat-orb.infectivity { top: 0;    left: 0;   border-color: rgba(74, 222, 128, 0.45); }
-        .stat-orb.severity    { top: 0;    right: 0;  border-color: rgba(251, 191, 36, 0.45); }
-        .stat-orb.lethality   { bottom: 0; left: 50%; transform: translateX(-50%); border-color: rgba(248, 113, 113, 0.5); }
-
-        .orb-name {
-            font-size: 9px;
-            font-weight: 700;
-            letter-spacing: 1.2px;
-            text-transform: uppercase;
-            color: var(--text-secondary);
-            margin-bottom: 2px;
-        }
-        .orb-row {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .orb-icon  { font-size: 18px; line-height: 1; }
-        .orb-value {
-            font-family: 'Space Mono', monospace;
-            font-size: 14px;
-            font-weight: 700;
-            color: #fff;
-            font-variant-numeric: tabular-nums;
-        }
-        .orb-bar {
-            height: 3px;
-            background: rgba(0, 0, 0, 0.45);
-            border-radius: 2px;
-            overflow: hidden;
-            margin-top: 4px;
-        }
-        .orb-fill {
-            height: 100%;
-            border-radius: 2px;
-            transition: width 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
-        }
-        .stat-orb.infectivity .orb-fill { background: linear-gradient(90deg, #4ade80, #16a34a); }
-        .stat-orb.severity    .orb-fill { background: linear-gradient(90deg, #fbbf24, #d97706); }
-        .stat-orb.lethality   .orb-fill { background: linear-gradient(90deg, #f87171, #b91c1c); }
 
         /* Upgrades */
         .upgrades-section {
@@ -1761,20 +1709,66 @@
             text-align: center;
         }
         
-        /* Virus character container — relative box that hosts helix + 3 stat orbs */
+        /* Virus character container — stats column on the left, helix on the right */
         .virus-character-container {
-            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
             width: 100%;
-            max-width: 400px;
-            height: 210px;
+            max-width: 420px;
             margin: 0 auto 14px;
+            padding: 0 8px;
         }
 
+        .virus-stats-col {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            flex: 0 0 auto;
+        }
+
+        .stat-line {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stat-line .stat-icon {
+            font-size: 22px;
+            line-height: 1;
+            opacity: 0.95;
+        }
+
+        .stat-line .stat-info {
+            text-align: left;
+        }
+
+        .stat-line .stat-name {
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            line-height: 1.1;
+        }
+
+        .stat-line .stat-num {
+            font-family: 'Space Mono', monospace;
+            font-size: 17px;
+            font-weight: 700;
+            color: #fff;
+            font-variant-numeric: tabular-nums;
+            line-height: 1.1;
+            margin-top: 2px;
+        }
+
+        .stat-line.infectivity .stat-num { color: #4ade80; }
+        .stat-line.severity    .stat-num { color: #fbbf24; }
+        .stat-line.lethality   .stat-num { color: #f87171; }
+
         .virus-character {
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
+            flex: 0 0 auto;
             width: 220px;
             height: 130px;
             display: flex;
@@ -2142,32 +2136,31 @@
             </div>
 
             <div class="virus-character-container">
+                <div class="virus-stats-col">
+                    <div class="stat-line infectivity">
+                        <span class="stat-icon">🦠</span>
+                        <div class="stat-info">
+                            <div class="stat-name">Заразность</div>
+                            <div class="stat-num" id="statInfectivity">10%</div>
+                        </div>
+                    </div>
+                    <div class="stat-line severity">
+                        <span class="stat-icon">🤒</span>
+                        <div class="stat-info">
+                            <div class="stat-name">Тяжесть</div>
+                            <div class="stat-num" id="statSeverity">5%</div>
+                        </div>
+                    </div>
+                    <div class="stat-line lethality">
+                        <span class="stat-icon">💀</span>
+                        <div class="stat-info">
+                            <div class="stat-name">Летальность</div>
+                            <div class="stat-num" id="statLethality">1%</div>
+                        </div>
+                    </div>
+                </div>
                 <div class="virus-character">
                     <div class="dna-helix-emoji">🧬</div>
-                </div>
-                <div class="stat-orb infectivity">
-                    <div class="orb-name">Заразность</div>
-                    <div class="orb-row">
-                        <span class="orb-icon">🦠</span>
-                        <span class="orb-value" id="statInfectivity">10%</span>
-                    </div>
-                    <div class="orb-bar"><div class="orb-fill" id="fillInfectivity" style="width: 10%"></div></div>
-                </div>
-                <div class="stat-orb severity">
-                    <div class="orb-name">Тяжесть</div>
-                    <div class="orb-row">
-                        <span class="orb-icon">🤒</span>
-                        <span class="orb-value" id="statSeverity">5%</span>
-                    </div>
-                    <div class="orb-bar"><div class="orb-fill" id="fillSeverity" style="width: 5%"></div></div>
-                </div>
-                <div class="stat-orb lethality">
-                    <div class="orb-name">Летальность</div>
-                    <div class="orb-row">
-                        <span class="orb-icon">💀</span>
-                        <span class="orb-value" id="statLethality">1%</span>
-                    </div>
-                    <div class="orb-bar"><div class="orb-fill" id="fillLethality" style="width: 1%"></div></div>
                 </div>
             </div>
 
@@ -2365,9 +2358,6 @@
                 document.getElementById('statInfectivity').textContent = s.infectivity + '%';
                 document.getElementById('statSeverity').textContent = s.severity + '%';
                 document.getElementById('statLethality').textContent = s.lethality + '%';
-                document.getElementById('fillInfectivity').style.width = s.infectivity + '%';
-                document.getElementById('fillSeverity').style.width = s.severity + '%';
-                document.getElementById('fillLethality').style.width = s.lethality + '%';
                 this.renderUpgradesList();
                 this.renderSpreadList();
             }
@@ -2804,13 +2794,19 @@
 
                 const dnaAmount = parseInt(bubble.dataset.dna);
                 const rect = bubble.getBoundingClientRect();
+                const cx = rect.left + rect.width / 2;
+                const cy = rect.top + rect.height / 2;
 
                 this.dnaPoints += dnaAmount;
                 this.updateDNACounter();
 
-                this.createPopEffect(rect.left + rect.width/2, rect.top + rect.height/2, `+${dnaAmount}`);
-
                 bubble.classList.add('popping');
+
+                // Burst effects (flash, shockwave, particles, +N) appear AFTER
+                // the bubble shell has dissolved — at the smooth-pop opacity=0 frame.
+                setTimeout(() => {
+                    this.createPopEffect(cx, cy, `+${dnaAmount}`);
+                }, 210);
 
                 // Tutorial: hide finger hint after first tap, count toward continent selection
                 if (!this.tutorialDone) {
