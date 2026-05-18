@@ -1197,6 +1197,85 @@
             display: none;
         }
 
+        /* Hide bottom nav during the pre-3-pop tutorial too */
+        body.tutorial-active .bottom-nav {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.35s ease;
+        }
+
+        /* Cellular ambience behind bubbles */
+        .start-screen {
+            overflow: hidden;
+        }
+
+        .cell-bg {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .organelle {
+            position: absolute;
+            border-radius: 50%;
+            will-change: transform;
+        }
+
+        .organelle.o1 { width: 230px; height: 230px; top: 4%;  left: -12%; background: radial-gradient(circle, rgba(168,85,247,0.34), rgba(168,85,247,0.14) 38%, transparent 70%); animation: org-drift-a 24s ease-in-out infinite; }
+        .organelle.o2 { width: 170px; height: 170px; top: 52%; right: -10%; background: radial-gradient(circle, rgba(74,222,128,0.24), transparent 70%); animation: org-drift-b 30s ease-in-out infinite; }
+        .organelle.o3 { width: 200px; height: 200px; top: 28%; left: 55%;  background: radial-gradient(circle, rgba(192,132,252,0.28), transparent 70%); animation: org-drift-c 26s ease-in-out infinite; }
+        .organelle.o4 { width: 140px; height: 140px; top: 72%; left: 6%;   background: radial-gradient(circle, rgba(168,85,247,0.26), transparent 65%); animation: org-drift-d 22s ease-in-out infinite; }
+        .organelle.o5 { width: 100px; height: 100px; top: 18%; left: 72%;  background: radial-gradient(circle, rgba(247,217,194,0.22), transparent 65%); animation: org-drift-e 28s ease-in-out infinite; }
+        .organelle.o6 { width: 150px; height: 150px; top: 80%; left: 56%;  background: radial-gradient(circle, rgba(74,222,128,0.20), transparent 65%); animation: org-drift-f 32s ease-in-out infinite; }
+
+        @keyframes org-drift-a { 0%, 100% { transform: translate(0, 0); } 33% { transform: translate(45px, 28px); } 66% { transform: translate(-22px, 52px); } }
+        @keyframes org-drift-b { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(-40px, -42px); } }
+        @keyframes org-drift-c { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(30px, -28px); } }
+        @keyframes org-drift-d { 0%, 100% { transform: translate(0, 0); } 40% { transform: translate(-24px, -32px); } 80% { transform: translate(35px, 16px); } }
+        @keyframes org-drift-e { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(-28px, 36px); } }
+        @keyframes org-drift-f { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(26px, -30px); } }
+
+        /* Cell-membrane vignette */
+        .start-screen::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at center, transparent 55%, rgba(13, 20, 33, 0.55) 100%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Make sure bubbles sit on top of the ambience */
+        .start-screen .game-subtitle,
+        .start-screen .dna-bubbles {
+            position: relative;
+            z-index: 3;
+        }
+
+        .dna-bubble.floating {
+            position: absolute;
+            z-index: 3;
+            animation: float-bubble-in 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) backwards,
+                       float 4s ease-in-out 0.55s infinite;
+            will-change: transform, opacity;
+        }
+
+        .dna-bubble.floating.fading {
+            animation: float-bubble-out 0.5s ease forwards;
+        }
+
+        @keyframes float-bubble-in {
+            0%   { opacity: 0; transform: scale(0); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes float-bubble-out {
+            0%   { opacity: 1; }
+            100% { opacity: 0; transform: scale(0.6); }
+        }
+
         /* Finger hint on first launch */
         .finger-hint {
             position: absolute;
@@ -1773,6 +1852,14 @@
         
         <!-- Start Screen -->
         <div class="screen start-screen active" id="startScreen">
+            <div class="cell-bg" aria-hidden="true">
+                <span class="organelle o1"></span>
+                <span class="organelle o2"></span>
+                <span class="organelle o3"></span>
+                <span class="organelle o4"></span>
+                <span class="organelle o5"></span>
+                <span class="organelle o6"></span>
+            </div>
             <p class="game-subtitle">Лопай пузырьки — копи ДНК</p>
 
             <div class="dna-bubbles" id="dnaBubbles">
@@ -1961,11 +2048,65 @@
                 this.cloneHelixToMap();
                 this.renderVirusScreen();
                 if (!this.tutorialDone) {
+                    document.body.classList.add('tutorial-active');
                     setTimeout(() => {
                         const hint = document.getElementById('fingerHint');
                         if (hint) hint.classList.remove('hidden');
                     }, 500);
+                } else {
+                    this.afterTutorialSetup();
                 }
+            }
+
+            afterTutorialSetup() {
+                document.body.classList.remove('tutorial-active');
+                const fixed = document.getElementById('dnaBubbles');
+                if (fixed) fixed.style.display = 'none';
+                const subtitle = document.querySelector('.start-screen .game-subtitle');
+                if (subtitle) subtitle.style.display = 'none';
+                if (this.spawnLoopActive) return;
+                this.spawnLoopActive = true;
+                this.runSpawnLoop();
+            }
+
+            runSpawnLoop() {
+                this.spawnFloatingBubble();
+                const next = 1800 + Math.random() * 1400; // 1.8–3.2 s
+                setTimeout(() => this.runSpawnLoop(), next);
+            }
+
+            spawnFloatingBubble() {
+                const home = document.getElementById('startScreen');
+                if (!home) return;
+                if (!home.classList.contains('active')) return; // only spawn while on Home
+                const existing = home.querySelectorAll('.dna-bubble.floating').length;
+                if (existing >= 6) return;
+
+                const bubble = document.createElement('div');
+                bubble.className = 'dna-bubble floating';
+                bubble.innerHTML = '<div class="dna-symbol">🧬</div>';
+                bubble.dataset.dna = Math.floor(Math.random() * 10) + 8;
+
+                const rect = home.getBoundingClientRect();
+                const bs = 90;
+                const padX = 24;
+                const padTop = 90;
+                const padBottom = 100;
+                const maxX = Math.max(0, rect.width - bs - padX * 2);
+                const maxY = Math.max(0, rect.height - bs - padTop - padBottom);
+                bubble.style.left = (padX + Math.random() * maxX) + 'px';
+                bubble.style.top  = (padTop + Math.random() * maxY) + 'px';
+
+                home.appendChild(bubble);
+                this.tap(bubble, () => this.collectDNA(bubble));
+
+                // Auto-fade if not popped
+                setTimeout(() => {
+                    if (bubble.parentNode && !bubble.classList.contains('popping')) {
+                        bubble.classList.add('fading');
+                        setTimeout(() => { if (bubble.parentNode) bubble.remove(); }, 600);
+                    }
+                }, 8500);
             }
 
             getUpgradeCost(id) {
@@ -2136,6 +2277,7 @@
                 this.tutorialDone = true;
                 this.tutorialCompleting = false;
                 try { localStorage.setItem('tutorialDone', '1'); } catch (e) {}
+                this.afterTutorialSetup();
 
                 const zone = document.querySelector('.continent-zone.selected');
                 const continentName = zone ? zone.dataset.name : '';
@@ -2189,12 +2331,17 @@
 
                 setTimeout(() => {
                     bubble.classList.add('popped');
-                    // Regenerate the bubble after a short pause (skip during tutorial transition)
-                    setTimeout(() => {
-                        if (this.tutorialCompleting) return;
-                        bubble.dataset.dna = Math.floor(Math.random() * 10) + 8; // 8-17
-                        bubble.classList.remove('popping', 'popped');
-                    }, 1200);
+                    if (bubble.classList.contains('floating')) {
+                        // Floating bubbles vanish after pop (spawner replenishes)
+                        setTimeout(() => { if (bubble.parentNode) bubble.remove(); }, 300);
+                    } else {
+                        // Fixed tutorial bubbles regenerate
+                        setTimeout(() => {
+                            if (this.tutorialCompleting) return;
+                            bubble.dataset.dna = Math.floor(Math.random() * 10) + 8;
+                            bubble.classList.remove('popping', 'popped');
+                        }, 1200);
+                    }
                 }, 800);
             }
 
