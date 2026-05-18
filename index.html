@@ -2704,13 +2704,37 @@
             }
 
             tap(el, handler) {
+                const MOVE_TOLERANCE = 10;   // px — anything beyond this is a scroll, not a tap
                 let handled = false;
+                let startX = 0, startY = 0, moved = false;
+
+                el.addEventListener('touchstart', (e) => {
+                    const t = e.touches[0];
+                    if (!t) return;
+                    startX = t.clientX;
+                    startY = t.clientY;
+                    moved = false;
+                }, { passive: true });
+
+                el.addEventListener('touchmove', (e) => {
+                    const t = e.touches[0];
+                    if (!t) return;
+                    if (Math.abs(t.clientX - startX) > MOVE_TOLERANCE ||
+                        Math.abs(t.clientY - startY) > MOVE_TOLERANCE) {
+                        moved = true;
+                    }
+                }, { passive: true });
+
                 el.addEventListener('touchend', (e) => {
+                    if (moved) return;       // user was scrolling
                     handled = true;
                     e.preventDefault();
                     handler(e);
                     setTimeout(() => { handled = false; }, 400);
                 }, { passive: false });
+
+                el.addEventListener('touchcancel', () => { moved = true; }, { passive: true });
+
                 el.addEventListener('click', (e) => {
                     if (handled) return;
                     handler(e);
