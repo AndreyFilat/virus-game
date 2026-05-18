@@ -973,19 +973,29 @@
         /* Docked phase: helix sits above the map */
         .world-map-screen.selecting .map-helix-slot {
             opacity: 1;
-            top: 22%;
+            top: 28%;
             transform: translate(-50%, -50%) scale(0.92);
             filter: drop-shadow(0 0 16px rgba(192, 140, 117, 0.55));
         }
 
-        /* During intro/selecting: anchor map to the bottom so the helix has room above */
-        .world-map-screen.intro,
-        .world-map-screen.selecting {
-            justify-content: flex-end;
+        /* Absolute-positioned map during the placement flow so the layout is even */
+        .world-map-screen.intro .world-map-wrapper,
+        .world-map-screen.selecting .world-map-wrapper {
+            position: absolute;
+            left: 0;
+            right: 0;
+            margin: 0 auto;
+            top: 49%;
         }
 
-        .world-map-screen.selecting .world-map-wrapper {
-            margin-bottom: 88px;
+        .world-map-screen.intro,
+        .world-map-screen.selecting {
+            padding-top: 0;
+            padding-bottom: 0;
+        }
+
+        body.selecting .confirm-button {
+            bottom: 44px;
         }
 
         .world-map-image {
@@ -1679,16 +1689,27 @@
                     <!-- DNA Helix illustration - detailed and beautiful -->
                     <svg class="dna-helix-svg" viewBox="0 0 500 280" xmlns="http://www.w3.org/2000/svg">
                         <defs>
-                            <!-- Strong outer glow -->
-                            <filter id="dnaGlow" x="-50%" y="-50%" width="200%" height="200%">
-                                <feGaussianBlur stdDeviation="3" result="b1"/>
-                                <feGaussianBlur stdDeviation="8" result="b2"/>
-                                <feGaussianBlur stdDeviation="16" result="b3"/>
+                            <!-- Tight outer glow — sharper, less haze -->
+                            <filter id="dnaGlow" x="-25%" y="-25%" width="150%" height="150%">
+                                <feGaussianBlur stdDeviation="1.5" result="b1"/>
+                                <feGaussianBlur stdDeviation="3.5" result="b2"/>
                                 <feMerge>
-                                    <feMergeNode in="b3"/>
                                     <feMergeNode in="b2"/>
                                     <feMergeNode in="b1"/>
                                     <feMergeNode in="SourceGraphic"/>
+                                </feMerge>
+                            </filter>
+                            <!-- 3D bevel: alpha-blur + directional specular -->
+                            <filter id="dnaBevel" x="-15%" y="-15%" width="130%" height="130%">
+                                <feGaussianBlur in="SourceAlpha" stdDeviation="1.4" result="bblur"/>
+                                <feSpecularLighting in="bblur" surfaceScale="3" specularConstant="1.8"
+                                    specularExponent="22" lighting-color="#fff8ef" result="spec">
+                                    <feDistantLight azimuth="120" elevation="58"/>
+                                </feSpecularLighting>
+                                <feComposite in="spec" in2="SourceAlpha" operator="in" result="specMasked"/>
+                                <feMerge>
+                                    <feMergeNode in="SourceGraphic"/>
+                                    <feMergeNode in="specMasked"/>
                                 </feMerge>
                             </filter>
                             <!-- Strand gradient — warm flesh tones with highlight on top -->
@@ -2087,6 +2108,60 @@
                 if (svg.dataset.enhanced === '1') return;
                 const NS = 'http://www.w3.org/2000/svg';
 
+                // Drop a shadow path beneath each main strand for depth
+                svg.querySelectorAll('path[stroke="url(#strandGrad)"]').forEach(strand => {
+                    const sw = parseFloat(strand.getAttribute('stroke-width') || '5');
+                    const shadow = strand.cloneNode(false);
+                    shadow.setAttribute('stroke', 'rgba(40, 22, 14, 0.65)');
+                    shadow.setAttribute('stroke-width', String(sw + 1.6));
+                    shadow.setAttribute('opacity', '0.55');
+                    shadow.setAttribute('transform', 'translate(0.5, 2.6)');
+                    shadow.removeAttribute('filter');
+                    strand.parentNode.insertBefore(shadow, strand);
+                    // Apply 3D bevel to the main strand
+                    strand.setAttribute('filter', 'url(#dnaBevel)');
+                });
+
+                // Reinforce the top highlight with a soft cream halo
+                svg.querySelectorAll('path[stroke="#ffffff"]').forEach(h => {
+                    const dup = h.cloneNode(false);
+                    dup.setAttribute('stroke', '#fff5ec');
+                    dup.setAttribute('stroke-width', '2.6');
+                    dup.setAttribute('opacity', '0.32');
+                    dup.setAttribute('transform', 'translate(0, -1.4)');
+                    h.parentNode.insertBefore(dup, h);
+                });
+
+                // Glossy cap on every meaningful rung (top + bottom) for 3D feel
+                const capLayer = document.createElementNS(NS, 'g');
+                capLayer.setAttribute('class', 'dna-rung-caps');
+                svg.querySelectorAll('.dna-rungs-front line, .dna-rungs-back line').forEach(line => {
+                    const sw = parseFloat(line.getAttribute('stroke-width') || '0');
+                    if (sw < 2.6) return;
+                    const opa = parseFloat(line.getAttribute('opacity') || '1');
+                    const x = parseFloat(line.getAttribute('x1'));
+                    const y1 = parseFloat(line.getAttribute('y1'));
+                    const y2 = parseFloat(line.getAttribute('y2'));
+                    const topCap = document.createElementNS(NS, 'ellipse');
+                    topCap.setAttribute('cx', x);
+                    topCap.setAttribute('cy', y1 + 1.2);
+                    topCap.setAttribute('rx', sw * 0.55);
+                    topCap.setAttribute('ry', 1.4);
+                    topCap.setAttribute('fill', '#fff5ec');
+                    topCap.setAttribute('opacity', String(opa * 0.6));
+                    capLayer.appendChild(topCap);
+
+                    const botShadow = document.createElementNS(NS, 'ellipse');
+                    botShadow.setAttribute('cx', x);
+                    botShadow.setAttribute('cy', y2 - 1.2);
+                    botShadow.setAttribute('rx', sw * 0.55);
+                    botShadow.setAttribute('ry', 1.4);
+                    botShadow.setAttribute('fill', '#3a1f12');
+                    botShadow.setAttribute('opacity', String(opa * 0.45));
+                    capLayer.appendChild(botShadow);
+                });
+                svg.appendChild(capLayer);
+
                 // Add glowing base-pair atoms at the endpoints of FRONT rungs
                 const frontRungs = svg.querySelector('.dna-rungs-front');
                 if (frontRungs) {
@@ -2096,7 +2171,7 @@
                     frontRungs.querySelectorAll('line').forEach(line => {
                         const opacity = parseFloat(line.getAttribute('opacity') || '1');
                         const sw = parseFloat(line.getAttribute('stroke-width') || '3');
-                        const r = Math.max(1.8, sw * 0.85);
+                        const r = Math.max(1.9, sw * 0.95);
                         ['1', '2'].forEach(end => {
                             const cx = line.getAttribute('x' + end);
                             const cy = line.getAttribute('y' + end);
