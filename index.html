@@ -826,6 +826,59 @@
             aspect-ratio: 5 / 4;
             max-height: calc(100% - 78px);
             overflow: hidden;
+            transition: opacity 0.55s ease, transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        /* DNA helix slot on the map screen */
+        .map-helix-slot {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 78%;
+            max-width: 320px;
+            aspect-ratio: 320 / 180;
+            z-index: 80;
+            pointer-events: none;
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(0);
+            transition: top 0.95s cubic-bezier(0.2, 0.8, 0.2, 1),
+                        transform 0.95s cubic-bezier(0.2, 0.8, 0.2, 1),
+                        opacity 0.55s ease,
+                        filter 0.6s ease;
+        }
+
+        .map-helix-slot .dna-helix-svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+            overflow: visible;
+        }
+
+        /* Intro phase: helix bursts in centered */
+        .world-map-screen.intro .map-helix-slot {
+            opacity: 1;
+            top: 50%;
+            transform: translate(-50%, -50%) scale(1.2);
+            filter: drop-shadow(0 0 32px rgba(168, 85, 247, 0.7));
+        }
+
+        .world-map-screen.intro .world-map-wrapper {
+            opacity: 0;
+            transform: scale(0.92);
+        }
+
+        .world-map-screen.intro .selection-prompt,
+        .world-map-screen.intro #confirmContinent {
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+
+        /* Docked phase: helix lands below the map */
+        .world-map-screen.selecting .map-helix-slot {
+            opacity: 1;
+            top: 76%;
+            transform: translate(-50%, -50%) scale(0.82);
+            filter: drop-shadow(0 0 16px rgba(168, 85, 247, 0.45));
         }
 
         .world-map-image {
@@ -1020,13 +1073,15 @@
 
         /* Hide background UI during continent selection */
         body.selecting .dna-counter,
-        body.selecting .world-map-title,
-        body.selecting .world-map-stats,
-        body.selecting .infection-point,
         body.selecting .bottom-nav {
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.35s ease;
+        }
+
+        body.selecting .world-map-title,
+        body.selecting .world-map-stats {
+            display: none;
         }
 
         /* Finger hint on first launch */
@@ -1466,8 +1521,11 @@
                     <div class="map-stat-label">Мир</div>
                 </div>
             </div>
+
+            <!-- DNA helix shown during placement flow -->
+            <div class="map-helix-slot" id="mapHelixSlot"></div>
         </div>
-        
+
         <!-- Map Screen -->
         <div class="screen map-screen" id="mapScreen">
             <div class="country-territory" id="territory">
@@ -1868,11 +1926,20 @@
             init() {
                 this.bindEvents();
                 this.updateDNACounter();
+                this.cloneHelixToMap();
                 if (!this.tutorialDone) {
                     setTimeout(() => {
                         const hint = document.getElementById('fingerHint');
                         if (hint) hint.classList.remove('hidden');
                     }, 500);
+                }
+            }
+
+            cloneHelixToMap() {
+                const original = document.querySelector('#evolutionScreen .dna-helix-svg');
+                const slot = document.getElementById('mapHelixSlot');
+                if (original && slot && !slot.querySelector('svg')) {
+                    slot.appendChild(original.cloneNode(true));
                 }
             }
 
@@ -1931,9 +1998,20 @@
             enterSelectionMode() {
                 this.switchScreen('worldMapScreen');
                 document.body.classList.add('selecting');
-                document.getElementById('worldMapScreen').classList.add('selecting');
-                document.querySelector('.world-map-wrapper').classList.add('selecting');
                 document.querySelector('.bottom-nav').classList.add('locked');
+
+                const screen = document.getElementById('worldMapScreen');
+                const wrapper = document.querySelector('.world-map-wrapper');
+
+                // Phase 1: helix bursts in centered, map hidden
+                screen.classList.add('intro');
+
+                // Phase 2: helix slides under the map, map fades in, continents enable
+                setTimeout(() => {
+                    screen.classList.remove('intro');
+                    screen.classList.add('selecting');
+                    wrapper.classList.add('selecting');
+                }, 1200);
             }
 
             selectContinent(zone) {
