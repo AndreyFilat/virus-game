@@ -834,9 +834,9 @@
             position: absolute;
             left: 50%;
             top: 50%;
-            width: 78%;
-            max-width: 320px;
-            aspect-ratio: 320 / 180;
+            width: 52%;
+            max-width: 220px;
+            aspect-ratio: 280 / 500;
             z-index: 80;
             pointer-events: none;
             opacity: 0;
@@ -970,18 +970,22 @@
             pointer-events: none !important;
         }
 
-        /* Docked phase: helix lands below the map */
+        /* Docked phase: helix sits above the map */
         .world-map-screen.selecting .map-helix-slot {
             opacity: 1;
-            top: 72%;
-            transform: translate(-50%, -50%) scale(0.82);
+            top: 24%;
+            transform: translate(-50%, -50%) scale(0.85);
             filter: drop-shadow(0 0 16px rgba(168, 85, 247, 0.45));
         }
 
-        /* During intro/selecting: anchor map to the top so the helix has room below */
+        /* During intro/selecting: anchor map to the bottom so the helix has room above */
         .world-map-screen.intro,
         .world-map-screen.selecting {
-            justify-content: flex-start;
+            justify-content: flex-end;
+        }
+
+        .world-map-screen.selecting .world-map-wrapper {
+            margin-bottom: 88px;
         }
 
         .world-map-image {
@@ -1316,8 +1320,8 @@
         
         .virus-character {
             position: relative;
-            width: 320px;
-            height: 180px;
+            width: 220px;
+            height: 360px;
             max-width: 100%;
             margin: 0 auto 20px;
             display: flex;
@@ -1673,7 +1677,7 @@
             <div class="virus-character-container">
                 <div class="virus-character">
                     <!-- DNA Helix illustration - detailed and beautiful -->
-                    <svg class="dna-helix-svg" viewBox="0 0 500 280" xmlns="http://www.w3.org/2000/svg">
+                    <svg class="dna-helix-svg" viewBox="0 0 280 500" xmlns="http://www.w3.org/2000/svg">
                         <defs>
                             <!-- Strong outer glow -->
                             <filter id="dnaGlow" x="-50%" y="-50%" width="200%" height="200%">
@@ -1744,7 +1748,10 @@
                                 </feMerge>
                             </filter>
                         </defs>
-                        
+
+                        <!-- Rotate entire helix 90° to vertical orientation -->
+                        <g transform="translate(280 0) rotate(90)">
+
                         <!-- Background nebula glow -->
                         <ellipse cx="250" cy="150" rx="240" ry="60" fill="url(#nebulaGrad)"/>
                         <ellipse cx="250" cy="170" rx="210" ry="25" fill="#7c3aed" opacity="0.2" filter="url(#dnaGlow)"/>
@@ -1926,6 +1933,7 @@
                             <ellipse cx="357.5" cy="102.0" rx="8" ry="2.5" fill="#ffffff" opacity="0.5"/>
                             <ellipse cx="412.5" cy="178.0" rx="8" ry="2.5" fill="#f0c4ff" opacity="0.35"/>
                             <ellipse cx="467.5" cy="102.0" rx="8" ry="2.5" fill="#ffffff" opacity="0.5"/>
+                        </g>
                         </g>
                     </svg>
                 </div>
