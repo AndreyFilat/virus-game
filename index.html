@@ -834,9 +834,9 @@
             position: absolute;
             left: 50%;
             top: 50%;
-            width: 52%;
-            max-width: 220px;
-            aspect-ratio: 280 / 500;
+            width: 84%;
+            max-width: 360px;
+            aspect-ratio: 500 / 280;
             z-index: 80;
             pointer-events: none;
             opacity: 0;
@@ -854,9 +854,9 @@
             inset: -35%;
             border-radius: 50%;
             background: radial-gradient(circle at 50% 50%,
-                rgba(192, 132, 252, 0.55) 0%,
-                rgba(147, 51, 234, 0.32) 22%,
-                rgba(91, 33, 182, 0.15) 50%,
+                rgba(247, 217, 194, 0.55) 0%,
+                rgba(192, 140, 117, 0.32) 24%,
+                rgba(107, 69, 48, 0.15) 52%,
                 transparent 75%);
             filter: blur(18px);
             opacity: 0;
@@ -872,14 +872,14 @@
             inset: -18%;
             background:
                 radial-gradient(circle 1.5px at 12% 50%, #fff 100%, transparent),
-                radial-gradient(circle 2px at 86% 28%, #d896ff 100%, transparent),
-                radial-gradient(circle 1px at 50% 92%, #f8d4ff 100%, transparent),
+                radial-gradient(circle 2px at 86% 28%, #f7c9a9 100%, transparent),
+                radial-gradient(circle 1px at 50% 92%, #fde6d2 100%, transparent),
                 radial-gradient(circle 1.5px at 22% 12%, #fff 100%, transparent),
-                radial-gradient(circle 2px at 78% 78%, #a855f7 100%, transparent),
+                radial-gradient(circle 2px at 78% 78%, #c08c75 100%, transparent),
                 radial-gradient(circle 1px at 62% 10%, #fff 100%, transparent),
-                radial-gradient(circle 1.5px at 16% 82%, #c084fc 100%, transparent),
+                radial-gradient(circle 1.5px at 16% 82%, #e3b39a 100%, transparent),
                 radial-gradient(circle 1px at 92% 60%, #ffffff 100%, transparent),
-                radial-gradient(circle 1.5px at 40% 16%, #e9b8ff 100%, transparent);
+                radial-gradient(circle 1.5px at 40% 16%, #fde6d2 100%, transparent);
             opacity: 0;
             pointer-events: none;
             z-index: 0;
@@ -912,7 +912,7 @@
             position: absolute;
             left: 50%;
             top: 50%;
-            transform: translate(-50%, 140px) scale(0.85);
+            transform: translate(-50%, 130px) scale(0.85);
             z-index: 90;
             font-family: 'Space Mono', monospace;
             font-size: 22px;
@@ -922,26 +922,26 @@
             white-space: nowrap;
             opacity: 0;
             pointer-events: none;
-            background: linear-gradient(135deg, #ffffff 0%, #f0c4ff 35%, #c084fc 65%, #9333ea 100%);
+            background: linear-gradient(135deg, #ffffff 0%, #fde6d2 35%, #e3b39a 65%, #8e604b 100%);
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
             color: transparent;
-            filter: drop-shadow(0 0 12px rgba(168, 85, 247, 0.75))
+            filter: drop-shadow(0 0 12px rgba(227, 179, 154, 0.85))
                     drop-shadow(0 4px 14px rgba(0, 0, 0, 0.55));
             transition: opacity 0.5s ease, transform 0.65s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
 
         .world-map-screen.intro .virus-created-label {
             opacity: 1;
-            transform: translate(-50%, 140px) scale(1);
+            transform: translate(-50%, 130px) scale(1);
             animation: label-shimmer 1.6s ease-out 0.4s both;
         }
 
         @keyframes label-shimmer {
-            0%   { opacity: 0; transform: translate(-50%, 110px) scale(0.7); filter: blur(8px) drop-shadow(0 0 0 rgba(168,85,247,0)); }
-            45%  { opacity: 1; transform: translate(-50%, 142px) scale(1.08); filter: blur(0) drop-shadow(0 0 22px rgba(168,85,247,0.95)); }
-            100% { opacity: 1; transform: translate(-50%, 140px) scale(1); filter: blur(0) drop-shadow(0 0 12px rgba(168,85,247,0.75)); }
+            0%   { opacity: 0; transform: translate(-50%, 100px) scale(0.7); filter: blur(8px) drop-shadow(0 0 0 rgba(227,179,154,0)); }
+            45%  { opacity: 1; transform: translate(-50%, 132px) scale(1.08); filter: blur(0) drop-shadow(0 0 22px rgba(247,217,194,0.95)); }
+            100% { opacity: 1; transform: translate(-50%, 130px) scale(1); filter: blur(0) drop-shadow(0 0 12px rgba(227,179,154,0.85)); }
         }
 
         .map-helix-slot .dna-helix-svg {
@@ -956,7 +956,7 @@
             opacity: 1;
             top: 50%;
             transform: translate(-50%, -50%) scale(1.2);
-            filter: drop-shadow(0 0 32px rgba(168, 85, 247, 0.7));
+            filter: drop-shadow(0 0 32px rgba(227, 179, 154, 0.7));
         }
 
         .world-map-screen.intro .world-map-wrapper {
@@ -973,9 +973,9 @@
         /* Docked phase: helix sits above the map */
         .world-map-screen.selecting .map-helix-slot {
             opacity: 1;
-            top: 24%;
-            transform: translate(-50%, -50%) scale(0.85);
-            filter: drop-shadow(0 0 16px rgba(168, 85, 247, 0.45));
+            top: 22%;
+            transform: translate(-50%, -50%) scale(0.92);
+            filter: drop-shadow(0 0 16px rgba(192, 140, 117, 0.55));
         }
 
         /* During intro/selecting: anchor map to the bottom so the helix has room above */
@@ -1320,8 +1320,8 @@
         
         .virus-character {
             position: relative;
-            width: 220px;
-            height: 360px;
+            width: 320px;
+            height: 180px;
             max-width: 100%;
             margin: 0 auto 20px;
             display: flex;
@@ -1677,7 +1677,7 @@
             <div class="virus-character-container">
                 <div class="virus-character">
                     <!-- DNA Helix illustration - detailed and beautiful -->
-                    <svg class="dna-helix-svg" viewBox="0 0 280 500" xmlns="http://www.w3.org/2000/svg">
+                    <svg class="dna-helix-svg" viewBox="0 0 500 280" xmlns="http://www.w3.org/2000/svg">
                         <defs>
                             <!-- Strong outer glow -->
                             <filter id="dnaGlow" x="-50%" y="-50%" width="200%" height="200%">
@@ -1691,50 +1691,49 @@
                                     <feMergeNode in="SourceGraphic"/>
                                 </feMerge>
                             </filter>
-                            <!-- Strand gradient with bright highlights -->
+                            <!-- Strand gradient — warm flesh tones with highlight on top -->
                             <linearGradient id="strandGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                                <stop offset="0%" stop-color="#ffffff"/>
-                                <stop offset="10%" stop-color="#ffffff"/>
-                                <stop offset="22%" stop-color="#fce4ff"/>
-                                <stop offset="38%" stop-color="#eebbff"/>
-                                <stop offset="55%" stop-color="#c084fc"/>
-                                <stop offset="72%" stop-color="#a855f7"/>
-                                <stop offset="88%" stop-color="#7e22ce"/>
-                                <stop offset="100%" stop-color="#4c1d95"/>
+                                <stop offset="0%" stop-color="#fff5ec"/>
+                                <stop offset="14%" stop-color="#f7d9c2"/>
+                                <stop offset="32%" stop-color="#e3b39a"/>
+                                <stop offset="52%" stop-color="#c08c75"/>
+                                <stop offset="72%" stop-color="#8e604b"/>
+                                <stop offset="90%" stop-color="#5b3a2a"/>
+                                <stop offset="100%" stop-color="#3a2517"/>
                             </linearGradient>
-                            <!-- Strand outline glow -->
+                            <!-- Strand outline — deep umber rim -->
                             <linearGradient id="strandOuter" x1="0%" y1="0%" x2="0%" y2="100%">
-                                <stop offset="0%" stop-color="#e0b3ff"/>
-                                <stop offset="50%" stop-color="#a855f7"/>
-                                <stop offset="100%" stop-color="#5b21b6"/>
+                                <stop offset="0%" stop-color="#9a6d54"/>
+                                <stop offset="55%" stop-color="#5b3a2a"/>
+                                <stop offset="100%" stop-color="#2a1810"/>
                             </linearGradient>
                             <!-- Specular shine along the strand top -->
                             <linearGradient id="strandShine" x1="0%" y1="0%" x2="0%" y2="100%">
                                 <stop offset="0%" stop-color="#ffffff" stop-opacity="1"/>
-                                <stop offset="40%" stop-color="#ffffff" stop-opacity="0.55"/>
-                                <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+                                <stop offset="40%" stop-color="#fff5ec" stop-opacity="0.55"/>
+                                <stop offset="100%" stop-color="#fff5ec" stop-opacity="0"/>
                             </linearGradient>
-                            <!-- Rung gradient (vertical) — brighter centers, deeper edges -->
+                            <!-- Rung gradient — earthy with light centers -->
                             <linearGradient id="rungGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                                <stop offset="0%" stop-color="#ffe9ff" stop-opacity="1"/>
-                                <stop offset="30%" stop-color="#f0c4ff" stop-opacity="0.95"/>
-                                <stop offset="55%" stop-color="#c084fc" stop-opacity="0.85"/>
-                                <stop offset="80%" stop-color="#9333ea" stop-opacity="0.65"/>
-                                <stop offset="100%" stop-color="#5b21b6" stop-opacity="0.4"/>
+                                <stop offset="0%" stop-color="#fde6d2" stop-opacity="1"/>
+                                <stop offset="30%" stop-color="#e3b39a" stop-opacity="0.95"/>
+                                <stop offset="55%" stop-color="#a07560" stop-opacity="0.9"/>
+                                <stop offset="80%" stop-color="#6b4530" stop-opacity="0.7"/>
+                                <stop offset="100%" stop-color="#3a2517" stop-opacity="0.45"/>
                             </linearGradient>
-                            <!-- Base-pair atom: radial sphere -->
+                            <!-- Base-pair atom: bone-cream sphere -->
                             <radialGradient id="atomGrad" cx="35%" cy="35%" r="65%">
                                 <stop offset="0%" stop-color="#ffffff" stop-opacity="1"/>
-                                <stop offset="35%" stop-color="#f8d4ff" stop-opacity="1"/>
-                                <stop offset="70%" stop-color="#c084fc" stop-opacity="0.95"/>
-                                <stop offset="100%" stop-color="#7c3aed" stop-opacity="0.6"/>
+                                <stop offset="35%" stop-color="#fde6d2" stop-opacity="1"/>
+                                <stop offset="70%" stop-color="#c08c75" stop-opacity="0.95"/>
+                                <stop offset="100%" stop-color="#6b4530" stop-opacity="0.6"/>
                             </radialGradient>
-                            <!-- Background nebula — richer multi-stop core -->
+                            <!-- Background ambience — warm rosy halo -->
                             <radialGradient id="nebulaGrad" cx="50%" cy="55%">
-                                <stop offset="0%" stop-color="#c084fc" stop-opacity="0.65"/>
-                                <stop offset="22%" stop-color="#9333ea" stop-opacity="0.45"/>
-                                <stop offset="50%" stop-color="#6b21a8" stop-opacity="0.22"/>
-                                <stop offset="80%" stop-color="#4c1d95" stop-opacity="0.08"/>
+                                <stop offset="0%" stop-color="#e3b39a" stop-opacity="0.55"/>
+                                <stop offset="25%" stop-color="#a07560" stop-opacity="0.35"/>
+                                <stop offset="55%" stop-color="#6b4530" stop-opacity="0.18"/>
+                                <stop offset="85%" stop-color="#2a1810" stop-opacity="0.06"/>
                                 <stop offset="100%" stop-color="#000" stop-opacity="0"/>
                             </radialGradient>
                             <!-- Inner core glow (tight, intense) -->
@@ -1749,12 +1748,9 @@
                             </filter>
                         </defs>
 
-                        <!-- Rotate entire helix 90° to vertical orientation -->
-                        <g transform="translate(280 0) rotate(90)">
-
                         <!-- Background nebula glow -->
                         <ellipse cx="250" cy="150" rx="240" ry="60" fill="url(#nebulaGrad)"/>
-                        <ellipse cx="250" cy="170" rx="210" ry="25" fill="#7c3aed" opacity="0.2" filter="url(#dnaGlow)"/>
+                        <ellipse cx="250" cy="170" rx="210" ry="25" fill="#8e604b" opacity="0.22" filter="url(#dnaGlow)"/>
                         
                         <!-- Background sparkles (twinkling stars) -->
                         <g class="dna-sparkles">
@@ -1762,42 +1758,42 @@
                             <circle cx="134" cy="85" r="0.8" fill="#fff" opacity="0.71"/>
                             <circle cx="322" cy="158" r="0.8" fill="#fff" opacity="0.32"/>
                             <circle cx="139" cy="179" r="2.0" fill="#fff" opacity="0.32"/>
-                            <circle cx="386" cy="216" r="2.0" fill="#f8d4ff" opacity="0.55"/>
+                            <circle cx="386" cy="216" r="2.0" fill="#fde6d2" opacity="0.55"/>
                             <circle cx="321" cy="121" r="0.8" fill="#fff" opacity="0.76"/>
                             <circle cx="377" cy="158" r="1.2" fill="#fff" opacity="0.47"/>
                             <circle cx="410" cy="136" r="0.8" fill="#fff" opacity="0.36"/>
                             <circle cx="203" cy="138" r="2.0" fill="#fff" opacity="0.46"/>
-                            <circle cx="393" cy="167" r="2.0" fill="#f8d4ff" opacity="0.37"/>
-                            <circle cx="60" cy="191" r="1.2" fill="#e9b8ff" opacity="0.80"/>
+                            <circle cx="393" cy="167" r="2.0" fill="#fde6d2" opacity="0.37"/>
+                            <circle cx="60" cy="191" r="1.2" fill="#f7c9a9" opacity="0.80"/>
                             <circle cx="315" cy="99" r="0.8" fill="#fff" opacity="0.33"/>
                             <circle cx="415" cy="124" r="0.8" fill="#fff" opacity="0.81"/>
-                            <circle cx="214" cy="121" r="1.5" fill="#e9b8ff" opacity="0.68"/>
-                            <circle cx="103" cy="144" r="1.2" fill="#e9b8ff" opacity="0.43"/>
+                            <circle cx="214" cy="121" r="1.5" fill="#f7c9a9" opacity="0.68"/>
+                            <circle cx="103" cy="144" r="1.2" fill="#f7c9a9" opacity="0.43"/>
                             <circle cx="379" cy="224" r="0.8" fill="#fff" opacity="0.67"/>
-                            <circle cx="293" cy="236" r="1.0" fill="#f8d4ff" opacity="0.40"/>
-                            <circle cx="158" cy="213" r="2.0" fill="#e9b8ff" opacity="0.43"/>
+                            <circle cx="293" cy="236" r="1.0" fill="#fde6d2" opacity="0.40"/>
+                            <circle cx="158" cy="213" r="2.0" fill="#f7c9a9" opacity="0.43"/>
                             <circle cx="451" cy="246" r="0.8" fill="#fff" opacity="0.44"/>
                             <circle cx="432" cy="130" r="1.5" fill="#fff" opacity="0.46"/>
-                            <circle cx="310" cy="233" r="1.2" fill="#f8d4ff" opacity="0.43"/>
+                            <circle cx="310" cy="233" r="1.2" fill="#fde6d2" opacity="0.43"/>
                             <circle cx="222" cy="214" r="1.5" fill="#fff" opacity="0.39"/>
-                            <circle cx="146" cy="240" r="2.0" fill="#f8d4ff" opacity="0.62"/>
+                            <circle cx="146" cy="240" r="2.0" fill="#fde6d2" opacity="0.62"/>
                             <circle cx="479" cy="199" r="1.5" fill="#fff" opacity="0.52"/>
                             <circle cx="280" cy="176" r="0.8" fill="#fff" opacity="0.75"/>
-                            <circle cx="98" cy="210" r="1.0" fill="#f8d4ff" opacity="0.78"/>
-                            <circle cx="325" cy="66" r="1.5" fill="#f8d4ff" opacity="0.53"/>
+                            <circle cx="98" cy="210" r="1.0" fill="#fde6d2" opacity="0.78"/>
+                            <circle cx="325" cy="66" r="1.5" fill="#fde6d2" opacity="0.53"/>
                             <circle cx="290" cy="114" r="2.0" fill="#fff" opacity="0.82"/>
-                            <circle cx="368" cy="234" r="0.8" fill="#e9b8ff" opacity="0.71"/>
-                            <circle cx="413" cy="214" r="1.2" fill="#f8d4ff" opacity="0.37"/>
-                            <circle cx="100" cy="166" r="0.8" fill="#e9b8ff" opacity="0.87"/>
+                            <circle cx="368" cy="234" r="0.8" fill="#f7c9a9" opacity="0.71"/>
+                            <circle cx="413" cy="214" r="1.2" fill="#fde6d2" opacity="0.37"/>
+                            <circle cx="100" cy="166" r="0.8" fill="#f7c9a9" opacity="0.87"/>
                             <circle cx="276" cy="245" r="1.0" fill="#fff" opacity="0.60"/>
                             <circle cx="465" cy="210" r="1.2" fill="#fff" opacity="0.81"/>
                             <circle cx="98" cy="145" r="1.0" fill="#fff" opacity="0.62"/>
-                            <circle cx="326" cy="132" r="1.5" fill="#e9b8ff" opacity="0.31"/>
+                            <circle cx="326" cy="132" r="1.5" fill="#f7c9a9" opacity="0.31"/>
                             <circle cx="469" cy="128" r="1.0" fill="#fff" opacity="0.33"/>
                             <circle cx="63" cy="237" r="1.5" fill="#fff" opacity="0.79"/>
                             <circle cx="85" cy="218" r="1.5" fill="#fff" opacity="0.87"/>
                             <circle cx="155" cy="185" r="2.0" fill="#fff" opacity="0.55"/>
-                            <circle cx="296" cy="243" r="1.0" fill="#f8d4ff" opacity="0.73"/>
+                            <circle cx="296" cy="243" r="1.0" fill="#fde6d2" opacity="0.73"/>
                         </g>
                         
                         <!-- BACK rungs (drawn first) -->
@@ -1933,7 +1929,6 @@
                             <ellipse cx="357.5" cy="102.0" rx="8" ry="2.5" fill="#ffffff" opacity="0.5"/>
                             <ellipse cx="412.5" cy="178.0" rx="8" ry="2.5" fill="#f0c4ff" opacity="0.35"/>
                             <ellipse cx="467.5" cy="102.0" rx="8" ry="2.5" fill="#ffffff" opacity="0.5"/>
-                        </g>
                         </g>
                     </svg>
                 </div>
