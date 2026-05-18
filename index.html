@@ -1466,6 +1466,170 @@
             margin-top: 0;
         }
 
+        /* Progress bar showing growth toward next virus level */
+        .virus-level-progress {
+            width: 160px;
+            height: 4px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 2px;
+            overflow: hidden;
+            margin: 6px auto 0;
+        }
+
+        .virus-level-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-green), #16a34a);
+            box-shadow: 0 0 8px rgba(0, 255, 159, 0.45);
+            transition: width 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        /* Ability tabs (Заразность / Тяжесть / Летальность) */
+        .ability-tabs {
+            display: flex;
+            gap: 4px;
+            width: 100%;
+            max-width: 420px;
+            margin: 0 auto 12px;
+            padding: 0 10px;
+        }
+
+        .ability-tab {
+            flex: 1;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.08);
+            color: var(--text-secondary);
+            font-family: inherit;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            padding: 8px 4px;
+            cursor: pointer;
+            transition: color 0.2s, border-color 0.2s;
+            -webkit-tap-highlight-color: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .ability-tab .tab-icon { font-size: 14px; }
+
+        .ability-tab[data-tab="infectivity"].active { color: #4ade80; border-bottom-color: #4ade80; }
+        .ability-tab[data-tab="severity"].active    { color: #fbbf24; border-bottom-color: #fbbf24; }
+        .ability-tab[data-tab="lethality"].active   { color: #f87171; border-bottom-color: #f87171; }
+
+        /* Ability card grid */
+        .ability-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            padding: 0 10px;
+            width: 100%;
+            max-width: 420px;
+            margin: 0 auto;
+        }
+
+        .ability-card {
+            background: rgba(20, 28, 40, 0.78);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.15s ease, opacity 0.2s, border-color 0.2s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .ability-card:active { transform: scale(0.96); }
+        .ability-card.disabled { opacity: 0.55; }
+        .ability-card.maxed   { border-color: rgba(0, 255, 159, 0.55); }
+        .ability-card.shake   { animation: upgrade-shake 0.35s ease-in-out; }
+
+        .card-image {
+            position: relative;
+            height: 96px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .ability-card.infectivity-card .card-image {
+            background:
+                radial-gradient(circle at 50% 65%, rgba(74, 222, 128, 0.4), transparent 70%),
+                linear-gradient(180deg, rgba(15, 35, 25, 0.7), rgba(8, 22, 14, 0.9));
+        }
+        .ability-card.severity-card .card-image {
+            background:
+                radial-gradient(circle at 50% 65%, rgba(251, 191, 36, 0.36), transparent 70%),
+                linear-gradient(180deg, rgba(50, 38, 12, 0.7), rgba(25, 18, 6, 0.9));
+        }
+        .ability-card.lethality-card .card-image {
+            background:
+                radial-gradient(circle at 50% 65%, rgba(248, 113, 113, 0.36), transparent 70%),
+                linear-gradient(180deg, rgba(45, 18, 18, 0.7), rgba(22, 8, 8, 0.9));
+        }
+
+        .card-icon {
+            font-size: 54px;
+            line-height: 1;
+            filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.7));
+        }
+
+        .card-cost-overlay {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            background: rgba(168, 85, 247, 0.9);
+            color: #fff;
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 8px;
+            white-space: nowrap;
+        }
+        .card-cost-overlay.maxed {
+            background: rgba(0, 255, 159, 0.9);
+            color: #042418;
+        }
+
+        .card-info {
+            padding: 8px 10px 10px;
+            text-align: center;
+        }
+        .card-name {
+            color: #fff;
+            font-size: 12px;
+            font-weight: 700;
+            line-height: 1.25;
+            min-height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .card-level {
+            color: var(--text-secondary);
+            font-size: 10px;
+            margin: 2px 0 6px;
+            font-family: 'Space Mono', monospace;
+        }
+        .card-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(0, 0, 0, 0.45);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .card-fill {
+            height: 100%;
+            border-radius: 2px;
+            transition: width 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .ability-card.infectivity-card .card-fill { background: linear-gradient(90deg, #4ade80, #16a34a); }
+        .ability-card.severity-card    .card-fill { background: linear-gradient(90deg, #fbbf24, #d97706); }
+        .ability-card.lethality-card   .card-fill { background: linear-gradient(90deg, #f87171, #b91c1c); }
+
 
         /* Upgrades */
         .upgrades-section {
@@ -2148,6 +2312,9 @@
             <div class="virus-header">
                 <h2 class="virus-title">Твой вирус</h2>
                 <div class="virus-level-badge">УРОВЕНЬ <span id="virusLevel">1</span></div>
+                <div class="virus-level-progress" aria-hidden="true">
+                    <div class="virus-level-fill" id="virusLevelFill" style="width: 0%"></div>
+                </div>
             </div>
 
             <div class="virus-character-container">
@@ -2179,10 +2346,19 @@
                 </div>
             </div>
 
-            <div class="upgrades-section">
-                <div class="section-title">Улучшения</div>
-                <div class="upgrades-list" id="upgradesList"></div>
+            <div class="ability-tabs" id="abilityTabs">
+                <button class="ability-tab active" data-tab="infectivity">
+                    <span class="tab-icon">🦠</span><span class="tab-text">Заразность</span>
+                </button>
+                <button class="ability-tab" data-tab="severity">
+                    <span class="tab-icon">🤒</span><span class="tab-text">Тяжесть</span>
+                </button>
+                <button class="ability-tab" data-tab="lethality">
+                    <span class="tab-icon">💀</span><span class="tab-text">Летальность</span>
+                </button>
             </div>
+
+            <div class="ability-grid" id="abilityGrid"></div>
         </div>
 
         <!-- Bottom Navigation -->
@@ -2227,15 +2403,31 @@
                 // Virus progression
                 this.virusLevel = 1;
                 this.virusStats = { infectivity: 10, severity: 5, lethality: 1 };
-                this.upgradeCounts = { infect: 0, severity: 0, lethal: 0 };
-                this.upgradeOptions = [
-                    { id: 'infect',   name: 'Заразность',  icon: '🦠', baseCost: 20,
-                      effects: { infectivity: 6, severity: 2, lethality: 0 } },
-                    { id: 'severity', name: 'Тяжесть',     icon: '🤒', baseCost: 30,
-                      effects: { infectivity: 1, severity: 6, lethality: 2 } },
-                    { id: 'lethal',   name: 'Летальность', icon: '💀', baseCost: 50,
-                      effects: { infectivity: 0, severity: 2, lethality: 5 } }
-                ];
+
+                // Ability cards organised by tab. Each tap on a card spends DNA,
+                // raises its own level, and applies its `effect` to the stats.
+                this.activeAbilityTab = 'infectivity';
+                this.abilityLevels = {};
+                this.abilityCards = {
+                    infectivity: [
+                        { id: 'air',     name: 'Аэрозоль',      icon: '💨', max: 8, baseCost: 15, effect: { infectivity: 5 } },
+                        { id: 'water',   name: 'Водный путь',   icon: '💧', max: 8, baseCost: 22, effect: { infectivity: 6 } },
+                        { id: 'contact', name: 'Контакт',       icon: '🤝', max: 8, baseCost: 12, effect: { infectivity: 4 } },
+                        { id: 'insect',  name: 'Переносчики',   icon: '🦟', max: 6, baseCost: 30, effect: { infectivity: 6, severity: 1 } }
+                    ],
+                    severity: [
+                        { id: 'fever',   name: 'Лихорадка',     icon: '🤒', max: 8, baseCost: 18, effect: { severity: 5 } },
+                        { id: 'cough',   name: 'Кашель',        icon: '🤧', max: 8, baseCost: 20, effect: { severity: 4, infectivity: 2 } },
+                        { id: 'headache',name: 'Мигрень',       icon: '😵', max: 6, baseCost: 28, effect: { severity: 5 } },
+                        { id: 'nausea',  name: 'Тошнота',       icon: '🤮', max: 6, baseCost: 24, effect: { severity: 4 } }
+                    ],
+                    lethality: [
+                        { id: 'bleed',   name: 'Кровотечение',  icon: '🩸', max: 6, baseCost: 35, effect: { lethality: 5 } },
+                        { id: 'organ',   name: 'Орг. недост.',  icon: '☠️', max: 5, baseCost: 70, effect: { lethality: 7, severity: 2 } },
+                        { id: 'cardiac', name: 'Тахикардия',    icon: '🫀', max: 6, baseCost: 45, effect: { lethality: 6 } },
+                        { id: 'brain',   name: 'Энцефалит',     icon: '🧠', max: 5, baseCost: 55, effect: { lethality: 5, severity: 3 } }
+                    ]
+                };
 
                 // Spread (transmission) upgrades — each pick lets the player
                 // infect one new region by tapping the map
@@ -2332,43 +2524,111 @@
                 }, 8500);
             }
 
-            getUpgradeCost(id) {
-                const u = this.upgradeOptions.find(o => o.id === id);
-                const count = this.upgradeCounts[id] || 0;
-                return Math.floor(u.baseCost * Math.pow(1.55, count));
+            getCardCost(card) {
+                const level = this.abilityLevels[card.id] || 0;
+                return Math.floor(card.baseCost * Math.pow(1.5, level));
             }
 
-            purchaseUpgrade(id) {
-                const cost = this.getUpgradeCost(id);
+            getTotalAbilityLevels() {
+                return Object.values(this.abilityLevels).reduce((a, b) => a + b, 0);
+            }
+
+            switchAbilityTab(tab) {
+                if (this.activeAbilityTab === tab) return;
+                this.activeAbilityTab = tab;
+                document.querySelectorAll('.ability-tab').forEach(t => {
+                    t.classList.toggle('active', t.dataset.tab === tab);
+                });
+                this.renderAbilityGrid();
+            }
+
+            findCardById(id) {
+                for (const list of Object.values(this.abilityCards)) {
+                    const found = list.find(c => c.id === id);
+                    if (found) return found;
+                }
+                return null;
+            }
+
+            upgradeCard(cardData) {
+                const level = this.abilityLevels[cardData.id] || 0;
+                if (level >= cardData.max) return;
+                const cost = this.getCardCost(cardData);
                 if (this.dnaPoints < cost) {
-                    const card = document.querySelector(`.upgrade-card[data-id="${id}"]`);
-                    if (card) {
-                        card.classList.add('shake');
-                        setTimeout(() => card.classList.remove('shake'), 400);
+                    const el = document.querySelector(`.ability-card[data-id="${cardData.id}"]`);
+                    if (el) {
+                        el.classList.add('shake');
+                        setTimeout(() => el.classList.remove('shake'), 400);
                     }
                     return;
                 }
                 this.dnaPoints -= cost;
-                const u = this.upgradeOptions.find(o => o.id === id);
-                Object.entries(u.effects).forEach(([stat, delta]) => {
+                this.abilityLevels[cardData.id] = level + 1;
+                Object.entries(cardData.effect).forEach(([stat, delta]) => {
                     this.virusStats[stat] = Math.min(100, this.virusStats[stat] + delta);
                 });
-                this.upgradeCounts[id] = (this.upgradeCounts[id] || 0) + 1;
-                const total = Object.values(this.upgradeCounts).reduce((a, b) => a + b, 0);
-                this.virusLevel = Math.floor(total / 3) + 1;
                 this.updateDNACounter();
                 this.renderVirusScreen();
+            }
+
+            renderAbilityGrid() {
+                const grid = document.getElementById('abilityGrid');
+                if (!grid) return;
+                grid.innerHTML = '';
+                const tab = this.activeAbilityTab;
+                const cards = this.abilityCards[tab] || [];
+                cards.forEach(card => {
+                    const level = this.abilityLevels[card.id] || 0;
+                    const maxed = level >= card.max;
+                    const cost  = maxed ? 0 : this.getCardCost(card);
+                    const affordable = !maxed && this.dnaPoints >= cost;
+                    const pct = (level / card.max) * 100;
+
+                    const el = document.createElement('div');
+                    el.className = `ability-card ${tab}-card`;
+                    el.dataset.id = card.id;
+                    if (maxed) el.classList.add('maxed');
+                    else if (!affordable) el.classList.add('disabled');
+
+                    const costBadge = maxed
+                        ? '<span class="card-cost-overlay maxed">MAX</span>'
+                        : `<span class="card-cost-overlay">🧬 ${cost}</span>`;
+
+                    el.innerHTML =
+                        '<div class="card-image">' +
+                            costBadge +
+                            `<div class="card-icon">${card.icon}</div>` +
+                        '</div>' +
+                        '<div class="card-info">' +
+                            `<div class="card-name">${card.name}</div>` +
+                            `<div class="card-level">Ур. ${level}</div>` +
+                            `<div class="card-bar"><div class="card-fill" style="width: ${pct}%"></div></div>` +
+                        '</div>';
+                    grid.appendChild(el);
+                    if (!maxed) this.tap(el, () => this.upgradeCard(card));
+                });
+            }
+
+            updateVirusLevelProgress() {
+                const total = this.getTotalAbilityLevels();
+                const PER_LEVEL = 4;
+                this.virusLevel = Math.floor(total / PER_LEVEL) + 1;
+                const lvl = document.getElementById('virusLevel');
+                if (lvl) lvl.textContent = this.virusLevel;
+                const pct = ((total % PER_LEVEL) / PER_LEVEL) * 100;
+                const fill = document.getElementById('virusLevelFill');
+                if (fill) fill.style.width = pct + '%';
             }
 
             renderVirusScreen() {
                 const lvl = document.getElementById('virusLevel');
                 if (!lvl) return;
-                lvl.textContent = this.virusLevel;
+                this.updateVirusLevelProgress();
                 const s = this.virusStats;
                 document.getElementById('statInfectivity').textContent = s.infectivity + '%';
                 document.getElementById('statSeverity').textContent = s.severity + '%';
                 document.getElementById('statLethality').textContent = s.lethality + '%';
-                this.renderUpgradesList();
+                this.renderAbilityGrid();
                 this.renderSpreadList();
             }
 
@@ -2392,33 +2652,6 @@
                         `<div class="spread-cost">🧬 ${cost}</div>`;
                     list.appendChild(card);
                     this.tap(card, () => this.purchaseSpread(o.id));
-                });
-            }
-
-            renderUpgradesList() {
-                const list = document.getElementById('upgradesList');
-                if (!list) return;
-                list.innerHTML = '';
-                this.upgradeOptions.forEach(u => {
-                    const cost = this.getUpgradeCost(u.id);
-                    const affordable = this.dnaPoints >= cost;
-                    const card = document.createElement('div');
-                    card.className = 'upgrade-card' + (affordable ? '' : ' disabled');
-                    card.dataset.id = u.id;
-                    const e = u.effects;
-                    card.innerHTML =
-                        `<div class="upgrade-icon">${u.icon}</div>` +
-                        `<div class="upgrade-info">` +
-                            `<div class="upgrade-name">${u.name}</div>` +
-                            `<div class="upgrade-effects">` +
-                                `<span class="eff inf">+${e.infectivity}%</span>` +
-                                `<span class="eff sev">+${e.severity}%</span>` +
-                                `<span class="eff let">+${e.lethality}%</span>` +
-                            `</div>` +
-                        `</div>` +
-                        `<div class="upgrade-cost">🧬 ${cost}</div>`;
-                    list.appendChild(card);
-                    this.tap(card, () => this.purchaseUpgrade(u.id));
                 });
             }
 
@@ -2473,6 +2706,11 @@
                 // Confirm button
                 const confirm = document.getElementById('confirmContinent');
                 if (confirm) this.tap(confirm, () => this.confirmContinent());
+
+                // Ability tabs on the virus screen
+                document.querySelectorAll('.ability-tab').forEach(tab => {
+                    this.tap(tab, () => this.switchAbilityTab(tab.dataset.tab));
+                });
             }
 
             switchScreen(id) {
@@ -2897,8 +3135,8 @@
             
             updateDNACounter() {
                 document.getElementById('dnaCount').textContent = this.dnaPoints;
-                // Refresh affordability of upgrade + spread cards
-                this.renderUpgradesList();
+                // Refresh affordability of ability + spread cards
+                this.renderAbilityGrid();
                 this.renderSpreadList();
             }
         }
