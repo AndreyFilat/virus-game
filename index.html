@@ -845,11 +845,19 @@
         
         /* World Map Screen with embedded image */
         .world-map-screen {
-            padding: 44px 0 68px;
+            padding: 44px 0 76px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
+            overflow-y: auto;
+        }
+
+        .world-map-screen .spread-section {
+            width: 100%;
+            max-width: 420px;
+            padding: 0 12px;
+            margin-top: 10px;
         }
 
         .world-map-title {
@@ -1236,7 +1244,8 @@
         }
 
         body.selecting .world-map-title,
-        body.selecting .world-map-stats {
+        body.selecting .world-map-stats,
+        body.selecting .world-map-screen .spread-section {
             display: none;
         }
 
@@ -1440,21 +1449,21 @@
 
         .virus-header {
             text-align: center;
-            margin-bottom: 12px;
+            margin-bottom: 4px;
         }
 
         .virus-level-badge {
             display: inline-block;
-            padding: 4px 14px;
+            padding: 3px 12px;
             background: rgba(0, 255, 159, 0.15);
             border: 1px solid rgba(0, 255, 159, 0.45);
             color: var(--accent-green);
             font-family: 'Space Mono', monospace;
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 700;
             letter-spacing: 2px;
             border-radius: 10px;
-            margin-top: 6px;
+            margin-top: 0;
         }
 
 
@@ -1702,11 +1711,12 @@
         
         .virus-title {
             font-family: 'Space Mono', monospace;
-            font-size: 24px;
+            font-size: 22px;
             font-weight: 700;
-            margin-bottom: 30px;
+            margin: 0 0 2px;
             color: #ffffff;
             text-align: center;
+            line-height: 1.1;
         }
         
         /* Virus character container — stats column on the left, helix on the right */
@@ -2090,6 +2100,11 @@
                 </div>
             </div>
 
+            <div class="upgrades-section spread-section" id="mapSpreadSection">
+                <div class="section-title">Распространение</div>
+                <div class="upgrades-list" id="spreadList"></div>
+            </div>
+
             <!-- DNA helix shown during placement flow -->
             <div class="map-helix-slot" id="mapHelixSlot"></div>
             <div class="virus-created-label" id="virusCreatedLabel">Вирус создан</div>
@@ -2167,11 +2182,6 @@
             <div class="upgrades-section">
                 <div class="section-title">Улучшения</div>
                 <div class="upgrades-list" id="upgradesList"></div>
-            </div>
-
-            <div class="upgrades-section spread-section">
-                <div class="section-title">Распространение</div>
-                <div class="upgrades-list" id="spreadList"></div>
             </div>
         </div>
 
@@ -2619,6 +2629,7 @@
                     Math.max(this.continents[id].infectionLevel, level);
                 this.renderInfections();
                 this.updateMapStats();
+                this.renderSpreadList();
                 this.startInfectionGrowth();
             }
 
@@ -2823,12 +2834,12 @@
                     // Floating bubbles vanish right after the burst
                     setTimeout(() => { if (bubble.parentNode) bubble.remove(); }, 460);
                 } else {
-                    // Fixed tutorial bubbles regenerate
+                    // Fixed tutorial bubbles regenerate after all effects finish
                     setTimeout(() => {
                         if (this.tutorialCompleting) return;
                         bubble.dataset.dna = Math.floor(Math.random() * 10) + 8;
                         bubble.classList.remove('popping');
-                    }, 1100);
+                    }, 1500);
                 }
             }
 
