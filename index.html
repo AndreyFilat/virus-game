@@ -1840,6 +1840,116 @@
             background: rgba(255, 51, 102, 0.08);
         }
 
+        /* Invite-locked spread card */
+        .spread-card.locked .spread-icon { opacity: 0.55; filter: grayscale(0.55); }
+        .spread-card.locked .spread-name { color: var(--text-secondary); }
+        .spread-card .spread-cost.invite-cost {
+            background: rgba(0, 255, 159, 0.15);
+            border-color: rgba(0, 255, 159, 0.45);
+            color: var(--accent-green);
+        }
+        .spread-card .spread-cost.ready-cost {
+            background: rgba(0, 255, 159, 0.2);
+            border-color: rgba(0, 255, 159, 0.6);
+            color: var(--accent-green);
+        }
+
+        /* Invite modal */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(6px);
+            z-index: 400;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.28s ease;
+            padding: 20px;
+        }
+        .modal-backdrop[hidden] { display: none; }
+        .modal-backdrop.open    { opacity: 1; }
+
+        .modal {
+            width: 100%;
+            max-width: 340px;
+            background:
+                radial-gradient(ellipse at 50% 0%, rgba(0, 255, 159, 0.18), transparent 60%),
+                linear-gradient(160deg, rgba(36, 49, 66, 0.98), rgba(15, 20, 30, 0.98));
+            border: 1px solid rgba(0, 255, 159, 0.35);
+            border-radius: 20px;
+            padding: 24px 22px 18px;
+            text-align: center;
+            box-shadow:
+                0 30px 80px rgba(0, 0, 0, 0.6),
+                0 0 50px rgba(0, 255, 159, 0.2);
+            transform: scale(0.9);
+            transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .modal-backdrop.open .modal { transform: scale(1); }
+
+        .modal-icon {
+            font-size: 42px;
+            line-height: 1;
+            margin-bottom: 8px;
+            filter: drop-shadow(0 4px 12px rgba(0, 255, 159, 0.4));
+        }
+        .modal-title {
+            font-family: 'Space Mono', monospace;
+            font-size: 17px;
+            color: var(--accent-green);
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        .modal-text {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin-bottom: 14px;
+        }
+        .modal-link {
+            background: rgba(0, 0, 0, 0.45);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #c084fc;
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            padding: 8px 10px;
+            border-radius: 10px;
+            margin-bottom: 14px;
+            word-break: break-all;
+        }
+        .modal-btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            border: 1px solid transparent;
+            border-radius: 12px;
+            font-family: inherit;
+            font-weight: 700;
+            font-size: 13px;
+            letter-spacing: 1px;
+            cursor: pointer;
+            margin-bottom: 8px;
+            transition: transform 0.15s, opacity 0.2s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .modal-btn:active { transform: scale(0.97); }
+        .modal-btn.primary {
+            background: linear-gradient(135deg, var(--accent-green), #00d97f);
+            color: #042418;
+            text-transform: uppercase;
+            box-shadow: 0 6px 20px rgba(0, 255, 159, 0.35);
+        }
+        .modal-btn.ghost {
+            background: transparent;
+            color: var(--text-secondary);
+            border-color: var(--border);
+            margin-bottom: 0;
+        }
+
         /* Infected continent overlay — visible all the time on the map */
         .continents-overlay {
             opacity: 1 !important;          /* keep visible to show infections */
@@ -1865,8 +1975,9 @@
             50%      { filter: drop-shadow(0 0 14px rgba(255, 100, 70, 0.75)); }
         }
 
-        /* During picker mode, non-infected continents light up as tappable */
-        .world-map-wrapper.selecting .continent-zone:not(.infected) {
+        /* During picker mode, only continents marked .valid-target light up.
+           Non-valid uninfected zones stay subtle and non-tappable. */
+        .world-map-wrapper.selecting .continent-zone.valid-target:not(.infected) {
             fill: rgba(255, 255, 255, 0.06);
             stroke: rgba(255, 255, 255, 0.75);
             stroke-dasharray: 10 8;
@@ -2405,6 +2516,22 @@
             <div class="ability-grid" id="abilityGrid"></div>
         </div>
 
+        <!-- Invite-a-friend modal for invite-locked spread methods -->
+        <div class="modal-backdrop" id="inviteModal" hidden>
+            <div class="modal" role="dialog">
+                <div class="modal-icon">👥</div>
+                <div class="modal-title">Пригласи друга</div>
+                <div class="modal-text">
+                    «<span id="inviteMethodName"></span>» открывается за приглашение друга.
+                    Поделись ссылкой ниже — после того как друг присоединится,
+                    способ станет доступен.
+                </div>
+                <div class="modal-link" id="inviteLink">…</div>
+                <button class="modal-btn primary" id="modalShareBtn">Поделиться ссылкой</button>
+                <button class="modal-btn ghost"   id="modalCloseBtn">Закрыть</button>
+            </div>
+        </div>
+
         <!-- Bottom Navigation -->
         <nav class="bottom-nav">
             <button class="nav-btn" data-screen="worldMapScreen" id="navMap">
@@ -2640,14 +2767,30 @@
                 // infect one new region by tapping the map
                 this.spreadOptions = [
                     { id: 'air',  name: 'Авиасообщение',   icon: '🛫', baseCost: 60,
-                      description: 'Заразить регион через аэропорты' },
+                      description: 'Заразить регион через аэропорты',
+                      requiresInvite: true },
                     { id: 'sea',  name: 'Морской путь',    icon: '🚢', baseCost: 80,
-                      description: 'Передача через торговые суда' },
+                      description: 'Передача через торговые суда',
+                      requiresInvite: true },
                     { id: 'land', name: 'Сухопутный путь', icon: '🚛', baseCost: 100,
-                      description: 'Распространение через границы' }
+                      description: 'Только в соседние регионы',
+                      requiresNeighbor: true }
                 ];
                 this.spreadCounts = { air: 0, sea: 0, land: 0 };
+                this.unlockedSpreads = { air: 0, sea: 0 }; // invite-granted uses
+                this.pendingInvite = null;
+                this.inviteRef = this.getOrCreateInviteRef();
                 this.infectionGrowthTimer = null;
+
+                // Land adjacency between continents (simplified geopolitics)
+                this.landNeighbors = {
+                    'north-america': ['south-america'],
+                    'south-america': ['north-america'],
+                    'europe':        ['asia', 'africa'],
+                    'asia':          ['europe', 'africa'],
+                    'africa':        ['europe', 'asia'],
+                    'australia':     [] // isolated by sea
+                };
 
                 this.init();
             }
@@ -2843,22 +2986,45 @@
                 const list = document.getElementById('spreadList');
                 if (!list) return;
                 list.innerHTML = '';
-                const uninfected = Object.values(this.continents).filter(c => c.infectionLevel <= 0).length;
                 this.spreadOptions.forEach(o => {
-                    const cost = this.getSpreadCost(o.id);
-                    const affordable = this.dnaPoints >= cost && uninfected > 0;
                     const card = document.createElement('div');
-                    card.className = 'spread-card' + (affordable ? '' : ' disabled');
+                    card.className = 'spread-card';
                     card.dataset.id = o.id;
+
+                    const validCount = this.getValidTargets(o.id).size;
+                    const cost = this.getSpreadCost(o.id);
+                    let costHTML;
+                    let locked = false;
+
+                    if (o.requiresInvite) {
+                        const uses = this.unlockedSpreads[o.id] || 0;
+                        if (uses <= 0) {
+                            locked = true;
+                            card.classList.add('locked');
+                            costHTML = '<div class="spread-cost invite-cost">👥 Пригласить</div>';
+                        } else {
+                            const disabled = validCount === 0;
+                            if (disabled) card.classList.add('disabled');
+                            costHTML = `<div class="spread-cost ready-cost">🚀 ×${uses}</div>`;
+                        }
+                    } else {
+                        const affordable = this.dnaPoints >= cost && validCount > 0;
+                        if (!affordable) card.classList.add('disabled');
+                        costHTML = `<div class="spread-cost">🧬 ${cost}</div>`;
+                    }
+
                     card.innerHTML =
                         `<div class="spread-icon">${o.icon}</div>` +
                         `<div class="spread-info">` +
                             `<div class="spread-name">${o.name}</div>` +
                             `<div class="spread-desc">${o.description}</div>` +
                         `</div>` +
-                        `<div class="spread-cost">🧬 ${cost}</div>`;
+                        costHTML;
                     list.appendChild(card);
-                    this.tap(card, () => this.purchaseSpread(o.id));
+                    this.tap(card, () => {
+                        if (locked) this.showInviteModal(o.id);
+                        else this.purchaseSpread(o.id);
+                    });
                 });
             }
 
@@ -2942,6 +3108,16 @@
                 document.querySelectorAll('.ability-tab').forEach(tab => {
                     this.tap(tab, () => this.switchAbilityTab(tab.dataset.tab));
                 });
+
+                // Invite modal buttons
+                const shareBtn = document.getElementById('modalShareBtn');
+                if (shareBtn) this.tap(shareBtn, () => this.shareInvite());
+                const closeBtn = document.getElementById('modalCloseBtn');
+                if (closeBtn) this.tap(closeBtn, () => this.closeInviteModal());
+                const inviteBackdrop = document.getElementById('inviteModal');
+                if (inviteBackdrop) inviteBackdrop.addEventListener('click', (e) => {
+                    if (e.target === inviteBackdrop) this.closeInviteModal();
+                });
             }
 
             switchScreen(id) {
@@ -2964,8 +3140,18 @@
             enterContinentPicker(mode) {
                 this.pickerMode = mode;
                 this.selectedContinent = null;
-                document.querySelectorAll('.continent-zone').forEach(c => c.classList.remove('selected'));
+                document.querySelectorAll('.continent-zone').forEach(c => {
+                    c.classList.remove('selected');
+                    c.classList.remove('valid-target');
+                });
                 document.getElementById('confirmContinent').classList.remove('visible');
+
+                // Mark only the continents that the current mode is allowed to hit
+                const valid = this.getValidTargets(mode === 'tutorial' ? 'any' : mode);
+                valid.forEach(id => {
+                    const z = document.querySelector(`.continent-zone[data-id="${id}"]`);
+                    if (z) z.classList.add('valid-target');
+                });
 
                 // Update prompt text
                 const title = document.querySelector('.selection-prompt .selection-title');
@@ -2976,7 +3162,10 @@
                 } else {
                     const opt = this.spreadOptions.find(o => o.id === mode);
                     if (title) title.textContent = (opt ? opt.name : 'Новое заражение');
-                    if (sub)   sub.textContent   = 'Выберите регион для заражения';
+                    if (sub) {
+                        if (mode === 'land') sub.textContent = 'Только соседи заражённых регионов';
+                        else                 sub.textContent = 'Выберите регион для заражения';
+                    }
                 }
 
                 this.switchScreen('worldMapScreen');
@@ -3003,7 +3192,8 @@
             }
 
             selectContinent(zone) {
-                if (zone.classList.contains('infected')) return;  // can't re-infect
+                if (zone.classList.contains('infected')) return;       // can't re-infect
+                if (!zone.classList.contains('valid-target')) return;  // not reachable in this mode
                 document.querySelectorAll('.continent-zone').forEach(c => c.classList.remove('selected'));
                 zone.classList.add('selected');
                 this.selectedContinent = zone.dataset.id;
@@ -3077,21 +3267,144 @@
                 return Math.floor(opt.baseCost * Math.pow(1.4, count));
             }
 
+            // Continents that are uninfected AND adjacent (by land) to at least
+            // one infected continent.
+            getLandTargets() {
+                const targets = new Set();
+                Object.entries(this.continents).forEach(([id, c]) => {
+                    if (c.infectionLevel <= 0) return;
+                    (this.landNeighbors[id] || []).forEach(n => {
+                        if (this.continents[n] && this.continents[n].infectionLevel <= 0) {
+                            targets.add(n);
+                        }
+                    });
+                });
+                return targets;
+            }
+
+            getValidTargets(mode) {
+                if (mode === 'land') return this.getLandTargets();
+                const out = new Set();
+                Object.entries(this.continents).forEach(([id, c]) => {
+                    if (c.infectionLevel <= 0) out.add(id);
+                });
+                return out;
+            }
+
+            shakeSpreadCard(id) {
+                const card = document.querySelector(`.spread-card[data-id="${id}"]`);
+                if (!card) return;
+                card.classList.add('shake');
+                setTimeout(() => card.classList.remove('shake'), 400);
+            }
+
             purchaseSpread(id) {
-                const cost = this.getSpreadCost(id);
-                const uninfected = Object.values(this.continents).filter(c => c.infectionLevel <= 0).length;
-                if (this.dnaPoints < cost || uninfected === 0) {
-                    const card = document.querySelector(`.spread-card[data-id="${id}"]`);
-                    if (card) {
-                        card.classList.add('shake');
-                        setTimeout(() => card.classList.remove('shake'), 400);
+                const opt = this.spreadOptions.find(o => o.id === id);
+                if (!opt) return;
+
+                // Invite-locked methods (air, sea) — consume an unlocked use
+                if (opt.requiresInvite) {
+                    if ((this.unlockedSpreads[id] || 0) <= 0) {
+                        this.showInviteModal(id);
+                        return;
                     }
+                    if (this.getValidTargets(id).size === 0) {
+                        this.shakeSpreadCard(id);
+                        return;
+                    }
+                    this.unlockedSpreads[id] -= 1;
+                    this.spreadCounts[id] = (this.spreadCounts[id] || 0) + 1;
+                    this.updateDNACounter();
+                    this.enterContinentPicker(id);
+                    return;
+                }
+
+                // Land — DNA cost AND must have a valid land-neighbour target
+                if (opt.requiresNeighbor) {
+                    if (this.getValidTargets(id).size === 0) {
+                        this.shakeSpreadCard(id);
+                        return;
+                    }
+                }
+                const cost = this.getSpreadCost(id);
+                if (this.dnaPoints < cost) {
+                    this.shakeSpreadCard(id);
                     return;
                 }
                 this.dnaPoints -= cost;
                 this.spreadCounts[id] = (this.spreadCounts[id] || 0) + 1;
                 this.updateDNACounter();
                 this.enterContinentPicker(id);
+            }
+
+            getOrCreateInviteRef() {
+                try {
+                    let ref = localStorage.getItem('inviteRef');
+                    if (!ref) {
+                        ref = Math.random().toString(36).slice(2, 9);
+                        localStorage.setItem('inviteRef', ref);
+                    }
+                    return ref;
+                } catch (e) {
+                    return Math.random().toString(36).slice(2, 9);
+                }
+            }
+
+            getInviteLink() {
+                const base = window.location.href.split('?')[0].split('#')[0];
+                return base + '?ref=' + this.inviteRef;
+            }
+
+            showInviteModal(methodId) {
+                this.pendingInvite = methodId;
+                const opt = this.spreadOptions.find(o => o.id === methodId);
+                const modal = document.getElementById('inviteModal');
+                if (!modal) return;
+                document.getElementById('inviteMethodName').textContent = opt ? opt.name : '';
+                document.getElementById('inviteLink').textContent = this.getInviteLink();
+                modal.hidden = false;
+                requestAnimationFrame(() => modal.classList.add('open'));
+            }
+
+            closeInviteModal() {
+                const modal = document.getElementById('inviteModal');
+                if (!modal) return;
+                modal.classList.remove('open');
+                setTimeout(() => { modal.hidden = true; }, 280);
+                this.pendingInvite = null;
+            }
+
+            async shareInvite() {
+                const link = this.getInviteLink();
+                const data = {
+                    title: 'Вирус — Эволюция',
+                    text: 'Помоги мне распространить вирус — присоединяйся!',
+                    url: link
+                };
+                let ok = false;
+                try {
+                    if (navigator.share) {
+                        await navigator.share(data);
+                        ok = true;
+                    } else if (navigator.clipboard && navigator.clipboard.writeText) {
+                        await navigator.clipboard.writeText(link);
+                        ok = true;
+                    }
+                } catch (e) {
+                    // user cancelled — do nothing
+                    return;
+                }
+                if (ok) this.completeInvite();
+            }
+
+            completeInvite() {
+                const id = this.pendingInvite;
+                if (!id) return;
+                this.unlockedSpreads[id] = (this.unlockedSpreads[id] || 0) + 1;
+                this.closeInviteModal();
+                const opt = this.spreadOptions.find(o => o.id === id);
+                this.showToast('Друг приглашён', opt ? opt.name + ' разблокирован' : '');
+                this.renderSpreadList();
             }
 
             infectContinent(id, level) {
