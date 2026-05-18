@@ -847,6 +847,103 @@
                         filter 0.6s ease;
         }
 
+        /* Radial halo behind the helix */
+        .map-helix-slot::before {
+            content: '';
+            position: absolute;
+            inset: -35%;
+            border-radius: 50%;
+            background: radial-gradient(circle at 50% 50%,
+                rgba(192, 132, 252, 0.55) 0%,
+                rgba(147, 51, 234, 0.32) 22%,
+                rgba(91, 33, 182, 0.15) 50%,
+                transparent 75%);
+            filter: blur(18px);
+            opacity: 0;
+            z-index: -2;
+            transition: opacity 0.7s ease;
+            animation: helix-halo-breathe 3.4s ease-in-out infinite;
+        }
+
+        /* Orbital twinkle ring */
+        .map-helix-slot::after {
+            content: '';
+            position: absolute;
+            inset: -18%;
+            background:
+                radial-gradient(circle 1.5px at 12% 50%, #fff 100%, transparent),
+                radial-gradient(circle 2px at 86% 28%, #d896ff 100%, transparent),
+                radial-gradient(circle 1px at 50% 92%, #f8d4ff 100%, transparent),
+                radial-gradient(circle 1.5px at 22% 12%, #fff 100%, transparent),
+                radial-gradient(circle 2px at 78% 78%, #a855f7 100%, transparent),
+                radial-gradient(circle 1px at 62% 10%, #fff 100%, transparent),
+                radial-gradient(circle 1.5px at 16% 82%, #c084fc 100%, transparent),
+                radial-gradient(circle 1px at 92% 60%, #ffffff 100%, transparent),
+                radial-gradient(circle 1.5px at 40% 16%, #e9b8ff 100%, transparent);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 0;
+            animation: helix-orbit-spin 14s linear infinite;
+            transition: opacity 0.6s ease;
+        }
+
+        .world-map-screen.intro .map-helix-slot::before,
+        .world-map-screen.selecting .map-helix-slot::before {
+            opacity: 1;
+        }
+
+        .world-map-screen.intro .map-helix-slot::after,
+        .world-map-screen.selecting .map-helix-slot::after {
+            opacity: 0.85;
+        }
+
+        @keyframes helix-halo-breathe {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.18); opacity: 0.7; }
+        }
+
+        @keyframes helix-orbit-spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* "Вирус создан" label */
+        .virus-created-label {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, 140px) scale(0.85);
+            z-index: 90;
+            font-family: 'Space Mono', monospace;
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            background: linear-gradient(135deg, #ffffff 0%, #f0c4ff 35%, #c084fc 65%, #9333ea 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+            filter: drop-shadow(0 0 12px rgba(168, 85, 247, 0.75))
+                    drop-shadow(0 4px 14px rgba(0, 0, 0, 0.55));
+            transition: opacity 0.5s ease, transform 0.65s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .world-map-screen.intro .virus-created-label {
+            opacity: 1;
+            transform: translate(-50%, 140px) scale(1);
+            animation: label-shimmer 1.6s ease-out 0.4s both;
+        }
+
+        @keyframes label-shimmer {
+            0%   { opacity: 0; transform: translate(-50%, 110px) scale(0.7); filter: blur(8px) drop-shadow(0 0 0 rgba(168,85,247,0)); }
+            45%  { opacity: 1; transform: translate(-50%, 142px) scale(1.08); filter: blur(0) drop-shadow(0 0 22px rgba(168,85,247,0.95)); }
+            100% { opacity: 1; transform: translate(-50%, 140px) scale(1); filter: blur(0) drop-shadow(0 0 12px rgba(168,85,247,0.75)); }
+        }
+
         .map-helix-slot .dna-helix-svg {
             width: 100%;
             height: 100%;
@@ -876,9 +973,15 @@
         /* Docked phase: helix lands below the map */
         .world-map-screen.selecting .map-helix-slot {
             opacity: 1;
-            top: 76%;
+            top: 72%;
             transform: translate(-50%, -50%) scale(0.82);
             filter: drop-shadow(0 0 16px rgba(168, 85, 247, 0.45));
+        }
+
+        /* During intro/selecting: anchor map to the top so the helix has room below */
+        .world-map-screen.intro,
+        .world-map-screen.selecting {
+            justify-content: flex-start;
         }
 
         .world-map-image {
@@ -1524,6 +1627,7 @@
 
             <!-- DNA helix shown during placement flow -->
             <div class="map-helix-slot" id="mapHelixSlot"></div>
+            <div class="virus-created-label" id="virusCreatedLabel">Вирус создан</div>
         </div>
 
         <!-- Map Screen -->
@@ -1586,28 +1690,59 @@
                             <!-- Strand gradient with bright highlights -->
                             <linearGradient id="strandGrad" x1="0%" y1="0%" x2="0%" y2="100%">
                                 <stop offset="0%" stop-color="#ffffff"/>
-                                <stop offset="20%" stop-color="#f8d4ff"/>
-                                <stop offset="50%" stop-color="#d896ff"/>
-                                <stop offset="80%" stop-color="#a855f7"/>
-                                <stop offset="100%" stop-color="#7c3aed"/>
+                                <stop offset="10%" stop-color="#ffffff"/>
+                                <stop offset="22%" stop-color="#fce4ff"/>
+                                <stop offset="38%" stop-color="#eebbff"/>
+                                <stop offset="55%" stop-color="#c084fc"/>
+                                <stop offset="72%" stop-color="#a855f7"/>
+                                <stop offset="88%" stop-color="#7e22ce"/>
+                                <stop offset="100%" stop-color="#4c1d95"/>
                             </linearGradient>
                             <!-- Strand outline glow -->
                             <linearGradient id="strandOuter" x1="0%" y1="0%" x2="0%" y2="100%">
-                                <stop offset="0%" stop-color="#c084fc"/>
-                                <stop offset="100%" stop-color="#7c3aed"/>
+                                <stop offset="0%" stop-color="#e0b3ff"/>
+                                <stop offset="50%" stop-color="#a855f7"/>
+                                <stop offset="100%" stop-color="#5b21b6"/>
                             </linearGradient>
-                            <!-- Rung gradient (vertical) -->
+                            <!-- Specular shine along the strand top -->
+                            <linearGradient id="strandShine" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stop-color="#ffffff" stop-opacity="1"/>
+                                <stop offset="40%" stop-color="#ffffff" stop-opacity="0.55"/>
+                                <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+                            </linearGradient>
+                            <!-- Rung gradient (vertical) — brighter centers, deeper edges -->
                             <linearGradient id="rungGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                                <stop offset="0%" stop-color="#f0c4ff" stop-opacity="0.95"/>
-                                <stop offset="50%" stop-color="#c084fc" stop-opacity="0.8"/>
-                                <stop offset="100%" stop-color="#7c3aed" stop-opacity="0.5"/>
+                                <stop offset="0%" stop-color="#ffe9ff" stop-opacity="1"/>
+                                <stop offset="30%" stop-color="#f0c4ff" stop-opacity="0.95"/>
+                                <stop offset="55%" stop-color="#c084fc" stop-opacity="0.85"/>
+                                <stop offset="80%" stop-color="#9333ea" stop-opacity="0.65"/>
+                                <stop offset="100%" stop-color="#5b21b6" stop-opacity="0.4"/>
                             </linearGradient>
-                            <!-- Background nebula/shadow -->
+                            <!-- Base-pair atom: radial sphere -->
+                            <radialGradient id="atomGrad" cx="35%" cy="35%" r="65%">
+                                <stop offset="0%" stop-color="#ffffff" stop-opacity="1"/>
+                                <stop offset="35%" stop-color="#f8d4ff" stop-opacity="1"/>
+                                <stop offset="70%" stop-color="#c084fc" stop-opacity="0.95"/>
+                                <stop offset="100%" stop-color="#7c3aed" stop-opacity="0.6"/>
+                            </radialGradient>
+                            <!-- Background nebula — richer multi-stop core -->
                             <radialGradient id="nebulaGrad" cx="50%" cy="55%">
-                                <stop offset="0%" stop-color="#9333ea" stop-opacity="0.5"/>
-                                <stop offset="40%" stop-color="#6b21a8" stop-opacity="0.25"/>
+                                <stop offset="0%" stop-color="#c084fc" stop-opacity="0.65"/>
+                                <stop offset="22%" stop-color="#9333ea" stop-opacity="0.45"/>
+                                <stop offset="50%" stop-color="#6b21a8" stop-opacity="0.22"/>
+                                <stop offset="80%" stop-color="#4c1d95" stop-opacity="0.08"/>
                                 <stop offset="100%" stop-color="#000" stop-opacity="0"/>
                             </radialGradient>
+                            <!-- Inner core glow (tight, intense) -->
+                            <filter id="dnaCoreGlow" x="-30%" y="-30%" width="160%" height="160%">
+                                <feGaussianBlur stdDeviation="1.5" result="cb1"/>
+                                <feGaussianBlur stdDeviation="4" result="cb2"/>
+                                <feMerge>
+                                    <feMergeNode in="cb2"/>
+                                    <feMergeNode in="cb1"/>
+                                    <feMergeNode in="SourceGraphic"/>
+                                </feMerge>
+                            </filter>
                         </defs>
                         
                         <!-- Background nebula glow -->
@@ -1938,9 +2073,43 @@
             cloneHelixToMap() {
                 const original = document.querySelector('#evolutionScreen .dna-helix-svg');
                 const slot = document.getElementById('mapHelixSlot');
-                if (original && slot && !slot.querySelector('svg')) {
+                if (!original) return;
+                this.enhanceHelix(original);
+                if (slot && !slot.querySelector('svg')) {
                     slot.appendChild(original.cloneNode(true));
                 }
+            }
+
+            enhanceHelix(svg) {
+                if (svg.dataset.enhanced === '1') return;
+                const NS = 'http://www.w3.org/2000/svg';
+
+                // Add glowing base-pair atoms at the endpoints of FRONT rungs
+                const frontRungs = svg.querySelector('.dna-rungs-front');
+                if (frontRungs) {
+                    const atomLayer = document.createElementNS(NS, 'g');
+                    atomLayer.setAttribute('class', 'dna-atoms');
+                    atomLayer.setAttribute('filter', 'url(#dnaCoreGlow)');
+                    frontRungs.querySelectorAll('line').forEach(line => {
+                        const opacity = parseFloat(line.getAttribute('opacity') || '1');
+                        const sw = parseFloat(line.getAttribute('stroke-width') || '3');
+                        const r = Math.max(1.8, sw * 0.85);
+                        ['1', '2'].forEach(end => {
+                            const cx = line.getAttribute('x' + end);
+                            const cy = line.getAttribute('y' + end);
+                            const atom = document.createElementNS(NS, 'circle');
+                            atom.setAttribute('cx', cx);
+                            atom.setAttribute('cy', cy);
+                            atom.setAttribute('r', r);
+                            atom.setAttribute('fill', 'url(#atomGrad)');
+                            atom.setAttribute('opacity', Math.min(1, opacity + 0.05));
+                            atomLayer.appendChild(atom);
+                        });
+                    });
+                    frontRungs.parentNode.insertBefore(atomLayer, frontRungs.nextSibling);
+                }
+
+                svg.dataset.enhanced = '1';
             }
 
             tap(el, handler) {
