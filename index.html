@@ -802,19 +802,19 @@
         
         /* World Map Screen with embedded image */
         .world-map-screen {
-            padding: 56px 6px 84px;
+            padding: 48px 0 72px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start;
+            justify-content: center;
         }
 
         .world-map-title {
             font-family: 'Space Mono', monospace;
-            font-size: 14px;
+            font-size: 12px;
             font-weight: 700;
             color: var(--text-secondary);
-            margin-bottom: 6px;
+            margin-bottom: 8px;
             text-align: center;
             letter-spacing: 2px;
             text-transform: uppercase;
@@ -823,41 +823,26 @@
         .world-map-wrapper {
             position: relative;
             width: 100%;
-            flex: 1 1 auto;
-            min-height: 0;
-            background:
-                radial-gradient(ellipse at 50% 30%, rgba(20, 40, 30, 0.4), transparent 70%),
-                linear-gradient(180deg, rgba(15, 20, 25, 0.95), rgba(8, 12, 16, 0.98));
-            border-radius: 18px;
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            box-shadow:
-                0 20px 50px rgba(0, 0, 0, 0.6),
-                inset 0 1px 0 rgba(255, 255, 255, 0.04);
-            margin-bottom: 10px;
+            aspect-ratio: 1050 / 700;
+            max-height: calc(100% - 90px);
             overflow: hidden;
         }
 
         .world-map-image {
             position: absolute;
-            top: 6px;
-            left: 6px;
-            right: 6px;
-            bottom: 6px;
-            width: calc(100% - 12px);
-            height: calc(100% - 12px);
+            inset: 0;
+            width: 100%;
+            height: 100%;
             object-fit: contain;
             display: block;
-            filter: drop-shadow(0 6px 20px rgba(0, 0, 0, 0.5)) brightness(1.05);
+            filter: drop-shadow(0 6px 20px rgba(0, 0, 0, 0.5)) brightness(1.08);
         }
 
         .continents-overlay {
             position: absolute;
-            top: 6px;
-            left: 6px;
-            right: 6px;
-            bottom: 6px;
-            width: calc(100% - 12px);
-            height: calc(100% - 12px);
+            inset: 0;
+            width: 100%;
+            height: 100%;
             pointer-events: none;
             opacity: 0;
             transition: opacity 0.35s ease;
@@ -966,6 +951,72 @@
             opacity: 0.35;
         }
 
+        /* Placement toast */
+        .placement-toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            z-index: 300;
+            min-width: 240px;
+            max-width: 86vw;
+            padding: 22px 28px 20px;
+            text-align: center;
+            border-radius: 22px;
+            background:
+                radial-gradient(ellipse at 50% 0%, rgba(0, 255, 159, 0.35), transparent 70%),
+                linear-gradient(160deg, rgba(36, 60, 78, 0.95), rgba(20, 30, 44, 0.95));
+            border: 1px solid rgba(0, 255, 159, 0.45);
+            box-shadow:
+                0 30px 80px rgba(0, 0, 0, 0.55),
+                0 0 60px rgba(0, 255, 159, 0.35),
+                inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            pointer-events: none;
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(0.7);
+            animation: toast-pop 1.6s cubic-bezier(0.18, 1, 0.3, 1) forwards;
+        }
+
+        .placement-toast .toast-icon {
+            display: block;
+            font-size: 44px;
+            line-height: 1;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 4px 10px rgba(0, 255, 159, 0.7));
+            animation: toast-icon-spin 1.6s ease-out;
+        }
+
+        .placement-toast .toast-title {
+            font-family: 'Space Mono', monospace;
+            font-size: 17px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            color: var(--accent-green);
+            text-transform: uppercase;
+            text-shadow: 0 0 10px rgba(0, 255, 159, 0.6);
+        }
+
+        .placement-toast .toast-sub {
+            margin-top: 4px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            letter-spacing: 0.5px;
+        }
+
+        @keyframes toast-pop {
+            0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.6); }
+            18%  { opacity: 1; transform: translate(-50%, -50%) scale(1.05); }
+            30%  { transform: translate(-50%, -50%) scale(1); }
+            82%  { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -52%) scale(0.96); }
+        }
+
+        @keyframes toast-icon-spin {
+            0% { transform: scale(0) rotate(-30deg); }
+            50% { transform: scale(1.15) rotate(8deg); }
+            100% { transform: scale(1) rotate(0); }
+        }
+
         /* Hide background UI during continent selection */
         body.selecting .dna-counter,
         body.selecting .world-map-title,
@@ -1041,11 +1092,12 @@
         
         /* Stats below map */
         .world-map-stats {
-            width: 100%;
+            width: calc(100% - 12px);
             flex: 0 0 auto;
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 6px;
+            margin-top: 10px;
         }
 
         .map-stat {
@@ -1053,7 +1105,7 @@
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.06);
             border-radius: 10px;
-            padding: 8px 6px;
+            padding: 7px 6px;
             text-align: center;
         }
 
@@ -1899,10 +1951,11 @@
                 this.tutorialCompleting = false;
                 try { localStorage.setItem('tutorialDone', '1'); } catch (e) {}
 
-                const rect = document.querySelector('.world-map-wrapper').getBoundingClientRect();
-                this.createPopEffect(rect.left + rect.width / 2, rect.top + 40, 'Вирус размещён');
+                const zone = document.querySelector('.continent-zone.selected');
+                const continentName = zone ? zone.dataset.name : '';
+                this.showToast('Вирус размещён', continentName);
 
-                // Brief moment to read the toast, then transition to Virus screen
+                // Wait for toast to play, then transition to Virus screen
                 setTimeout(() => {
                     document.body.classList.remove('selecting');
                     document.getElementById('worldMapScreen').classList.remove('selecting');
@@ -1912,7 +1965,15 @@
                     document.querySelectorAll('.continent-zone').forEach(c => c.classList.remove('selected'));
                     this.resetHomeBubbles();
                     this.switchScreen('evolutionScreen');
-                }, 700);
+                }, 1400);
+            }
+
+            showToast(title, sub, icon = '🦠') {
+                const toast = document.createElement('div');
+                toast.className = 'placement-toast';
+                toast.innerHTML = `<span class="toast-icon">${icon}</span><div class="toast-title">${title}</div>${sub ? `<div class="toast-sub">${sub}</div>` : ''}`;
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 1700);
             }
 
             collectDNA(bubble) {
