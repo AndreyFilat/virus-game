@@ -841,10 +841,10 @@
             pointer-events: none;
             opacity: 0;
             transform: translate(-50%, -50%) scale(0);
-            transition: top 0.95s cubic-bezier(0.2, 0.8, 0.2, 1),
-                        transform 0.95s cubic-bezier(0.2, 0.8, 0.2, 1),
-                        opacity 0.55s ease,
-                        filter 0.6s ease;
+            transition: top 0.7s cubic-bezier(0.2, 0.8, 0.2, 1),
+                        transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1),
+                        opacity 0.4s ease;
+            will-change: transform, top, opacity;
         }
 
         /* Radial halo behind the helix */
@@ -854,15 +854,14 @@
             inset: -35%;
             border-radius: 50%;
             background: radial-gradient(circle at 50% 50%,
-                rgba(247, 217, 194, 0.55) 0%,
-                rgba(192, 140, 117, 0.32) 24%,
-                rgba(107, 69, 48, 0.15) 52%,
-                transparent 75%);
-            filter: blur(18px);
+                rgba(247, 217, 194, 0.45) 0%,
+                rgba(192, 140, 117, 0.25) 30%,
+                transparent 70%);
             opacity: 0;
             z-index: -2;
-            transition: opacity 0.7s ease;
+            transition: opacity 0.5s ease;
             animation: helix-halo-breathe 3.4s ease-in-out infinite;
+            will-change: transform, opacity;
         }
 
         /* Orbital twinkle ring */
@@ -939,9 +938,9 @@
         }
 
         @keyframes label-shimmer {
-            0%   { opacity: 0; transform: translate(-50%, 100px) scale(0.7); filter: blur(8px) drop-shadow(0 0 0 rgba(227,179,154,0)); }
-            45%  { opacity: 1; transform: translate(-50%, 132px) scale(1.08); filter: blur(0) drop-shadow(0 0 22px rgba(247,217,194,0.95)); }
-            100% { opacity: 1; transform: translate(-50%, 130px) scale(1); filter: blur(0) drop-shadow(0 0 12px rgba(227,179,154,0.85)); }
+            0%   { opacity: 0; transform: translate(-50%, 100px) scale(0.7); }
+            45%  { opacity: 1; transform: translate(-50%, 132px) scale(1.08); }
+            100% { opacity: 1; transform: translate(-50%, 130px) scale(1); }
         }
 
         .map-helix-slot {
@@ -955,7 +954,6 @@
             opacity: 1;
             top: 50%;
             transform: translate(-50%, -50%) scale(1.2);
-            filter: drop-shadow(0 0 32px rgba(227, 179, 154, 0.7));
         }
 
         .world-map-screen.intro .world-map-wrapper {
@@ -972,9 +970,8 @@
         /* Docked phase: helix sits above the map */
         .world-map-screen.selecting .map-helix-slot {
             opacity: 1;
-            top: 28%;
-            transform: translate(-50%, -50%) scale(0.92);
-            filter: drop-shadow(0 0 16px rgba(192, 140, 117, 0.55));
+            top: 32%;
+            transform: translate(-50%, -50%) scale(0.85);
         }
 
         /* Absolute-positioned map during the placement flow so the layout is even */
@@ -1304,11 +1301,201 @@
         
         /* Evolution Screen */
         .evolution-screen {
-            padding: 60px 20px 96px;
-            background: 
+            padding: 52px 16px 96px;
+            background:
                 radial-gradient(circle at 30% 20%, rgba(147, 51, 234, 0.15), transparent 60%),
                 radial-gradient(circle at 70% 80%, rgba(59, 130, 246, 0.1), transparent 50%),
                 linear-gradient(135deg, #0f1419 0%, #1a1f2e 50%, #0f1419 100%);
+            overflow-y: auto;
+            justify-content: flex-start;
+        }
+
+        .virus-header {
+            text-align: center;
+            margin-bottom: 12px;
+        }
+
+        .virus-level-badge {
+            display: inline-block;
+            padding: 4px 14px;
+            background: rgba(0, 255, 159, 0.15);
+            border: 1px solid rgba(0, 255, 159, 0.45);
+            color: var(--accent-green);
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            border-radius: 10px;
+            margin-bottom: 6px;
+        }
+
+        /* Virus stats bars */
+        .virus-stats {
+            width: 100%;
+            background: rgba(36, 49, 66, 0.55);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 14px 14px 12px;
+            margin: 0 auto 16px;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .stat-row {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .stat-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            font-size: 13px;
+        }
+
+        .stat-row .stat-name {
+            color: var(--text-secondary);
+            font-weight: 600;
+            letter-spacing: 0.4px;
+        }
+
+        .stat-row .stat-value {
+            color: #fff;
+            font-weight: 700;
+            font-family: 'Space Mono', monospace;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .stat-bar {
+            height: 8px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .stat-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .stat-fill.infectivity { background: linear-gradient(90deg, #4ade80, #16a34a); box-shadow: 0 0 8px rgba(74, 222, 128, 0.5); }
+        .stat-fill.severity    { background: linear-gradient(90deg, #fbbf24, #d97706); box-shadow: 0 0 8px rgba(251, 191, 36, 0.5); }
+        .stat-fill.lethality   { background: linear-gradient(90deg, #f87171, #b91c1c); box-shadow: 0 0 8px rgba(248, 113, 113, 0.5); }
+
+        /* Upgrades */
+        .upgrades-section {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .upgrades-section .section-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .upgrades-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .upgrade-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(36, 49, 66, 0.7);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 10px 12px;
+            transition: transform 0.15s ease, opacity 0.2s ease, border-color 0.2s ease;
+            -webkit-tap-highlight-color: transparent;
+            cursor: pointer;
+        }
+
+        .upgrade-card:active {
+            transform: scale(0.97);
+        }
+
+        .upgrade-card.disabled {
+            opacity: 0.5;
+        }
+
+        .upgrade-card.shake {
+            animation: upgrade-shake 0.35s ease-in-out;
+        }
+
+        @keyframes upgrade-shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
+        }
+
+        .upgrade-icon {
+            font-size: 26px;
+            width: 36px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .upgrade-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .upgrade-name {
+            font-size: 13px;
+            color: #fff;
+            font-weight: 700;
+            margin-bottom: 3px;
+            letter-spacing: 0.3px;
+        }
+
+        .upgrade-effects {
+            display: flex;
+            gap: 4px;
+            font-size: 10px;
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+        }
+
+        .upgrade-effects .eff {
+            padding: 1px 6px;
+            border-radius: 4px;
+        }
+
+        .upgrade-effects .eff.inf { color: #4ade80; background: rgba(74, 222, 128, 0.12); }
+        .upgrade-effects .eff.sev { color: #fbbf24; background: rgba(251, 191, 36, 0.12); }
+        .upgrade-effects .eff.let { color: #f87171; background: rgba(248, 113, 113, 0.12); }
+
+        .upgrade-cost {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(168, 85, 247, 0.18);
+            border: 1px solid rgba(168, 85, 247, 0.4);
+            color: #c084fc;
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-family: 'Space Mono', monospace;
+            font-size: 13px;
+            font-weight: 700;
+            flex-shrink: 0;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .upgrade-card.disabled .upgrade-cost {
+            color: var(--accent-red);
+            border-color: rgba(255, 51, 102, 0.4);
+            background: rgba(255, 51, 102, 0.08);
         }
         
         .virus-title {
@@ -1329,10 +1516,10 @@
         
         .virus-character {
             position: relative;
-            width: 320px;
-            height: 180px;
+            width: 240px;
+            height: 150px;
             max-width: 100%;
-            margin: 0 auto 20px;
+            margin: 0 auto 14px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1346,31 +1533,21 @@
             -webkit-user-select: none;
             transform: rotate(90deg);
             animation: helix-emoji-breathe 4s ease-in-out infinite;
-            filter: drop-shadow(0 8px 22px rgba(0, 0, 0, 0.55))
-                    drop-shadow(0 0 28px rgba(247, 217, 194, 0.4));
+            filter: drop-shadow(0 8px 22px rgba(0, 0, 0, 0.55));
+            will-change: transform;
         }
 
         .virus-character .dna-helix-emoji {
-            font-size: 160px;
-        }
-
-        .map-helix-slot .dna-helix-emoji {
             font-size: 130px;
         }
 
+        .map-helix-slot .dna-helix-emoji {
+            font-size: 110px;
+        }
+
         @keyframes helix-emoji-breathe {
-            0%, 100% {
-                transform: rotate(90deg) scale(1);
-                filter: brightness(1)
-                        drop-shadow(0 8px 22px rgba(0, 0, 0, 0.55))
-                        drop-shadow(0 0 26px rgba(247, 217, 194, 0.4));
-            }
-            50% {
-                transform: rotate(90deg) scale(1.05);
-                filter: brightness(1.1)
-                        drop-shadow(0 10px 26px rgba(0, 0, 0, 0.6))
-                        drop-shadow(0 0 36px rgba(247, 217, 194, 0.55));
-            }
+            0%, 100% { transform: rotate(90deg) scale(1); }
+            50%      { transform: rotate(90deg) scale(1.05); }
         }
         
         .dna-sparkles circle {
@@ -1695,99 +1872,45 @@
         
         <!-- Evolution Menu Screen -->
         <div class="screen evolution-screen" id="evolutionScreen">
-            <div class="evolution-header">
+            <div class="virus-header">
+                <div class="virus-level-badge">УРОВЕНЬ <span id="virusLevel">1</span></div>
                 <h2 class="virus-title">Твой вирус</h2>
             </div>
-            
-            <!-- Main virus character display -->
+
             <div class="virus-character-container">
                 <div class="virus-character">
-                    <!-- DNA Helix illustration - detailed and beautiful -->
-                    <!-- DNA helix glyph (same as in the bubbles), oriented horizontally -->
                     <div class="dna-helix-emoji">🧬</div>
                 </div>
-                
-                <!-- Level indicator -->
-                <div class="virus-level">Уровень 7</div>
-                
-                <!-- Experience bar -->
-                <div class="exp-bar-container">
-                    <div class="exp-bar">
-                        <div class="exp-progress" style="width: 42%"></div>
+            </div>
+
+            <div class="virus-stats">
+                <div class="stat-row">
+                    <div class="stat-head">
+                        <span class="stat-name">Заразность</span>
+                        <span class="stat-value" id="statInfectivity">10%</span>
                     </div>
-                    <div class="exp-text">2,450 / 5,000</div>
+                    <div class="stat-bar"><div class="stat-fill infectivity" id="fillInfectivity" style="width: 10%"></div></div>
+                </div>
+                <div class="stat-row">
+                    <div class="stat-head">
+                        <span class="stat-name">Тяжесть</span>
+                        <span class="stat-value" id="statSeverity">5%</span>
+                    </div>
+                    <div class="stat-bar"><div class="stat-fill severity" id="fillSeverity" style="width: 5%"></div></div>
+                </div>
+                <div class="stat-row">
+                    <div class="stat-head">
+                        <span class="stat-name">Летальность</span>
+                        <span class="stat-value" id="statLethality">1%</span>
+                    </div>
+                    <div class="stat-bar"><div class="stat-fill lethality" id="fillLethality" style="width: 1%"></div></div>
                 </div>
             </div>
-            
-            <!-- Resource cards -->
-            <div class="resource-cards">
-                <div class="resource-card biomass-card">
-                    <div class="resource-icon">🧪</div>
-                    <div class="resource-info">
-                        <div class="resource-amount">12.45K</div>
-                        <div class="resource-rate">+320/ч</div>
-                    </div>
-                    <div class="resource-label">Биомасса</div>
-                </div>
-                
-                <div class="resource-card dna-card">
-                    <div class="resource-icon">🧬</div>
-                    <div class="resource-info">
-                        <div class="resource-amount">3.21K</div>
-                        <div class="resource-rate">+85/ч</div>
-                    </div>
-                    <div class="resource-label">ДНК</div>
-                </div>
-                
-                <div class="resource-card crystal-card">
-                    <div class="resource-icon">💎</div>
-                    <div class="resource-info">
-                        <div class="resource-amount">1.24K</div>
-                        <div class="resource-rate">+12/ч</div>
-                    </div>
-                    <div class="resource-label">Кристаллы</div>
-                </div>
+
+            <div class="upgrades-section">
+                <div class="section-title">Улучшения</div>
+                <div class="upgrades-list" id="upgradesList"></div>
             </div>
-            
-            <!-- Status section -->
-            <div class="status-section">
-                <div class="section-title">Состояние</div>
-                <div class="status-cards">
-                    <div class="status-card health-card">
-                        <div class="status-icon">❤️</div>
-                        <div class="status-info">
-                            <div class="status-value">100%</div>
-                            <div class="status-label">Здоровье</div>
-                        </div>
-                    </div>
-                    
-                    <div class="status-card mood-card">
-                        <div class="status-icon">😊</div>
-                        <div class="status-info">
-                            <div class="status-value">Хорошее</div>
-                            <div class="status-label">Настроение</div>
-                        </div>
-                    </div>
-                    
-                    <div class="status-card hunger-card">
-                        <div class="status-icon">🍖</div>
-                        <div class="status-info">
-                            <div class="status-value">Сыт</div>
-                            <div class="status-label">Голод</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Feed/Upgrade button -->
-            <div class="upgrade-actions">
-                <button class="feed-button">
-                    <span class="feed-text">ПОКОРМИТЬ</span>
-                    <span class="feed-cost">🧬 120</span>
-                </button>
-            </div>
-            
-            <button class="back-button" id="backToMap">← Назад к карте</button>
         </div>
 
         <!-- Bottom Navigation -->
@@ -1811,27 +1934,25 @@
         class VirusGame {
             constructor() {
                 this.dnaPoints = 0;
-                this.selectedCountry = null;
-                this.infectionLevel = 1;
-                this.infectedCount = 1247;
-                this.spreadRate = 12;
-                this.countryCount = 1;
-                this.lethality = 0.1;
+                this.selectedContinent = null;
 
                 this.popCount = 0;
-                this.selectedContinent = null;
                 this.tutorialDone = false; // always show tutorial for now (dev)
                 this.tutorialCompleting = false;
-                
-                this.countries = {
-                    china: { name: 'Китай', population: 1400000000 },
-                    usa: { name: 'США', population: 330000000 },
-                    russia: { name: 'Россия', population: 146000000 },
-                    brazil: { name: 'Бразилия', population: 215000000 },
-                    india: { name: 'Индия', population: 1380000000 },
-                    germany: { name: 'Германия', population: 83000000 }
-                };
-                
+
+                // Virus progression
+                this.virusLevel = 1;
+                this.virusStats = { infectivity: 10, severity: 5, lethality: 1 };
+                this.upgradeCounts = { infect: 0, severity: 0, lethal: 0 };
+                this.upgradeOptions = [
+                    { id: 'infect',   name: 'Заразность',  icon: '🦠', baseCost: 20,
+                      effects: { infectivity: 6, severity: 2, lethality: 0 } },
+                    { id: 'severity', name: 'Тяжесть',     icon: '🤒', baseCost: 30,
+                      effects: { infectivity: 1, severity: 6, lethality: 2 } },
+                    { id: 'lethal',   name: 'Летальность', icon: '💀', baseCost: 50,
+                      effects: { infectivity: 0, severity: 2, lethality: 5 } }
+                ];
+
                 this.init();
             }
             
@@ -1839,12 +1960,82 @@
                 this.bindEvents();
                 this.updateDNACounter();
                 this.cloneHelixToMap();
+                this.renderVirusScreen();
                 if (!this.tutorialDone) {
                     setTimeout(() => {
                         const hint = document.getElementById('fingerHint');
                         if (hint) hint.classList.remove('hidden');
                     }, 500);
                 }
+            }
+
+            getUpgradeCost(id) {
+                const u = this.upgradeOptions.find(o => o.id === id);
+                const count = this.upgradeCounts[id] || 0;
+                return Math.floor(u.baseCost * Math.pow(1.55, count));
+            }
+
+            purchaseUpgrade(id) {
+                const cost = this.getUpgradeCost(id);
+                if (this.dnaPoints < cost) {
+                    const card = document.querySelector(`.upgrade-card[data-id="${id}"]`);
+                    if (card) {
+                        card.classList.add('shake');
+                        setTimeout(() => card.classList.remove('shake'), 400);
+                    }
+                    return;
+                }
+                this.dnaPoints -= cost;
+                const u = this.upgradeOptions.find(o => o.id === id);
+                Object.entries(u.effects).forEach(([stat, delta]) => {
+                    this.virusStats[stat] = Math.min(100, this.virusStats[stat] + delta);
+                });
+                this.upgradeCounts[id] = (this.upgradeCounts[id] || 0) + 1;
+                const total = Object.values(this.upgradeCounts).reduce((a, b) => a + b, 0);
+                this.virusLevel = Math.floor(total / 3) + 1;
+                this.updateDNACounter();
+                this.renderVirusScreen();
+            }
+
+            renderVirusScreen() {
+                const lvl = document.getElementById('virusLevel');
+                if (!lvl) return;
+                lvl.textContent = this.virusLevel;
+                const s = this.virusStats;
+                document.getElementById('statInfectivity').textContent = s.infectivity + '%';
+                document.getElementById('statSeverity').textContent = s.severity + '%';
+                document.getElementById('statLethality').textContent = s.lethality + '%';
+                document.getElementById('fillInfectivity').style.width = s.infectivity + '%';
+                document.getElementById('fillSeverity').style.width = s.severity + '%';
+                document.getElementById('fillLethality').style.width = s.lethality + '%';
+                this.renderUpgradesList();
+            }
+
+            renderUpgradesList() {
+                const list = document.getElementById('upgradesList');
+                if (!list) return;
+                list.innerHTML = '';
+                this.upgradeOptions.forEach(u => {
+                    const cost = this.getUpgradeCost(u.id);
+                    const affordable = this.dnaPoints >= cost;
+                    const card = document.createElement('div');
+                    card.className = 'upgrade-card' + (affordable ? '' : ' disabled');
+                    card.dataset.id = u.id;
+                    const e = u.effects;
+                    card.innerHTML =
+                        `<div class="upgrade-icon">${u.icon}</div>` +
+                        `<div class="upgrade-info">` +
+                            `<div class="upgrade-name">${u.name}</div>` +
+                            `<div class="upgrade-effects">` +
+                                `<span class="eff inf">+${e.infectivity}%</span>` +
+                                `<span class="eff sev">+${e.severity}%</span>` +
+                                `<span class="eff let">+${e.lethality}%</span>` +
+                            `</div>` +
+                        `</div>` +
+                        `<div class="upgrade-cost">🧬 ${cost}</div>`;
+                    list.appendChild(card);
+                    this.tap(card, () => this.purchaseUpgrade(u.id));
+                });
             }
 
             cloneHelixToMap() {
@@ -1908,6 +2099,8 @@
                 document.querySelectorAll('.nav-btn').forEach(b => {
                     b.classList.toggle('active', b.dataset.screen === id);
                 });
+
+                if (id === 'evolutionScreen') this.renderVirusScreen();
             }
 
             enterSelectionMode() {
@@ -2029,91 +2222,8 @@
             
             updateDNACounter() {
                 document.getElementById('dnaCount').textContent = this.dnaPoints;
-            }
-            
-            spawnMapBubble(container) {
-                const bubble = document.createElement('div');
-                bubble.className = 'map-bubble';
-                bubble.innerHTML = '<div class="dna-symbol">🧬</div>';
-                
-                // Random position
-                const containerRect = container.getBoundingClientRect();
-                const x = Math.random() * (containerRect.width - 60 - 40) + 20;
-                const y = Math.random() * (containerRect.height - 60 - 60) + 50;
-                
-                bubble.style.left = x + 'px';
-                bubble.style.top = y + 'px';
-                bubble.dataset.dna = Math.floor(Math.random() * 10) + 5; // 5-14 DNA
-                
-                // Add click/touch event
-                let tapped = false;
-                const collect = (e) => {
-                    if (e) e.preventDefault?.();
-                    const dnaAmount = parseInt(bubble.dataset.dna);
-                    this.dnaPoints += dnaAmount;
-                    this.updateDNACounter();
-
-                    const rect = bubble.getBoundingClientRect();
-                    this.createPopEffect(rect.left + rect.width/2, rect.top + rect.height/2, `+${dnaAmount}`);
-
-                    bubble.classList.add('popping');
-                    setTimeout(() => bubble.remove(), 800);
-                };
-                bubble.addEventListener('touchend', (e) => {
-                    tapped = true;
-                    collect(e);
-                    setTimeout(() => { tapped = false; }, 400);
-                }, { passive: false });
-                bubble.addEventListener('click', (e) => {
-                    if (tapped) return;
-                    collect(e);
-                });
-                
-                container.appendChild(bubble);
-                
-                // Auto-remove after 10 seconds if not clicked
-                setTimeout(() => {
-                    if (bubble.parentNode) {
-                        bubble.style.opacity = '0.3';
-                        setTimeout(() => {
-                            if (bubble.parentNode) bubble.remove();
-                        }, 2000);
-                    }
-                }, 10000);
-            }
-            
-            startSimulation() {
-                // Update stats periodically
-                setInterval(() => {
-                    this.updateStats();
-                }, 2000);
-            }
-            
-            updateStats() {
-                // Simulate virus spread
-                const growth = 1 + (this.spreadRate / 100) * (Math.random() * 0.5 + 0.5);
-                this.infectedCount = Math.floor(this.infectedCount * growth);
-                
-                // Update display
-                document.getElementById('infectedCount').textContent = this.formatNumber(this.infectedCount);
-                document.getElementById('spreadRate').textContent = `+${this.spreadRate}%`;
-                document.getElementById('countryCount').textContent = this.countryCount;
-                document.getElementById('lethality').textContent = `${this.lethality}%`;
-                
-                // Update infection level
-                if (this.infectedCount > 10000 && this.infectionLevel === 1) {
-                    this.infectionLevel = 2;
-                    document.getElementById('infectionLevel').textContent = this.infectionLevel;
-                }
-            }
-            
-            formatNumber(num) {
-                if (num >= 1000000) {
-                    return (num / 1000000).toFixed(1) + 'M';
-                } else if (num >= 1000) {
-                    return (num / 1000).toFixed(1) + 'K';
-                }
-                return num.toString();
+                // Refresh affordability of upgrade cards
+                this.renderUpgradesList();
             }
         }
         
