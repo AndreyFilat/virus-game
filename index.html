@@ -1310,26 +1310,11 @@
         .dna-bubble.floating {
             position: absolute;
             z-index: 3;
-            animation: float-bubble-in 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) backwards,
-                       float 4s ease-in-out 0.3s infinite;
-            will-change: transform, opacity;
         }
 
-        /* When a floating bubble is popping, the burst animation must override
-           the floating-bubble-in / float pair from the .floating rule. */
-        /* Match the tutorial pop exactly for Home bubbles */
-        .dna-bubble.floating.popping {
-            animation: smooth-pop 0.32s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards !important;
-            pointer-events: none;
-        }
-
-        .dna-bubble.floating.fading {
+        /* Auto-fade for floating bubbles that weren't tapped in time */
+        .dna-bubble.fading {
             animation: float-bubble-out 0.5s ease forwards;
-        }
-
-        @keyframes float-bubble-in {
-            0%   { opacity: 0; transform: scale(0); }
-            100% { opacity: 1; transform: scale(1); }
         }
 
         @keyframes float-bubble-out {
@@ -2856,8 +2841,12 @@
                         document.querySelector('.bottom-nav').classList.remove('locked');
                         this.pickerMode = null;
                         this.selectedContinent = null;
-                        if (isTutorial) this.resetHomeBubbles();
-                        this.switchScreen('evolutionScreen');
+                        if (isTutorial) {
+                            this.resetHomeBubbles();
+                            this.switchScreen('evolutionScreen');
+                        }
+                        // Spread mode: stay on the map so the player can keep
+                        // infecting more regions.
                     }, 1100);
                 };
 
