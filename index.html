@@ -1857,6 +1857,20 @@
                 }
             }
 
+            tap(el, handler) {
+                let handled = false;
+                el.addEventListener('touchend', (e) => {
+                    handled = true;
+                    e.preventDefault();
+                    handler(e);
+                    setTimeout(() => { handled = false; }, 400);
+                }, { passive: false });
+                el.addEventListener('click', (e) => {
+                    if (handled) return;
+                    handler(e);
+                });
+            }
+
 
             bindEvents() {
                 // Home: DNA bubbles (regenerating)
