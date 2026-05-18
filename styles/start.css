@@ -1,0 +1,363 @@
+        /* Start Screen */
+        .start-screen {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        
+        .game-title {
+            font-family: 'Space Mono', monospace;
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            background: linear-gradient(45deg, var(--accent-green), var(--accent-red));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .game-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 60px;
+            letter-spacing: 1px;
+        }
+        
+        /* DNA Bubbles */
+        .dna-bubbles {
+            display: grid;
+            grid-template-columns: repeat(3, 90px);
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 80px;
+            perspective: 1000px;
+        }
+        
+        .dna-bubble {
+            width: 90px;
+            height: 90px;
+            background: 
+                radial-gradient(ellipse at 25% 25%, rgba(255, 255, 255, 0.8), transparent 50%),
+                radial-gradient(ellipse at 75% 75%, rgba(200, 150, 255, 0.6), transparent 60%),
+                radial-gradient(circle at 35% 35%, #c084fc, #9333ea),
+                radial-gradient(circle at 65% 65%, #7c3aed, #5b21b6),
+                linear-gradient(135deg, rgba(255, 255, 255, 0.4) 0%, transparent 30%, rgba(0, 0, 0, 0.2) 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 
+                0 0 40px rgba(147, 51, 234, 0.8),
+                0 0 80px rgba(147, 51, 234, 0.4),
+                0 15px 30px rgba(0, 0, 0, 0.6),
+                0 25px 50px rgba(0, 0, 0, 0.3),
+                inset 0 5px 15px rgba(255, 255, 255, 0.4),
+                inset 0 -8px 20px rgba(0, 0, 0, 0.3),
+                inset -5px -5px 15px rgba(91, 33, 182, 0.6),
+                inset 5px 5px 15px rgba(192, 132, 252, 0.4);
+            transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+            animation: float 3s ease-in-out infinite;
+            position: relative;
+            overflow: visible;
+            transform-style: preserve-3d;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .dna-bubble::before {
+            content: '';
+            position: absolute;
+            top: -10%;
+            left: -10%;
+            width: 120%;
+            height: 120%;
+            background: 
+                radial-gradient(ellipse at 20% 20%, rgba(255, 255, 255, 0.9), transparent 40%),
+                radial-gradient(ellipse at 80% 30%, rgba(192, 132, 252, 0.5), transparent 50%),
+                conic-gradient(from 0deg at 50% 50%, 
+                    transparent 0deg, 
+                    rgba(147, 51, 234, 0.3) 60deg, 
+                    rgba(192, 132, 252, 0.5) 120deg, 
+                    transparent 180deg,
+                    rgba(147, 51, 234, 0.2) 240deg,
+                    transparent 360deg);
+            border-radius: 50%;
+            animation: shimmer3D 4s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        .dna-bubble::after {
+            content: '';
+            position: absolute;
+            top: 15%;
+            left: 15%;
+            width: 25%;
+            height: 25%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.4) 60%, transparent 100%);
+            border-radius: 50%;
+            animation: highlight3D 3s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 2;
+        }
+        
+        @keyframes shimmer3D {
+            0%, 100% { 
+                transform: rotate(0deg) scale(0.9); 
+                opacity: 0.4; 
+            }
+            25% { 
+                transform: rotate(90deg) scale(1.1); 
+                opacity: 0.8; 
+            }
+            50% { 
+                transform: rotate(180deg) scale(1); 
+                opacity: 0.6; 
+            }
+            75% { 
+                transform: rotate(270deg) scale(1.05); 
+                opacity: 0.7; 
+            }
+        }
+        
+        @keyframes highlight3D {
+            0%, 100% { 
+                transform: scale(1) translate(0, 0); 
+                opacity: 0.8; 
+            }
+            50% { 
+                transform: scale(1.2) translate(-2px, -2px); 
+                opacity: 1; 
+            }
+        }
+        
+        .dna-bubble:hover {
+            transform: scale(1.15) translateZ(30px) rotateY(5deg) rotateX(5deg);
+            box-shadow: 
+                0 0 60px rgba(147, 51, 234, 1),
+                0 0 120px rgba(147, 51, 234, 0.6),
+                0 20px 50px rgba(0, 0, 0, 0.8),
+                0 35px 80px rgba(0, 0, 0, 0.4),
+                inset 0 8px 20px rgba(255, 255, 255, 0.5),
+                inset 0 -12px 25px rgba(0, 0, 0, 0.4),
+                inset -8px -8px 20px rgba(91, 33, 182, 0.7),
+                inset 8px 8px 20px rgba(192, 132, 252, 0.5);
+        }
+        
+        .dna-bubble:active {
+            transform: scale(1.05) translateZ(15px) rotateY(2deg) rotateX(2deg);
+            transition: all 0.1s ease;
+        }
+        
+        .dna-symbol {
+            font-size: 32px;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.95);
+            z-index: 3;
+            text-shadow: 
+                0 0 10px rgba(147, 51, 234, 0.8),
+                0 0 20px rgba(147, 51, 234, 0.4),
+                0 2px 4px rgba(0, 0, 0, 0.6);
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+            animation: symbolGlow 2s ease-in-out infinite;
+        }
+        
+        @keyframes symbolGlow {
+            0%, 100% { 
+                text-shadow: 
+                    0 0 10px rgba(147, 51, 234, 0.8),
+                    0 0 20px rgba(147, 51, 234, 0.4),
+                    0 2px 4px rgba(0, 0, 0, 0.6); 
+            }
+            50% { 
+                text-shadow: 
+                    0 0 15px rgba(147, 51, 234, 1),
+                    0 0 30px rgba(147, 51, 234, 0.6),
+                    0 2px 8px rgba(0, 0, 0, 0.8); 
+            }
+        }
+        
+        .dna-bubble:nth-child(2) { animation-delay: -1s; }
+        .dna-bubble:nth-child(3) { animation-delay: -2s; }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            33% { transform: translateY(-8px) rotate(2deg); }
+            66% { transform: translateY(4px) rotate(-2deg); }
+        }
+        
+        .dna-bubble:hover {
+            transform: scale(1.15) translateZ(20px);
+            box-shadow: 
+                0 0 60px var(--shadow-glow),
+                0 20px 40px rgba(0, 0, 0, 0.6),
+                inset 0 4px 0 rgba(255, 255, 255, 0.5),
+                inset 0 -4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .dna-bubble:active {
+            transform: scale(1.05) translateZ(10px);
+            transition: all 0.1s ease;
+        }
+        
+        .dna-bubble::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+            animation: shimmer 2s ease-in-out infinite;
+            pointer-events: none;
+        }
+        
+        @keyframes shimmer {
+            0%, 100% { transform: rotate(0deg) scale(0); opacity: 0; }
+            50% { transform: rotate(180deg) scale(1); opacity: 1; }
+        }
+        
+        .dna-symbol {
+            font-size: 28px;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.9);
+            z-index: 1;
+        }
+        
+        /* Enhanced bubble pop animation */
+        .dna-bubble.popping {
+            animation: smooth-pop 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+            pointer-events: none;
+        }
+        
+        .dna-bubble.popped {
+            opacity: 0;
+            transform: scale(0);
+            pointer-events: none;
+        }
+        
+        @keyframes smooth-pop {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            20% {
+                transform: scale(1.15);
+                opacity: 0.9;
+            }
+            40% {
+                transform: scale(1.25);
+                opacity: 0.7;
+            }
+            70% {
+                transform: scale(0.95);
+                opacity: 0.4;
+            }
+            100% {
+                transform: scale(0);
+                opacity: 0;
+            }
+        }
+        
+        /* Enhanced pop effect */
+        .pop-effect {
+            position: absolute;
+            pointer-events: none;
+            font-size: 24px;
+            font-weight: 700;
+            color: #a855f7;
+            animation: elegant-pop 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+            z-index: 50;
+            text-shadow: 0 0 8px #9333ea;
+        }
+        
+        @keyframes elegant-pop {
+            0% {
+                opacity: 1;
+                transform: scale(0.8) translateY(0);
+            }
+            25% {
+                opacity: 1;
+                transform: scale(1.1) translateY(-10px);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1) translateY(-25px);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0.9) translateY(-60px);
+            }
+        }
+        
+        /* Remove complex particle effects */
+        .bubble-particles,
+        .particle {
+            display: none;
+        }
+        
+        /* Virus Creation Screen */
+        .virus-creation {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        
+        .virus-display {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 30px;
+            background: 
+                radial-gradient(circle at 40% 40%, var(--accent-red), #cc2652),
+                linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 
+                0 0 50px rgba(255, 51, 102, 0.4),
+                inset 0 2px 0 rgba(255, 255, 255, 0.2);
+            animation: virus-pulse 2s ease-in-out infinite;
+            position: relative;
+        }
+        
+        @keyframes virus-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .virus-display::before,
+        .virus-display::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: var(--accent-red);
+            border-radius: 50%;
+        }
+        
+        .virus-display::before {
+            top: -10px;
+            left: 20px;
+        }
+        
+        .virus-display::after {
+            bottom: -10px;
+            right: 30px;
+        }
+        
+        .virus-name {
+            font-family: 'Space Mono', monospace;
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--accent-red);
+        }
+        
+        .virus-description {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+        

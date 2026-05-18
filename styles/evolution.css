@@ -1,0 +1,263 @@
+        /* Evolution Screen */
+        .evolution-screen {
+            padding: 60px 20px 40px;
+            background: 
+                radial-gradient(circle at 30% 20%, rgba(147, 51, 234, 0.15), transparent 60%),
+                radial-gradient(circle at 70% 80%, rgba(59, 130, 246, 0.1), transparent 50%),
+                linear-gradient(135deg, #0f1419 0%, #1a1f2e 50%, #0f1419 100%);
+        }
+        
+        .virus-title {
+            font-family: 'Space Mono', monospace;
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 30px;
+            color: #ffffff;
+            text-align: center;
+        }
+        
+        /* Virus Character Container */
+        .virus-character-container {
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+        }
+        
+        .virus-character {
+            position: relative;
+            width: 320px;
+            height: 180px;
+            max-width: 100%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .dna-helix-svg {
+            width: 100%;
+            height: 100%;
+            animation: helix-breathe 4s ease-in-out infinite;
+            overflow: visible;
+        }
+        
+        @keyframes helix-breathe {
+            0%, 100% { 
+                transform: scale(1);
+                filter: brightness(1);
+            }
+            50% { 
+                transform: scale(1.03);
+                filter: brightness(1.15);
+            }
+        }
+        
+        .dna-sparkles circle {
+            animation: sparkle 3s ease-in-out infinite;
+        }
+        
+        .dna-sparkles circle:nth-child(3n) {
+            animation-delay: -0.8s;
+        }
+        
+        .dna-sparkles circle:nth-child(3n+1) {
+            animation-delay: -1.6s;
+        }
+        
+        .dna-sparkles circle:nth-child(3n+2) {
+            animation-delay: -2.4s;
+        }
+        
+        @keyframes sparkle {
+            0%, 100% { opacity: 0.2; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+        
+        .dna-peaks ellipse,
+        .dna-peaks circle {
+            animation: peak-shine 2.5s ease-in-out infinite;
+        }
+        
+        .dna-peaks ellipse:nth-child(odd) {
+            animation-delay: -1.2s;
+        }
+        
+        @keyframes peak-shine {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
+        }
+        
+        /* Level and EXP */
+        .virus-level {
+            font-family: 'Space Mono', monospace;
+            font-size: 18px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 15px;
+        }
+        
+        .exp-bar-container {
+            margin-bottom: 30px;
+        }
+        
+        .exp-bar {
+            width: 200px;
+            height: 8px;
+            background: rgba(30, 30, 30, 0.8);
+            border-radius: 10px;
+            margin: 0 auto 8px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .exp-progress {
+            height: 100%;
+            background: linear-gradient(90deg, #9333ea, #c084fc);
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+        
+        .exp-text {
+            font-size: 14px;
+            color: #a855f7;
+            font-weight: 600;
+        }
+        
+        /* Resource Cards */
+        .resource-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+        
+        .resource-card {
+            background: rgba(30, 30, 40, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 16px 12px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            position: relative;
+        }
+        
+        .resource-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        
+        .resource-amount {
+            font-size: 16px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 4px;
+        }
+        
+        .resource-rate {
+            font-size: 12px;
+            color: #4ade80;
+            margin-bottom: 8px;
+        }
+        
+        .resource-label {
+            font-size: 11px;
+            color: #9ca3af;
+            font-weight: 600;
+        }
+        
+        .biomass-card {
+            border-color: rgba(251, 191, 36, 0.3);
+        }
+        
+        .dna-card {
+            border-color: rgba(147, 51, 234, 0.3);
+        }
+        
+        .crystal-card {
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+        
+        /* Status Section */
+        .status-section {
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 16px;
+        }
+        
+        .status-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+        
+        .status-card {
+            background: rgba(30, 30, 40, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .status-icon {
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+        
+        .status-value {
+            font-size: 13px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 4px;
+        }
+        
+        .status-label {
+            font-size: 10px;
+            color: #9ca3af;
+            font-weight: 500;
+        }
+        
+        /* Upgrade Actions */
+        .upgrade-actions {
+            margin-bottom: 20px;
+        }
+        
+        .feed-button {
+            width: 100%;
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            border: none;
+            border-radius: 16px;
+            padding: 16px 24px;
+            color: #ffffff;
+            font-family: inherit;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+        }
+        
+        .feed-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
+        }
+        
+        .feed-text {
+            font-size: 16px;
+            letter-spacing: 1px;
+        }
+        
+        .feed-cost {
+            font-size: 14px;
+            opacity: 0.9;
+        }
