@@ -1620,6 +1620,100 @@
             border-color: rgba(255, 51, 102, 0.4);
             background: rgba(255, 51, 102, 0.08);
         }
+
+        /* Spread (transmission) cards reuse upgrade styling with a description line */
+        .spread-section { margin-top: 14px; }
+
+        .spread-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(36, 49, 66, 0.7);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 10px 12px;
+            transition: transform 0.15s ease, opacity 0.2s ease, border-color 0.2s ease;
+            -webkit-tap-highlight-color: transparent;
+            cursor: pointer;
+        }
+        .spread-card:active { transform: scale(0.97); }
+        .spread-card.disabled { opacity: 0.5; }
+        .spread-card.shake { animation: upgrade-shake 0.35s ease-in-out; }
+
+        .spread-icon { font-size: 24px; width: 36px; text-align: center; flex-shrink: 0; }
+
+        .spread-info { flex: 1; min-width: 0; }
+        .spread-name {
+            font-size: 13px; color: #fff; font-weight: 700;
+            margin-bottom: 2px; letter-spacing: 0.3px;
+        }
+        .spread-desc {
+            font-size: 11px; color: var(--text-secondary);
+            line-height: 1.35;
+        }
+
+        .spread-cost {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(168, 85, 247, 0.18);
+            border: 1px solid rgba(168, 85, 247, 0.4);
+            color: #c084fc;
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-family: 'Space Mono', monospace;
+            font-size: 13px;
+            font-weight: 700;
+            flex-shrink: 0;
+            font-variant-numeric: tabular-nums;
+        }
+        .spread-card.disabled .spread-cost {
+            color: var(--accent-red);
+            border-color: rgba(255, 51, 102, 0.4);
+            background: rgba(255, 51, 102, 0.08);
+        }
+
+        /* Infected continent overlay — visible all the time on the map */
+        .continents-overlay {
+            opacity: 1 !important;          /* keep visible to show infections */
+        }
+        .continent-zone {
+            fill: transparent;
+            stroke: transparent;
+            stroke-width: 4;
+            transition: fill 0.45s ease, stroke 0.35s ease;
+            pointer-events: none;
+            animation: none;
+        }
+        .continent-zone.infected {
+            pointer-events: none;
+            stroke-width: 3.5;
+            stroke-dasharray: none;
+            animation: infected-pulse 3.2s ease-in-out infinite;
+            filter: drop-shadow(0 0 8px rgba(255, 80, 60, 0.55));
+        }
+        @keyframes infected-pulse {
+            0%, 100% { filter: drop-shadow(0 0 6px rgba(255, 80, 60, 0.45)); }
+            50%      { filter: drop-shadow(0 0 14px rgba(255, 100, 70, 0.75)); }
+        }
+
+        /* During picker mode, non-infected continents light up as tappable */
+        .world-map-wrapper.selecting .continent-zone:not(.infected) {
+            fill: rgba(255, 255, 255, 0.06);
+            stroke: rgba(255, 255, 255, 0.75);
+            stroke-dasharray: 10 8;
+            pointer-events: auto;
+            cursor: pointer;
+            animation: continent-pulse 1.6s ease-in-out infinite;
+        }
+        .world-map-wrapper.selecting .continent-zone.selected {
+            fill: rgba(255, 255, 255, 0.25);
+            stroke: rgba(255, 255, 255, 1);
+            stroke-dasharray: none;
+            stroke-width: 5;
+            filter: drop-shadow(0 0 14px rgba(255, 255, 255, 0.85));
+            animation: none;
+        }
         
         .virus-title {
             font-family: 'Space Mono', monospace;
@@ -2041,6 +2135,11 @@
                 <div class="section-title">Улучшения</div>
                 <div class="upgrades-list" id="upgradesList"></div>
             </div>
+
+            <div class="upgrades-section spread-section">
+                <div class="section-title">Распространение</div>
+                <div class="upgrades-list" id="spreadList"></div>
+            </div>
         </div>
 
         <!-- Bottom Navigation -->
@@ -2065,10 +2164,21 @@
             constructor() {
                 this.dnaPoints = 0;
                 this.selectedContinent = null;
+                this.pickerMode = null;
 
                 this.popCount = 0;
                 this.tutorialDone = false; // always show tutorial for now (dev)
                 this.tutorialCompleting = false;
+
+                // Continents — infection state shared by map + spread upgrades
+                this.continents = {
+                    'north-america':  { name: 'Северная Америка',  infectionLevel: 0 },
+                    'south-america':  { name: 'Южная Америка',     infectionLevel: 0 },
+                    'europe':         { name: 'Европа',            infectionLevel: 0 },
+                    'africa':         { name: 'Африка',            infectionLevel: 0 },
+                    'asia':           { name: 'Азия',              infectionLevel: 0 },
+                    'australia':      { name: 'Австралия и Океания', infectionLevel: 0 }
+                };
 
                 // Virus progression
                 this.virusLevel = 1;
@@ -2082,6 +2192,19 @@
                     { id: 'lethal',   name: 'Летальность', icon: '💀', baseCost: 50,
                       effects: { infectivity: 0, severity: 2, lethality: 5 } }
                 ];
+
+                // Spread (transmission) upgrades — each pick lets the player
+                // infect one new region by tapping the map
+                this.spreadOptions = [
+                    { id: 'air',  name: 'Авиасообщение',   icon: '🛫', baseCost: 60,
+                      description: 'Заразить регион через аэропорты' },
+                    { id: 'sea',  name: 'Морской путь',    icon: '🚢', baseCost: 80,
+                      description: 'Передача через торговые суда' },
+                    { id: 'land', name: 'Сухопутный путь', icon: '🚛', baseCost: 100,
+                      description: 'Распространение через границы' }
+                ];
+                this.spreadCounts = { air: 0, sea: 0, land: 0 };
+                this.infectionGrowthTimer = null;
 
                 this.init();
             }
@@ -2205,6 +2328,30 @@
                 document.getElementById('fillSeverity').style.width = s.severity + '%';
                 document.getElementById('fillLethality').style.width = s.lethality + '%';
                 this.renderUpgradesList();
+                this.renderSpreadList();
+            }
+
+            renderSpreadList() {
+                const list = document.getElementById('spreadList');
+                if (!list) return;
+                list.innerHTML = '';
+                const uninfected = Object.values(this.continents).filter(c => c.infectionLevel <= 0).length;
+                this.spreadOptions.forEach(o => {
+                    const cost = this.getSpreadCost(o.id);
+                    const affordable = this.dnaPoints >= cost && uninfected > 0;
+                    const card = document.createElement('div');
+                    card.className = 'spread-card' + (affordable ? '' : ' disabled');
+                    card.dataset.id = o.id;
+                    card.innerHTML =
+                        `<div class="spread-icon">${o.icon}</div>` +
+                        `<div class="spread-info">` +
+                            `<div class="spread-name">${o.name}</div>` +
+                            `<div class="spread-desc">${o.description}</div>` +
+                        `</div>` +
+                        `<div class="spread-cost">🧬 ${cost}</div>`;
+                    list.appendChild(card);
+                    this.tap(card, () => this.purchaseSpread(o.id));
+                });
             }
 
             renderUpgradesList() {
@@ -2301,6 +2448,27 @@
             }
 
             enterSelectionMode() {
+                this.enterContinentPicker('tutorial');
+            }
+
+            enterContinentPicker(mode) {
+                this.pickerMode = mode;
+                this.selectedContinent = null;
+                document.querySelectorAll('.continent-zone').forEach(c => c.classList.remove('selected'));
+                document.getElementById('confirmContinent').classList.remove('visible');
+
+                // Update prompt text
+                const title = document.querySelector('.selection-prompt .selection-title');
+                const sub = document.getElementById('selectionSub');
+                if (mode === 'tutorial') {
+                    if (title) title.textContent = 'Выберите континент';
+                    if (sub)   sub.textContent   = 'Тапни по карте, чтобы разместить вирус';
+                } else {
+                    const opt = this.spreadOptions.find(o => o.id === mode);
+                    if (title) title.textContent = (opt ? opt.name : 'Новое заражение');
+                    if (sub)   sub.textContent   = 'Выберите регион для заражения';
+                }
+
                 this.switchScreen('worldMapScreen');
                 document.body.classList.add('selecting');
                 document.querySelector('.bottom-nav').classList.add('locked');
@@ -2308,18 +2476,24 @@
                 const screen = document.getElementById('worldMapScreen');
                 const wrapper = document.querySelector('.world-map-wrapper');
 
-                // Phase 1: helix bursts in centered, map hidden
-                screen.classList.add('intro');
-
-                // Phase 2: helix slides under the map, map fades in, continents enable
-                setTimeout(() => {
-                    screen.classList.remove('intro');
+                if (mode === 'tutorial') {
+                    // Phase 1: helix bursts in centered, map hidden
+                    screen.classList.add('intro');
+                    // Phase 2: helix docks, map fades in, continents enable
+                    setTimeout(() => {
+                        screen.classList.remove('intro');
+                        screen.classList.add('selecting');
+                        wrapper.classList.add('selecting');
+                    }, 1200);
+                } else {
+                    // Spread picker: go straight to the picker with no intro
                     screen.classList.add('selecting');
                     wrapper.classList.add('selecting');
-                }, 1200);
+                }
             }
 
             selectContinent(zone) {
+                if (zone.classList.contains('infected')) return;  // can't re-infect
                 document.querySelectorAll('.continent-zone').forEach(c => c.classList.remove('selected'));
                 zone.classList.add('selected');
                 this.selectedContinent = zone.dataset.id;
@@ -2331,16 +2505,21 @@
             confirmContinent() {
                 if (!this.selectedContinent) return;
 
-                this.tutorialDone = true;
-                this.tutorialCompleting = false;
-                try { localStorage.setItem('tutorialDone', '1'); } catch (e) {}
-                this.afterTutorialSetup();
+                const isTutorial = this.pickerMode === 'tutorial';
+                const initialLevel = isTutorial ? 8 : 5;
+                this.infectContinent(this.selectedContinent, initialLevel);
 
                 const zone = document.querySelector('.continent-zone.selected');
                 const continentName = zone ? zone.dataset.name : '';
-                this.showToast('Вирус размещён', continentName);
+                this.showToast(isTutorial ? 'Вирус размещён' : 'Регион заражён', continentName);
 
-                // Wait for toast to play, then transition to Virus screen
+                if (isTutorial) {
+                    this.tutorialDone = true;
+                    this.tutorialCompleting = false;
+                    try { localStorage.setItem('tutorialDone', '1'); } catch (e) {}
+                    this.afterTutorialSetup();
+                }
+
                 setTimeout(() => {
                     document.body.classList.remove('selecting');
                     document.getElementById('worldMapScreen').classList.remove('selecting');
@@ -2348,9 +2527,96 @@
                     document.querySelector('.bottom-nav').classList.remove('locked');
                     document.getElementById('confirmContinent').classList.remove('visible');
                     document.querySelectorAll('.continent-zone').forEach(c => c.classList.remove('selected'));
-                    this.resetHomeBubbles();
+                    this.pickerMode = null;
+                    this.selectedContinent = null;
+                    if (isTutorial) this.resetHomeBubbles();
                     this.switchScreen('evolutionScreen');
                 }, 1400);
+            }
+
+            // ---- Spread (transmission) upgrades --------------------------
+
+            getSpreadCost(id) {
+                const opt = this.spreadOptions.find(o => o.id === id);
+                if (!opt) return 0;
+                const count = this.spreadCounts[id] || 0;
+                return Math.floor(opt.baseCost * Math.pow(1.4, count));
+            }
+
+            purchaseSpread(id) {
+                const cost = this.getSpreadCost(id);
+                const uninfected = Object.values(this.continents).filter(c => c.infectionLevel <= 0).length;
+                if (this.dnaPoints < cost || uninfected === 0) {
+                    const card = document.querySelector(`.spread-card[data-id="${id}"]`);
+                    if (card) {
+                        card.classList.add('shake');
+                        setTimeout(() => card.classList.remove('shake'), 400);
+                    }
+                    return;
+                }
+                this.dnaPoints -= cost;
+                this.spreadCounts[id] = (this.spreadCounts[id] || 0) + 1;
+                this.updateDNACounter();
+                this.enterContinentPicker(id);
+            }
+
+            infectContinent(id, level) {
+                if (!this.continents[id]) {
+                    this.continents[id] = { name: id, infectionLevel: 0 };
+                }
+                this.continents[id].infectionLevel =
+                    Math.max(this.continents[id].infectionLevel, level);
+                this.renderInfections();
+                this.startInfectionGrowth();
+            }
+
+            getInfectionFill(level) {
+                if (level <= 0) return '';
+                const v = Math.min(100, Math.max(0, level));
+                // Hue 50 (yellow) → 0 (red), alpha 0.32 → 0.85
+                const hue = 50 - v * 0.5;
+                const alpha = 0.32 + (v / 100) * 0.5;
+                return `hsla(${hue.toFixed(0)}, 88%, 52%, ${alpha.toFixed(2)})`;
+            }
+
+            getInfectionStroke(level) {
+                const v = Math.min(100, Math.max(0, level));
+                const hue = 50 - v * 0.5;
+                return `hsla(${hue.toFixed(0)}, 95%, 45%, 0.95)`;
+            }
+
+            renderInfections() {
+                Object.entries(this.continents).forEach(([id, c]) => {
+                    const zone = document.querySelector(`.continent-zone[data-id="${id}"]`);
+                    if (!zone) return;
+                    if (c.infectionLevel > 0) {
+                        zone.classList.add('infected');
+                        zone.style.fill = this.getInfectionFill(c.infectionLevel);
+                        zone.style.stroke = this.getInfectionStroke(c.infectionLevel);
+                    } else {
+                        zone.classList.remove('infected');
+                        zone.style.fill = '';
+                        zone.style.stroke = '';
+                    }
+                });
+            }
+
+            growInfections() {
+                let any = false;
+                const baseGrowth = 0.18;
+                const statBonus = (this.virusStats.infectivity / 100) * 0.7;
+                Object.values(this.continents).forEach(c => {
+                    if (c.infectionLevel > 0 && c.infectionLevel < 100) {
+                        c.infectionLevel = Math.min(100, c.infectionLevel + baseGrowth + statBonus);
+                        any = true;
+                    }
+                });
+                if (any) this.renderInfections();
+            }
+
+            startInfectionGrowth() {
+                if (this.infectionGrowthTimer) return;
+                this.infectionGrowthTimer = setInterval(() => this.growInfections(), 1400);
             }
 
             showToast(title, sub, icon = '🦠') {
@@ -2456,8 +2722,9 @@
             
             updateDNACounter() {
                 document.getElementById('dnaCount').textContent = this.dnaPoints;
-                // Refresh affordability of upgrade cards
+                // Refresh affordability of upgrade + spread cards
                 this.renderUpgradesList();
+                this.renderSpreadList();
             }
         }
         
