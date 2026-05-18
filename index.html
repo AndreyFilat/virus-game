@@ -1840,6 +1840,142 @@
             background: rgba(255, 51, 102, 0.08);
         }
 
+        /* News screen */
+        .news-screen {
+            padding: 50px 12px 80px;
+            align-items: stretch;
+            justify-content: flex-start;
+            overflow-y: auto;
+        }
+
+        .news-screen-title {
+            font-family: 'Space Mono', monospace;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .news-feed {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+            max-width: 430px;
+            margin: 0 auto;
+        }
+
+        .news-empty {
+            text-align: center;
+            color: var(--text-secondary);
+            padding: 50px 24px;
+            font-size: 13px;
+            line-height: 1.55;
+        }
+
+        .news-card {
+            background: rgba(20, 28, 40, 0.82);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--border);
+            border-radius: 12px;
+            padding: 12px 14px 12px 12px;
+            animation: news-slide-in 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        @keyframes news-slide-in {
+            from { opacity: 0; transform: translateY(-10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .news-card.positive { border-left-color: rgba(74, 222, 128, 0.7); }
+        .news-card.negative { border-left-color: rgba(248, 113, 113, 0.7); }
+
+        .news-head {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 6px;
+        }
+
+        .news-icon {
+            font-size: 22px;
+            line-height: 1;
+            filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.4));
+        }
+
+        .news-meta { flex: 1; min-width: 0; }
+
+        .news-h {
+            font-weight: 700;
+            font-size: 13px;
+            color: #fff;
+            line-height: 1.2;
+        }
+
+        .news-time {
+            font-size: 10px;
+            color: var(--text-secondary);
+            margin-top: 1px;
+            letter-spacing: 0.3px;
+        }
+
+        .news-text {
+            font-size: 12.5px;
+            color: var(--text-secondary);
+            line-height: 1.45;
+            margin-bottom: 8px;
+        }
+
+        .news-region {
+            color: #fff;
+            font-weight: 700;
+        }
+
+        .news-effect {
+            display: inline-block;
+            font-family: 'Space Mono', monospace;
+            font-size: 10.5px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 6px;
+            letter-spacing: 0.5px;
+        }
+
+        .news-card.positive .news-effect {
+            background: rgba(74, 222, 128, 0.15);
+            color: #4ade80;
+            border: 1px solid rgba(74, 222, 128, 0.35);
+        }
+
+        .news-card.negative .news-effect {
+            background: rgba(248, 113, 113, 0.15);
+            color: #f87171;
+            border: 1px solid rgba(248, 113, 113, 0.35);
+        }
+
+        /* Bottom-nav unread badge */
+        .nav-btn { position: relative; }
+        .nav-badge {
+            position: absolute;
+            top: 4px;
+            right: calc(50% - 24px);
+            min-width: 16px;
+            height: 16px;
+            padding: 0 4px;
+            background: var(--accent-red);
+            color: #fff;
+            font-family: 'Space Mono', monospace;
+            font-size: 10px;
+            font-weight: 700;
+            line-height: 16px;
+            text-align: center;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(255, 51, 102, 0.55);
+        }
+
         /* Invite-locked spread card */
         .spread-card.locked .spread-icon { opacity: 0.55; filter: grayscale(0.55); }
         .spread-card.locked .spread-name { color: var(--text-secondary); }
@@ -2516,6 +2652,14 @@
             <div class="ability-grid" id="abilityGrid"></div>
         </div>
 
+        <!-- News Screen -->
+        <div class="screen news-screen" id="newsScreen">
+            <h2 class="news-screen-title">Сводки из мира</h2>
+            <div class="news-feed" id="newsFeed">
+                <div class="news-empty">Заразите хотя бы один регион, чтобы получать новости.</div>
+            </div>
+        </div>
+
         <!-- Invite-a-friend modal for invite-locked spread methods -->
         <div class="modal-backdrop" id="inviteModal" hidden>
             <div class="modal" role="dialog">
@@ -2541,6 +2685,11 @@
             <button class="nav-btn active" data-screen="startScreen" id="navHome">
                 <span class="nav-icon">🏠</span>
                 <span>Дом</span>
+            </button>
+            <button class="nav-btn" data-screen="newsScreen" id="navNews">
+                <span class="nav-icon">📰</span>
+                <span>Новости</span>
+                <span class="nav-badge" hidden>0</span>
             </button>
             <button class="nav-btn" data-screen="evolutionScreen" id="navVirus">
                 <span class="nav-icon">🦠</span>
@@ -2862,6 +3011,28 @@
                 this.inviteRef = this.getOrCreateInviteRef();
                 this.infectionGrowthTimer = null;
 
+                // News feed: events from infected regions that help or hurt the virus
+                this.newsItems = [];
+                this.unreadNews = 0;
+                this.newsLoopRunning = false;
+                this.newsTemplates = [
+                    // Positive — help the virus
+                    { type: 'positive', icon: '✈️', title: 'Открытие границ',     text: 'В {region} ослабили санитарный контроль на границах.',  effect: { region: 8 } },
+                    { type: 'positive', icon: '🎉', title: 'Массовое мероприятие', text: 'В {region} прошёл фестиваль на сто тысяч человек.',     effect: { region: 10 } },
+                    { type: 'positive', icon: '🌡️', title: 'Аномальная жара',     text: 'В {region} установилась рекордная температура.',         effect: { stats: 'infectivity', amount: 2 } },
+                    { type: 'positive', icon: '💀', title: 'Игнор угрозы',         text: 'Власти {region} отрицают пандемию.',                     effect: { dna: 35 } },
+                    { type: 'positive', icon: '🚇', title: 'Перегруз метро',       text: 'В {region} переполнен общественный транспорт.',         effect: { region: 6 } },
+                    { type: 'positive', icon: '🏥', title: 'Кризис здравоохранения', text: 'Больницы {region} переполнены — лечения нет.',          effect: { stats: 'lethality', amount: 2 } },
+
+                    // Negative — hurt the virus
+                    { type: 'negative', icon: '😷', title: 'Массовое ношение масок', text: 'Жители {region} массово начали носить маски.',           effect: { region: -6 } },
+                    { type: 'negative', icon: '🚪', title: 'Закрытие границ',       text: '{region} полностью закрыли границы.',                    effect: { region: -10 } },
+                    { type: 'negative', icon: '💉', title: 'Испытания вакцины',     text: 'В {region} начались клинические испытания вакцины.',     effect: { stats: 'lethality', amount: -2 } },
+                    { type: 'negative', icon: '📊', title: 'ВОЗ объявляет тревогу', text: 'ВОЗ присвоила вирусу высший уровень опасности.',         effect: { stats: 'infectivity', amount: -1, dna: -20 } },
+                    { type: 'negative', icon: '🧼', title: 'Кампания гигиены',      text: 'В {region} запустили кампанию по гигиене рук.',          effect: { stats: 'infectivity', amount: -1 } },
+                    { type: 'negative', icon: '🔬', title: 'Геном расшифрован',     text: 'Учёные {region} расшифровали ваш геном.',                effect: { dna: -25 } }
+                ];
+
                 // Land adjacency between continents (simplified geopolitics)
                 this.landNeighbors = {
                     'north-america': ['south-america'],
@@ -2897,6 +3068,7 @@
                 if (fixed) fixed.style.display = 'none';
                 const subtitle = document.querySelector('.start-screen .game-subtitle');
                 if (subtitle) subtitle.style.display = 'none';
+                this.startNewsLoop();
                 if (this.spawnLoopActive) return;
                 this.spawnLoopActive = true;
                 this.runSpawnLoop();
@@ -3211,6 +3383,11 @@
 
                 if (id === 'evolutionScreen') this.renderVirusScreen();
                 if (id === 'startScreen' && this.tutorialDone) this.topUpFloatingBubbles(2);
+                if (id === 'newsScreen') {
+                    this.unreadNews = 0;
+                    this.updateNewsBadge();
+                    this.renderNewsFeed();
+                }
             }
 
             enterSelectionMode() {
@@ -3655,6 +3832,135 @@
             startInfectionGrowth() {
                 if (this.infectionGrowthTimer) return;
                 this.infectionGrowthTimer = setInterval(() => this.growInfections(), 1400);
+            }
+
+            // ---- News feed -----------------------------------------------
+
+            startNewsLoop() {
+                if (this.newsLoopRunning) return;
+                this.newsLoopRunning = true;
+                const tick = () => {
+                    const next = 14000 + Math.random() * 14000; // 14–28s
+                    setTimeout(() => {
+                        this.generateNews();
+                        tick();
+                    }, next);
+                };
+                // First news after a short delay so the player isn't bombarded immediately
+                setTimeout(() => {
+                    this.generateNews();
+                    tick();
+                }, 6000);
+            }
+
+            generateNews() {
+                const infected = Object.entries(this.continents)
+                    .filter(([id, c]) => c.infectionLevel > 0);
+                if (infected.length === 0) return;
+
+                const tpl = this.newsTemplates[Math.floor(Math.random() * this.newsTemplates.length)];
+                const [regionId, region] = infected[Math.floor(Math.random() * infected.length)];
+
+                const item = {
+                    id: Date.now() + '-' + Math.random().toString(36).slice(2, 6),
+                    ts: Date.now(),
+                    template: tpl,
+                    regionId,
+                    regionName: region.name
+                };
+
+                this.applyNewsEffect(item);
+                this.newsItems.unshift(item);
+                if (this.newsItems.length > 24) this.newsItems.pop();
+
+                if (!document.getElementById('newsScreen').classList.contains('active')) {
+                    this.unreadNews++;
+                }
+                this.updateNewsBadge();
+                this.renderNewsFeed();
+            }
+
+            applyNewsEffect(item) {
+                const eff = item.template.effect || {};
+                if (typeof eff.region === 'number') {
+                    const c = this.continents[item.regionId];
+                    if (c) {
+                        c.infectionLevel = Math.max(0, Math.min(100, c.infectionLevel + eff.region));
+                        this.renderInfections();
+                        this.updateMapStats();
+                    }
+                }
+                if (eff.stats) {
+                    this.virusStats[eff.stats] = Math.max(0, Math.min(100, (this.virusStats[eff.stats] || 0) + (eff.amount || 0)));
+                    this.renderVirusScreen();
+                }
+                if (typeof eff.dna === 'number') {
+                    this.dnaPoints = Math.max(0, this.dnaPoints + eff.dna);
+                    this.updateDNACounter();
+                }
+            }
+
+            formatNewsAgo(ms) {
+                if (ms < 60000)   return 'только что';
+                if (ms < 3600000) return Math.floor(ms / 60000) + ' мин назад';
+                return Math.floor(ms / 3600000) + ' ч назад';
+            }
+
+            statLabel(stat) {
+                return { infectivity: 'заразность', severity: 'тяжесть', lethality: 'летальность' }[stat] || stat;
+            }
+
+            formatNewsEffect(eff) {
+                const parts = [];
+                if (typeof eff.region === 'number') {
+                    parts.push((eff.region > 0 ? '+' : '') + eff.region + '% к региону');
+                }
+                if (eff.stats) {
+                    parts.push((eff.amount > 0 ? '+' : '') + eff.amount + '% ' + this.statLabel(eff.stats));
+                }
+                if (typeof eff.dna === 'number') {
+                    parts.push((eff.dna > 0 ? '+' : '') + eff.dna + ' 🧬');
+                }
+                return parts.join(' · ');
+            }
+
+            renderNewsFeed() {
+                const feed = document.getElementById('newsFeed');
+                if (!feed) return;
+                if (this.newsItems.length === 0) {
+                    feed.innerHTML = '<div class="news-empty">Заразите хотя бы один регион, чтобы получать новости.</div>';
+                    return;
+                }
+                feed.innerHTML = '';
+                this.newsItems.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'news-card ' + item.template.type;
+                    const text = item.template.text.replace('{region}', `<span class="news-region">${item.regionName}</span>`);
+                    const ago = this.formatNewsAgo(Date.now() - item.ts);
+                    const effect = this.formatNewsEffect(item.template.effect);
+                    card.innerHTML =
+                        '<div class="news-head">' +
+                            `<span class="news-icon">${item.template.icon}</span>` +
+                            '<div class="news-meta">' +
+                                `<div class="news-h">${item.template.title}</div>` +
+                                `<div class="news-time">${ago}</div>` +
+                            '</div>' +
+                        '</div>' +
+                        `<div class="news-text">${text}</div>` +
+                        `<div class="news-effect">${effect}</div>`;
+                    feed.appendChild(card);
+                });
+            }
+
+            updateNewsBadge() {
+                const badge = document.querySelector('#navNews .nav-badge');
+                if (!badge) return;
+                if (this.unreadNews > 0) {
+                    badge.textContent = this.unreadNews > 9 ? '9+' : this.unreadNews;
+                    badge.hidden = false;
+                } else {
+                    badge.hidden = true;
+                }
             }
 
             showToast(title, sub, icon = '🦠') {
