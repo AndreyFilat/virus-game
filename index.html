@@ -453,7 +453,7 @@
         
         /* Enhanced bubble pop animation */
         .dna-bubble.popping {
-            animation: smooth-pop 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+            animation: smooth-pop 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
             pointer-events: none;
         }
         
@@ -465,10 +465,10 @@
         
         @keyframes smooth-pop {
             0%   { transform: scale(1);    opacity: 1; }
-            18%  { transform: scale(0.84); opacity: 1; }   /* anticipation squeeze */
-            42%  { transform: scale(1.45); opacity: 0.95; } /* explosive expand */
-            70%  { transform: scale(1.15); opacity: 0.35; }
-            100% { transform: scale(0);    opacity: 0; }
+            22%  { transform: scale(0.82); opacity: 1; }   /* anticipation squeeze */
+            46%  { transform: scale(1.55); opacity: 1; }   /* explosive expand */
+            58%  { transform: scale(1.8);  opacity: 0; }   /* shell dissolves */
+            100% { transform: scale(2);    opacity: 0; }
         }
 
         /* Pop visual effects: flash, shockwave, particles, +N text */
@@ -1678,9 +1678,10 @@
             opacity: 1 !important;          /* keep visible to show infections */
         }
         .continent-zone {
-            fill: transparent;
-            stroke: transparent;
-            stroke-width: 4;
+            fill: rgba(120, 130, 145, 0.18);    /* gray for uninfected */
+            stroke: rgba(170, 180, 200, 0.45);
+            stroke-width: 2.5;
+            stroke-dasharray: none;
             transition: fill 0.45s ease, stroke 0.35s ease;
             pointer-events: none;
             animation: none;
@@ -1713,6 +1714,41 @@
             stroke-width: 5;
             filter: drop-shadow(0 0 14px rgba(255, 255, 255, 0.85));
             animation: none;
+        }
+
+        /* Travelling vehicle for spread infection animation */
+        .spread-vehicle {
+            position: absolute;
+            left: 0;
+            top: 0;
+            font-size: 30px;
+            line-height: 1;
+            z-index: 120;
+            pointer-events: none;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.65));
+            transition: transform 1.2s cubic-bezier(0.45, 0, 0.55, 1), opacity 0.4s ease;
+            will-change: transform, opacity;
+        }
+
+        /* Trail behind the vehicle as it moves */
+        .spread-trail {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 6px;
+            height: 6px;
+            margin: -3px 0 0 -3px;
+            border-radius: 50%;
+            background: rgba(255, 220, 180, 0.85);
+            box-shadow: 0 0 8px rgba(255, 200, 140, 0.7);
+            pointer-events: none;
+            z-index: 110;
+            animation: trail-fade 0.9s ease-out forwards;
+        }
+
+        @keyframes trail-fade {
+            0%   { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(0.4); }
         }
         
         .virus-title {
@@ -2043,15 +2079,15 @@
             <button class="confirm-button" id="confirmContinent">Подтвердить выбор</button>
             <div class="world-map-stats">
                 <div class="map-stat">
-                    <div class="map-stat-value">0</div>
+                    <div class="map-stat-value" id="statInfected">0</div>
                     <div class="map-stat-label">Заражено</div>
                 </div>
                 <div class="map-stat">
-                    <div class="map-stat-value">0</div>
-                    <div class="map-stat-label">Стран</div>
+                    <div class="map-stat-value" id="statRegions">0/6</div>
+                    <div class="map-stat-label">Регионов</div>
                 </div>
                 <div class="map-stat">
-                    <div class="map-stat-value">0%</div>
+                    <div class="map-stat-value" id="statWorld">0%</div>
                     <div class="map-stat-label">Мир</div>
                 </div>
             </div>
@@ -2172,13 +2208,14 @@
 
                 // Continents — infection state shared by map + spread upgrades
                 this.continents = {
-                    'north-america':  { name: 'Северная Америка',  infectionLevel: 0 },
-                    'south-america':  { name: 'Южная Америка',     infectionLevel: 0 },
-                    'europe':         { name: 'Европа',            infectionLevel: 0 },
-                    'africa':         { name: 'Африка',            infectionLevel: 0 },
-                    'asia':           { name: 'Азия',              infectionLevel: 0 },
-                    'australia':      { name: 'Австралия и Океания', infectionLevel: 0 }
+                    'north-america':  { name: 'Северная Америка',  infectionLevel: 0, population: 580_000_000 },
+                    'south-america':  { name: 'Южная Америка',     infectionLevel: 0, population: 435_000_000 },
+                    'europe':         { name: 'Европа',            infectionLevel: 0, population: 745_000_000 },
+                    'africa':         { name: 'Африка',            infectionLevel: 0, population: 1_400_000_000 },
+                    'asia':           { name: 'Азия',              infectionLevel: 0, population: 4_700_000_000 },
+                    'australia':      { name: 'Австралия и Океания', infectionLevel: 0, population: 45_000_000 }
                 };
+                this._centroidCache = {};
 
                 // Virus progression
                 this.virusLevel = 1;
@@ -2506,32 +2543,52 @@
                 if (!this.selectedContinent) return;
 
                 const isTutorial = this.pickerMode === 'tutorial';
-                const initialLevel = isTutorial ? 8 : 5;
-                this.infectContinent(this.selectedContinent, initialLevel);
-
+                const targetId = this.selectedContinent;
+                const mode = this.pickerMode;
                 const zone = document.querySelector('.continent-zone.selected');
                 const continentName = zone ? zone.dataset.name : '';
-                this.showToast(isTutorial ? 'Вирус размещён' : 'Регион заражён', continentName);
+
+                // Clear the picker UI but keep the body in "selecting" so the
+                // nav stays hidden while the transport animation plays.
+                document.querySelector('.world-map-wrapper').classList.remove('selecting');
+                document.getElementById('confirmContinent').classList.remove('visible');
+                document.querySelectorAll('.continent-zone').forEach(c => c.classList.remove('selected'));
+
+                const finish = () => {
+                    setTimeout(() => {
+                        document.body.classList.remove('selecting');
+                        document.getElementById('worldMapScreen').classList.remove('selecting');
+                        document.querySelector('.bottom-nav').classList.remove('locked');
+                        this.pickerMode = null;
+                        this.selectedContinent = null;
+                        if (isTutorial) this.resetHomeBubbles();
+                        this.switchScreen('evolutionScreen');
+                    }, 1100);
+                };
 
                 if (isTutorial) {
+                    this.infectContinent(targetId, 8);
                     this.tutorialDone = true;
                     this.tutorialCompleting = false;
                     try { localStorage.setItem('tutorialDone', '1'); } catch (e) {}
                     this.afterTutorialSetup();
+                    this.showToast('Вирус размещён', continentName);
+                    finish();
+                    return;
                 }
 
-                setTimeout(() => {
-                    document.body.classList.remove('selecting');
-                    document.getElementById('worldMapScreen').classList.remove('selecting');
-                    document.querySelector('.world-map-wrapper').classList.remove('selecting');
-                    document.querySelector('.bottom-nav').classList.remove('locked');
-                    document.getElementById('confirmContinent').classList.remove('visible');
-                    document.querySelectorAll('.continent-zone').forEach(c => c.classList.remove('selected'));
-                    this.pickerMode = null;
-                    this.selectedContinent = null;
-                    if (isTutorial) this.resetHomeBubbles();
-                    this.switchScreen('evolutionScreen');
-                }, 1400);
+                // Spread mode — fly a vehicle from the nearest infected region
+                const sourceId = this.findNearestInfected(targetId);
+                const onArrive = () => {
+                    this.infectContinent(targetId, 5);
+                    this.showToast('Регион заражён', continentName);
+                    finish();
+                };
+                if (sourceId) {
+                    this.animateInfection(mode, sourceId, targetId, onArrive);
+                } else {
+                    onArrive();
+                }
             }
 
             // ---- Spread (transmission) upgrades --------------------------
@@ -2562,12 +2619,119 @@
 
             infectContinent(id, level) {
                 if (!this.continents[id]) {
-                    this.continents[id] = { name: id, infectionLevel: 0 };
+                    this.continents[id] = { name: id, infectionLevel: 0, population: 0 };
                 }
                 this.continents[id].infectionLevel =
                     Math.max(this.continents[id].infectionLevel, level);
                 this.renderInfections();
+                this.updateMapStats();
                 this.startInfectionGrowth();
+            }
+
+            getContinentCentroid(id) {
+                if (this._centroidCache[id]) return this._centroidCache[id];
+                const zone = document.querySelector(`.continent-zone[data-id="${id}"]`);
+                if (!zone) return { x: 525, y: 350 };
+                const pts = (zone.getAttribute('points') || '').trim().split(/\s+/);
+                let sx = 0, sy = 0, n = 0;
+                pts.forEach(p => {
+                    const [a, b] = p.split(',').map(Number);
+                    if (Number.isFinite(a) && Number.isFinite(b)) { sx += a; sy += b; n++; }
+                });
+                const c = n ? { x: sx / n, y: sy / n } : { x: 525, y: 350 };
+                this._centroidCache[id] = c;
+                return c;
+            }
+
+            findNearestInfected(toId) {
+                const t = this.getContinentCentroid(toId);
+                let best = null, bestDist = Infinity;
+                Object.entries(this.continents).forEach(([id, c]) => {
+                    if (id === toId || c.infectionLevel <= 0) return;
+                    const p = this.getContinentCentroid(id);
+                    const dx = p.x - t.x, dy = p.y - t.y;
+                    const d = dx * dx + dy * dy;
+                    if (d < bestDist) { bestDist = d; best = id; }
+                });
+                return best;
+            }
+
+            // Convert a viewBox (1050x700) point into wrapper pixel coords,
+            // matching preserveAspectRatio="xMidYMid slice".
+            svgPointToWrapperPx(pt) {
+                const wrapper = document.querySelector('.world-map-wrapper');
+                if (!wrapper) return { x: 0, y: 0 };
+                const rect = wrapper.getBoundingClientRect();
+                const W = rect.width, H = rect.height;
+                const vbW = 1050, vbH = 700;
+                const scale = Math.max(W / vbW, H / vbH);   // slice = cover
+                const offX = (W - vbW * scale) / 2;
+                const offY = (H - vbH * scale) / 2;
+                return { x: offX + pt.x * scale, y: offY + pt.y * scale };
+            }
+
+            animateInfection(mode, fromId, toId, onArrive) {
+                const wrapper = document.querySelector('.world-map-wrapper');
+                if (!wrapper) { onArrive(); return; }
+                const fromPx = this.svgPointToWrapperPx(this.getContinentCentroid(fromId));
+                const toPx   = this.svgPointToWrapperPx(this.getContinentCentroid(toId));
+
+                const iconByMode = { air: '✈️', sea: '🚢', land: '🚚' };
+                const icon = iconByMode[mode] || '✈️';
+
+                const vehicle = document.createElement('div');
+                vehicle.className = 'spread-vehicle';
+                vehicle.textContent = icon;
+                vehicle.style.transform = `translate(${fromPx.x}px, ${fromPx.y}px) translate(-50%, -50%)`;
+                wrapper.appendChild(vehicle);
+
+                // Drop a few breadcrumb trails along the path
+                const TRAIL_COUNT = 6;
+                for (let i = 1; i <= TRAIL_COUNT; i++) {
+                    const t = i / (TRAIL_COUNT + 1);
+                    setTimeout(() => {
+                        const x = fromPx.x + (toPx.x - fromPx.x) * t;
+                        const y = fromPx.y + (toPx.y - fromPx.y) * t;
+                        const dot = document.createElement('div');
+                        dot.className = 'spread-trail';
+                        dot.style.transform = `translate(${x}px, ${y}px)`;
+                        wrapper.appendChild(dot);
+                        setTimeout(() => dot.remove(), 950);
+                    }, t * 1200);
+                }
+
+                requestAnimationFrame(() => {
+                    vehicle.style.transform = `translate(${toPx.x}px, ${toPx.y}px) translate(-50%, -50%)`;
+                });
+
+                setTimeout(() => {
+                    vehicle.style.opacity = '0';
+                    setTimeout(() => vehicle.remove(), 380);
+                    onArrive();
+                }, 1230);
+            }
+
+            formatBigNumber(n) {
+                if (n >= 1e9)  return (n / 1e9).toFixed(2)  + ' млрд';
+                if (n >= 1e6)  return (n / 1e6).toFixed(1)  + ' млн';
+                if (n >= 1e3)  return (n / 1e3).toFixed(0)  + 'K';
+                return Math.floor(n).toString();
+            }
+
+            updateMapStats() {
+                const cont = Object.values(this.continents);
+                const totalPop = cont.reduce((a, c) => a + (c.population || 0), 0);
+                const infectedPop = cont.reduce((a, c) =>
+                    a + (c.population || 0) * (c.infectionLevel || 0) / 100, 0);
+                const infectedRegions = cont.filter(c => c.infectionLevel > 0).length;
+                const worldPct = totalPop > 0 ? (infectedPop / totalPop * 100) : 0;
+
+                const elI = document.getElementById('statInfected');
+                const elR = document.getElementById('statRegions');
+                const elW = document.getElementById('statWorld');
+                if (elI) elI.textContent = this.formatBigNumber(infectedPop);
+                if (elR) elR.textContent = infectedRegions + '/' + cont.length;
+                if (elW) elW.textContent = worldPct.toFixed(worldPct < 10 ? 2 : 1) + '%';
             }
 
             getInfectionFill(level) {
@@ -2611,7 +2775,10 @@
                         any = true;
                     }
                 });
-                if (any) this.renderInfections();
+                if (any) {
+                    this.renderInfections();
+                    this.updateMapStats();
+                }
             }
 
             startInfectionGrowth() {
@@ -2652,20 +2819,17 @@
                     }
                 }
 
-                setTimeout(() => {
-                    bubble.classList.add('popped');
-                    if (bubble.classList.contains('floating')) {
-                        // Floating bubbles vanish after pop (spawner replenishes)
-                        setTimeout(() => { if (bubble.parentNode) bubble.remove(); }, 60);
-                    } else {
-                        // Fixed tutorial bubbles regenerate
-                        setTimeout(() => {
-                            if (this.tutorialCompleting) return;
-                            bubble.dataset.dna = Math.floor(Math.random() * 10) + 8;
-                            bubble.classList.remove('popping', 'popped');
-                        }, 900);
-                    }
-                }, 550);
+                if (bubble.classList.contains('floating')) {
+                    // Floating bubbles vanish right after the burst
+                    setTimeout(() => { if (bubble.parentNode) bubble.remove(); }, 460);
+                } else {
+                    // Fixed tutorial bubbles regenerate
+                    setTimeout(() => {
+                        if (this.tutorialCompleting) return;
+                        bubble.dataset.dna = Math.floor(Math.random() * 10) + 8;
+                        bubble.classList.remove('popping');
+                    }, 1100);
+                }
             }
 
             resetHomeBubbles() {
