@@ -845,7 +845,7 @@
         
         /* World Map Screen with embedded image */
         .world-map-screen {
-            padding: 44px 0 76px;
+            padding: 28px 0 76px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -859,6 +859,8 @@
             padding: 0 12px;
             margin-top: 10px;
         }
+
+        .world-map-title { display: none; }
 
         .world-map-title {
             font-family: 'Space Mono', monospace;
@@ -874,8 +876,7 @@
         .world-map-wrapper {
             position: relative;
             width: 100%;
-            aspect-ratio: 5 / 4;
-            max-height: calc(100% - 78px);
+            aspect-ratio: 1 / 1;
             overflow: hidden;
             transition: opacity 0.55s ease, transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
@@ -1028,6 +1029,7 @@
         /* Absolute-positioned map during the placement flow so the layout is even */
         .world-map-screen.intro .world-map-wrapper,
         .world-map-screen.selecting .world-map-wrapper {
+            aspect-ratio: 5 / 4;       /* keep compact during continent picker */
             position: absolute;
             left: 0;
             right: 0;
@@ -1316,8 +1318,10 @@
 
         /* When a floating bubble is popping, the burst animation must override
            the floating-bubble-in / float pair from the .floating rule. */
+        /* Match the tutorial pop exactly for Home bubbles */
         .dna-bubble.floating.popping {
-            animation: smooth-pop 0.32s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+            animation: smooth-pop 0.32s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards !important;
+            pointer-events: none;
         }
 
         .dna-bubble.floating.fading {
@@ -2224,7 +2228,7 @@
         
         <!-- Global World Map Screen -->
         <div class="screen world-map-screen" id="worldMapScreen">
-            <h2 class="world-map-title">Карта мира</h2>
+            <h2 class="world-map-title" hidden>Карта мира</h2>
             <div class="selection-prompt" id="selectionPrompt">
                 <div class="selection-title">Выберите континент</div>
                 <div class="selection-sub" id="selectionSub">Тапни по карте, чтобы разместить вирус</div>
@@ -2310,7 +2314,6 @@
         <!-- Evolution Menu Screen -->
         <div class="screen evolution-screen" id="evolutionScreen">
             <div class="virus-header">
-                <h2 class="virus-title">Твой вирус</h2>
                 <div class="virus-level-badge">УРОВЕНЬ <span id="virusLevel">1</span></div>
                 <div class="virus-level-progress" aria-hidden="true">
                     <div class="virus-level-fill" id="virusLevelFill" style="width: 0%"></div>
