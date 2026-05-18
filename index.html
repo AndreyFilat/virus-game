@@ -2114,15 +2114,27 @@
             }
 
             runSpawnLoop() {
-                this.spawnFloatingBubble();
+                const home = document.getElementById('startScreen');
+                if (home && home.classList.contains('active')) {
+                    this.spawnFloatingBubble();
+                }
                 const next = 1800 + Math.random() * 1400; // 1.8–3.2 s
                 setTimeout(() => this.runSpawnLoop(), next);
+            }
+
+            topUpFloatingBubbles(min) {
+                const home = document.getElementById('startScreen');
+                if (!home) return;
+                const existing = home.querySelectorAll('.dna-bubble.floating:not(.popping):not(.fading)').length;
+                const needed = Math.max(0, min - existing);
+                for (let i = 0; i < needed; i++) {
+                    setTimeout(() => this.spawnFloatingBubble(), i * 180);
+                }
             }
 
             spawnFloatingBubble() {
                 const home = document.getElementById('startScreen');
                 if (!home) return;
-                if (!home.classList.contains('active')) return; // only spawn while on Home
                 const existing = home.querySelectorAll('.dna-bubble.floating').length;
                 if (existing >= 6) return;
 
@@ -2285,6 +2297,7 @@
                 });
 
                 if (id === 'evolutionScreen') this.renderVirusScreen();
+                if (id === 'startScreen' && this.tutorialDone) this.topUpFloatingBubbles(2);
             }
 
             enterSelectionMode() {
