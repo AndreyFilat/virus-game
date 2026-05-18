@@ -1614,6 +1614,12 @@
             line-height: 1;
             filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.7));
         }
+        .card-icon svg {
+            width: 84px;
+            height: 84px;
+            display: block;
+            overflow: visible;
+        }
 
         .card-cost-overlay {
             position: absolute;
@@ -2467,6 +2473,169 @@
                     ]
                 };
 
+                // SVG artwork for each ability card — replaces emoji icons.
+                // Each illustration is self-contained with its own gradient ids
+                // (id-prefixed to avoid collisions across simultaneously rendered cards).
+                this.cardArt = {
+                    air: `<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                          <radialGradient id="airG" cx=".5" cy=".6"><stop offset="0" stop-color="#7de7ff" stop-opacity=".55"/><stop offset="1" stop-color="#7de7ff" stop-opacity="0"/></radialGradient>
+                          <linearGradient id="airF" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d2f7ff"/><stop offset="1" stop-color="#1f8ea0"/></linearGradient>
+                        </defs>
+                        <circle cx="40" cy="42" r="30" fill="url(#airG)"/>
+                        <path d="M18 46c-2-6 4-10 9-8 0-6 8-9 13-5 4-3 11 0 11 5 5 0 7 5 5 9 1 4-3 7-7 7H22c-3 0-5-3-4-8z" fill="url(#airF)" stroke="#bef5ff" stroke-width=".7" opacity=".92"/>
+                        <ellipse cx="32" cy="40" rx="7" ry="2" fill="#fff" opacity=".4"/>
+                        <circle cx="55" cy="22" r="2.2" fill="#aef5ff" opacity=".85"/>
+                        <circle cx="62" cy="30" r="1.5" fill="#7df9ff" opacity=".7"/>
+                        <circle cx="18" cy="28" r="1.6" fill="#aef5ff" opacity=".7"/>
+                    </svg>`,
+                    water: `<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                          <radialGradient id="watG" cx=".5" cy=".55"><stop offset="0" stop-color="#5bbdff" stop-opacity=".55"/><stop offset="1" stop-color="#5bbdff" stop-opacity="0"/></radialGradient>
+                          <linearGradient id="watF" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bfe6ff"/><stop offset=".5" stop-color="#4aa7e5"/><stop offset="1" stop-color="#1d5a85"/></linearGradient>
+                        </defs>
+                        <circle cx="40" cy="44" r="28" fill="url(#watG)"/>
+                        <path d="M40 14c0 0 18 24 18 36a18 18 0 0 1-36 0c0-12 18-36 18-36z" fill="url(#watF)" stroke="#cfecff" stroke-width=".8"/>
+                        <ellipse cx="34" cy="38" rx="5" ry="10" fill="#fff" opacity=".35" transform="rotate(-25 34 38)"/>
+                        <circle cx="44" cy="56" r="2" fill="#fff" opacity=".4"/>
+                        <circle cx="20" cy="26" r="1.5" fill="#aef5ff" opacity=".7"/>
+                        <circle cx="62" cy="22" r="1.5" fill="#aef5ff" opacity=".7"/>
+                    </svg>`,
+                    contact: `<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                          <radialGradient id="conG" cx=".5" cy=".55"><stop offset="0" stop-color="#4ade80" stop-opacity=".55"/><stop offset="1" stop-color="#4ade80" stop-opacity="0"/></radialGradient>
+                          <radialGradient id="conC" cx=".4" cy=".4"><stop offset="0" stop-color="#a7f3d0"/><stop offset=".6" stop-color="#22c55e"/><stop offset="1" stop-color="#14532d"/></radialGradient>
+                        </defs>
+                        <circle cx="40" cy="42" r="30" fill="url(#conG)"/>
+                        <circle cx="28" cy="42" r="16" fill="url(#conC)" stroke="#bef0d3" stroke-width=".8"/>
+                        <circle cx="52" cy="42" r="16" fill="url(#conC)" stroke="#bef0d3" stroke-width=".8"/>
+                        <ellipse cx="23" cy="36" rx="5" ry="3" fill="#fff" opacity=".4"/>
+                        <ellipse cx="47" cy="36" rx="5" ry="3" fill="#fff" opacity=".4"/>
+                        <circle cx="40" cy="42" r="3" fill="#fff" opacity=".6"/>
+                        <circle cx="64" cy="20" r="1.6" fill="#a7f3d0" opacity=".7"/>
+                    </svg>`,
+                    insect: `<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                          <radialGradient id="insG" cx=".5" cy=".55"><stop offset="0" stop-color="#67e8f9" stop-opacity=".45"/><stop offset="1" stop-color="#67e8f9" stop-opacity="0"/></radialGradient>
+                          <linearGradient id="insB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7c4ddc"/><stop offset="1" stop-color="#2a0f5c"/></linearGradient>
+                        </defs>
+                        <circle cx="40" cy="42" r="30" fill="url(#insG)"/>
+                        <ellipse cx="40" cy="46" rx="9" ry="16" fill="url(#insB)" stroke="#b89cff" stroke-width=".7"/>
+                        <circle cx="40" cy="30" r="6" fill="url(#insB)" stroke="#b89cff" stroke-width=".7"/>
+                        <ellipse cx="26" cy="36" rx="11" ry="6" fill="#cbe6ff" opacity=".35" stroke="#fff" stroke-width=".5"/>
+                        <ellipse cx="54" cy="36" rx="11" ry="6" fill="#cbe6ff" opacity=".35" stroke="#fff" stroke-width=".5"/>
+                        <line x1="40" y1="25" x2="40" y2="12" stroke="#b89cff" stroke-width="1.4"/>
+                        <ellipse cx="40" cy="40" rx="3" ry="6" fill="#fff" opacity=".25"/>
+                        <circle cx="40" cy="30" r="1.5" fill="#fff" opacity=".9"/>
+                    </svg>`,
+                    fever: `<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                          <radialGradient id="fevG" cx=".5" cy=".55"><stop offset="0" stop-color="#fb923c" stop-opacity=".55"/><stop offset="1" stop-color="#fb923c" stop-opacity="0"/></radialGradient>
+                          <linearGradient id="fevT" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fef3c7"/><stop offset="1" stop-color="#92400e"/></linearGradient>
+                          <linearGradient id="fevM" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fde047"/><stop offset="1" stop-color="#dc2626"/></linearGradient>
+                        </defs>
+                        <circle cx="40" cy="42" r="30" fill="url(#fevG)"/>
+                        <path d="M40 14 q-3 4 0 8 q3-4 0-8" fill="#fb923c" opacity=".8"/>
+                        <rect x="35" y="20" width="10" height="36" rx="5" fill="url(#fevT)" stroke="#fef3c7" stroke-width=".8"/>
+                        <rect x="36.5" y="26" width="7" height="26" rx="3.5" fill="url(#fevM)"/>
+                        <circle cx="40" cy="60" r="9" fill="url(#fevM)" stroke="#fef3c7" stroke-width=".8"/>
+                        <ellipse cx="37.5" cy="34" rx="1.5" ry="6" fill="#fff" opacity=".5"/>
+                        <circle cx="40" cy="58" r="3" fill="#fff" opacity=".4"/>
+                        <circle cx="22" cy="22" r="1.5" fill="#fde047" opacity=".7"/>
+                        <circle cx="58" cy="22" r="1.5" fill="#fde047" opacity=".7"/>
+                    </svg>`,
+                    cough: `<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                          <radialGradient id="cgG" cx=".5" cy=".55"><stop offset="0" stop-color="#fbbf24" stop-opacity=".5"/><stop offset="1" stop-color="#fbbf24" stop-opacity="0"/></radialGradient>
+                          <linearGradient id="cgL" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fed7aa"/><stop offset="1" stop-color="#9a3412"/></linearGradient>
+                        </defs>
+                        <circle cx="40" cy="42" r="30" fill="url(#cgG)"/>
+                        <path d="M40 22v32" stroke="#fff5cc" stroke-width="2.5" stroke-linecap="round"/>
+                        <path d="M40 26c-12 0-18 8-18 18 0 8 4 14 12 14 6 0 8-4 8-10z" fill="url(#cgL)" stroke="#fde68a" stroke-width=".7"/>
+                        <path d="M40 26c12 0 18 8 18 18 0 8-4 14-12 14-6 0-8-4-8-10z" fill="url(#cgL)" stroke="#fde68a" stroke-width=".7"/>
+                        <ellipse cx="29" cy="36" rx="3" ry="6" fill="#fff" opacity=".35"/>
+                        <ellipse cx="51" cy="36" rx="3" ry="6" fill="#fff" opacity=".35"/>
+                        <circle cx="22" cy="20" r="2" fill="#fff" opacity=".5"/>
+                        <circle cx="58" cy="20" r="1.5" fill="#fff" opacity=".4"/>
+                    </svg>`,
+                    headache: `<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                          <radialGradient id="hdG" cx=".5" cy=".55"><stop offset="0" stop-color="#fbbf24" stop-opacity=".5"/><stop offset="1" stop-color="#fbbf24" stop-opacity="0"/></radialGradient>
+                          <radialGradient id="hdB" cx=".5" cy=".4"><stop offset="0" stop-color="#fed7aa"/><stop offset=".7" stop-color="#c2410c"/><stop offset="1" stop-color="#5a1a08"/></radialGradient>
+                        </defs>
+                        <circle cx="40" cy="42" r="30" fill="url(#hdG)"/>
+                        <path d="M40 22c-10 0-18 7-18 16 0 6 3 10 8 12 0 6 6 10 12 10s12-4 12-10c5-2 8-6 8-12 0-9-8-16-18-16z" fill="url(#hdB)" stroke="#fde68a" stroke-width=".8"/>
+                        <path d="M40 22v36M30 28c4 4 4 8 0 12c4 4 4 8 0 12M50 28c-4 4-4 8 0 12c-4 4-4 8 0 12" stroke="#7a2d0c" stroke-width=".8" fill="none" opacity=".6"/>
+                        <path d="M44 30 L36 44 L42 44 L34 58" stroke="#fde047" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity=".95"/>
+                        <path d="M44 30 L36 44 L42 44 L34 58" stroke="#fff" stroke-width="1" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="60" cy="22" r="1.6" fill="#fde047" opacity=".7"/>
+                    </svg>`,
+                    nausea: `<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                          <radialGradient id="nsG" cx=".5" cy=".55"><stop offset="0" stop-color="#a3e635" stop-opacity=".55"/><stop offset="1" stop-color="#a3e635" stop-opacity="0"/></radialGradient>
+                          <radialGradient id="nsS" cx=".4" cy=".4"><stop offset="0" stop-color="#ecfccb"/><stop offset=".6" stop-color="#65a30d"/><stop offset="1" stop-color="#1a2e05"/></radialGradient>
+                        </defs>
+                        <circle cx="40" cy="42" r="30" fill="url(#nsG)"/>
+                        <path d="M30 24c-8 4-12 16-8 26 4 8 14 12 22 10 8-2 14-10 12-20-2-8-8-12-14-12-2-4-8-6-12-4z" fill="url(#nsS)" stroke="#d9f99d" stroke-width=".8"/>
+                        <path d="M30 42c2-4 8-6 12-2 4 4-2 8-6 6-4-2-2-8 2-8 6 0 8 6 4 10" stroke="#d9f99d" stroke-width="1.4" fill="none" opacity=".85"/>
+                        <ellipse cx="32" cy="32" rx="5" ry="3" fill="#fff" opacity=".35"/>
+                        <circle cx="22" cy="22" r="1.5" fill="#d9f99d" opacity=".7"/>
+                        <circle cx="60" cy="56" r="1.6" fill="#d9f99d" opacity=".7"/>
+                    </svg>`,
+                    bleed: `<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                          <radialGradient id="bldG" cx=".5" cy=".55"><stop offset="0" stop-color="#f87171" stop-opacity=".55"/><stop offset="1" stop-color="#f87171" stop-opacity="0"/></radialGradient>
+                          <linearGradient id="bldD" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fecaca"/><stop offset=".5" stop-color="#dc2626"/><stop offset="1" stop-color="#450a0a"/></linearGradient>
+                        </defs>
+                        <circle cx="40" cy="42" r="30" fill="url(#bldG)"/>
+                        <path d="M40 16c0 0 16 22 16 32a16 16 0 0 1-32 0c0-10 16-32 16-32z" fill="url(#bldD)" stroke="#fecaca" stroke-width=".8"/>
+                        <ellipse cx="34" cy="36" rx="4" ry="9" fill="#fff" opacity=".35" transform="rotate(-25 34 36)"/>
+                        <circle cx="60" cy="52" r="5" fill="#dc2626" stroke="#fecaca" stroke-width=".6" opacity=".85"/>
+                        <circle cx="60" cy="52" r="2.5" fill="#7f1d1d"/>
+                        <circle cx="18" cy="56" r="3.5" fill="#dc2626" stroke="#fecaca" stroke-width=".5" opacity=".8"/>
+                        <circle cx="18" cy="56" r="1.6" fill="#7f1d1d"/>
+                        <circle cx="64" cy="22" r="1.5" fill="#fecaca" opacity=".7"/>
+                    </svg>`,
+                    organ: `<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                          <radialGradient id="orgG" cx=".5" cy=".55"><stop offset="0" stop-color="#a855f7" stop-opacity=".5"/><stop offset="1" stop-color="#a855f7" stop-opacity="0"/></radialGradient>
+                          <radialGradient id="orgS" cx=".5" cy=".4"><stop offset="0" stop-color="#f3e8ff"/><stop offset=".6" stop-color="#7e22ce"/><stop offset="1" stop-color="#3b0764"/></radialGradient>
+                        </defs>
+                        <circle cx="40" cy="42" r="30" fill="url(#orgG)"/>
+                        <path d="M40 18c-12 0-20 8-20 20 0 6 3 11 7 14v8c0 2 2 4 4 4h18c2 0 4-2 4-4v-8c4-3 7-8 7-14 0-12-8-20-20-20z" fill="url(#orgS)" stroke="#f3e8ff" stroke-width=".8"/>
+                        <circle cx="33" cy="38" r="4" fill="#1a0530" stroke="#f3e8ff" stroke-width=".5"/>
+                        <circle cx="47" cy="38" r="4" fill="#1a0530" stroke="#f3e8ff" stroke-width=".5"/>
+                        <path d="M38 50l2-4 2 4M36 56h8" stroke="#1a0530" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+                        <ellipse cx="33" cy="28" rx="6" ry="2" fill="#fff" opacity=".4"/>
+                        <ellipse cx="47" cy="28" rx="6" ry="2" fill="#fff" opacity=".4"/>
+                        <circle cx="20" cy="22" r="1.5" fill="#e9d5ff" opacity=".7"/>
+                    </svg>`,
+                    cardiac: `<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                          <radialGradient id="cdG" cx=".5" cy=".55"><stop offset="0" stop-color="#f87171" stop-opacity=".5"/><stop offset="1" stop-color="#f87171" stop-opacity="0"/></radialGradient>
+                          <radialGradient id="cdH" cx=".4" cy=".35"><stop offset="0" stop-color="#fecaca"/><stop offset=".5" stop-color="#dc2626"/><stop offset="1" stop-color="#450a0a"/></radialGradient>
+                        </defs>
+                        <circle cx="40" cy="42" r="30" fill="url(#cdG)"/>
+                        <path d="M40 60c-10-6-22-14-22-26 0-8 6-12 12-12 4 0 8 2 10 6 2-4 6-6 10-6 6 0 12 4 12 12 0 12-12 20-22 26z" fill="url(#cdH)" stroke="#fecaca" stroke-width=".9"/>
+                        <ellipse cx="32" cy="32" rx="4" ry="8" fill="#fff" opacity=".4" transform="rotate(-25 32 32)"/>
+                        <path d="M18 46h8l3-8 5 14 4-10 4 4h20" stroke="#fde047" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity=".95"/>
+                        <path d="M18 46h8l3-8 5 14 4-10 4 4h20" stroke="#fff" stroke-width=".7" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity=".7"/>
+                    </svg>`,
+                    brain: `<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                          <radialGradient id="brG" cx=".5" cy=".55"><stop offset="0" stop-color="#ec4899" stop-opacity=".5"/><stop offset="1" stop-color="#ec4899" stop-opacity="0"/></radialGradient>
+                          <radialGradient id="brB" cx=".5" cy=".4"><stop offset="0" stop-color="#fce7f3"/><stop offset=".7" stop-color="#be185d"/><stop offset="1" stop-color="#4c0519"/></radialGradient>
+                        </defs>
+                        <circle cx="40" cy="42" r="30" fill="url(#brG)"/>
+                        <path d="M40 22c-8 0-14 5-14 11 0 2 1 4 2 5-3 1-5 4-5 8 0 6 5 10 11 10 1 4 4 6 6 6s5-2 6-6c6 0 11-4 11-10 0-4-2-7-5-8 1-1 2-3 2-5 0-6-6-11-14-11z" fill="url(#brB)" stroke="#fce7f3" stroke-width=".8"/>
+                        <path d="M40 22v36M30 28c4 4 4 8 0 12c4 4 4 8 0 12M50 28c-4 4-4 8 0 12c-4 4-4 8 0 12" stroke="#4c0519" stroke-width=".7" fill="none" opacity=".7"/>
+                        <circle cx="34" cy="42" r="3" fill="#ef4444" opacity=".85"/>
+                        <circle cx="34" cy="42" r="1.5" fill="#fef3c7"/>
+                        <circle cx="48" cy="46" r="2" fill="#ef4444" opacity=".7"/>
+                        <circle cx="62" cy="22" r="1.6" fill="#fce7f3" opacity=".7"/>
+                    </svg>`
+                };
+
                 // Spread (transmission) upgrades — each pick lets the player
                 // infect one new region by tapping the map
                 this.spreadOptions = [
@@ -2635,7 +2804,7 @@
                     el.innerHTML =
                         '<div class="card-image">' +
                             costBadge +
-                            `<div class="card-icon">${card.icon}</div>` +
+                            `<div class="card-icon">${this.cardArt[card.id] || card.icon}</div>` +
                         '</div>' +
                         '<div class="card-info">' +
                             `<div class="card-name">${card.name}</div>` +
