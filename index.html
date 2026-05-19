@@ -920,8 +920,8 @@
             position: absolute;
             left: 50%;
             top: 50%;
-            width: 84%;
-            max-width: 360px;
+            width: 42%;
+            max-width: 180px;
             aspect-ratio: 500 / 280;
             z-index: 80;
             pointer-events: none;
@@ -2286,13 +2286,13 @@
 
         .virus-character {
             flex: 0 0 auto;
-            width: 190px;
-            height: 110px;
+            width: 95px;
+            height: 55px;
             display: flex;
             align-items: center;
             justify-content: center;
         }
-        
+
         /* New virus illustration replacing the old DNA emoji */
         .virus-art {
             display: block;
@@ -2311,7 +2311,7 @@
 
         .virus-character .virus-art {
             width: 100%;
-            max-width: 200px;
+            max-width: 100px;
             height: auto;
         }
 
@@ -2327,8 +2327,8 @@
             position: absolute;
             left: 50%;
             top: 42%;
-            width: 64%;
-            max-width: 280px;
+            width: 32%;
+            max-width: 140px;
             height: auto;
             z-index: 1;
             pointer-events: none;
@@ -2610,14 +2610,14 @@
             <p class="game-subtitle">Лопай пузырьки — копи ДНК</p>
 
             <div class="dna-bubbles" id="dnaBubbles">
-                <div class="dna-bubble" data-dna="10">
+                <div class="dna-bubble" data-dna="10" data-art="antibody">
                     <img class="bubble-art" src="assets/antibody_blue.png" alt=""/>
                 </div>
-                <div class="dna-bubble" data-dna="15">
-                    <img class="bubble-art" src="assets/macrophage_red.png" alt=""/>
+                <div class="dna-bubble" data-dna="15" data-art="antibody">
+                    <img class="bubble-art" src="assets/antibody_blue.png" alt=""/>
                     <div class="finger-hint hidden" id="fingerHint">👇</div>
                 </div>
-                <div class="dna-bubble" data-dna="12">
+                <div class="dna-bubble" data-dna="12" data-art="antibody">
                     <img class="bubble-art" src="assets/antibody_blue.png" alt=""/>
                 </div>
             </div>
@@ -2986,7 +2986,9 @@
 
                 const bubble = document.createElement('div');
                 bubble.className = 'dna-bubble floating';
-                const art = Math.random() < 0.5 ? 'antibody_blue' : 'macrophage_red';
+                const isAntibody = Math.random() < 0.5;
+                const art = isAntibody ? 'antibody_blue' : 'macrophage_red';
+                bubble.dataset.art = isAntibody ? 'antibody' : 'macrophage';
                 bubble.innerHTML = `<img class="bubble-art" src="assets/${art}.png" alt=""/>`;
                 bubble.dataset.dna = Math.floor(Math.random() * 10) + 8;
 
@@ -3910,6 +3912,7 @@
                 const rect = bubble.getBoundingClientRect();
                 const cx = rect.left + rect.width / 2;
                 const cy = rect.top + rect.height / 2;
+                const theme = bubble.dataset.art || 'default';
 
                 this.dnaPoints += dnaAmount;
                 this.updateDNACounter();
@@ -3919,7 +3922,7 @@
                 // Burst effects (flash, shockwave, particles, +N) appear AFTER
                 // the bubble shell has dissolved — at the smooth-pop opacity=0 frame.
                 setTimeout(() => {
-                    this.createPopEffect(cx, cy, `+${dnaAmount}`);
+                    this.createPopEffect(cx, cy, `+${dnaAmount}`, theme);
                 }, 210);
 
                 // Tutorial: hide finger hint after first tap, count toward continent selection
@@ -3953,14 +3956,52 @@
                 });
             }
             
-            createPopEffect(x, y, text) {
+            createPopEffect(x, y, text, theme = 'default') {
                 const body = document.body;
+                const palettes = {
+                    antibody: {
+                        flashLight: 'rgba(219, 234, 254, 0.7)',
+                        flashMid:   'rgba(96, 165, 250, 0.45)',
+                        flashDeep:  'rgba(37, 99, 235, 0.22)',
+                        shock:      'rgba(96, 165, 250, 0.95)',
+                        shockGlow:  'rgba(59, 130, 246, 0.55)',
+                        particleBg: 'radial-gradient(circle at 35% 30%, #ffffff 0%, #93c5fd 55%, #1d4ed8 100%)',
+                        particleShadow: '0 0 8px rgba(96, 165, 250, 0.85)',
+                        textShadow: '0 0 14px rgba(59,130,246,1), 0 0 26px rgba(37,99,235,0.65), 0 2px 4px rgba(0,0,0,0.55)'
+                    },
+                    macrophage: {
+                        flashLight: 'rgba(254, 226, 226, 0.7)',
+                        flashMid:   'rgba(248, 113, 113, 0.45)',
+                        flashDeep:  'rgba(220, 38, 38, 0.22)',
+                        shock:      'rgba(248, 113, 113, 0.95)',
+                        shockGlow:  'rgba(220, 38, 38, 0.55)',
+                        particleBg: 'radial-gradient(circle at 35% 30%, #ffffff 0%, #fca5a5 55%, #991b1b 100%)',
+                        particleShadow: '0 0 8px rgba(248, 113, 113, 0.85)',
+                        textShadow: '0 0 14px rgba(248,113,113,1), 0 0 26px rgba(220,38,38,0.65), 0 2px 4px rgba(0,0,0,0.55)'
+                    },
+                    default: {
+                        flashLight: 'rgba(247, 217, 194, 0.55)',
+                        flashMid:   'rgba(192, 132, 252, 0.32)',
+                        flashDeep:  'rgba(168, 85, 247, 0.18)',
+                        shock:      'rgba(192, 132, 252, 0.95)',
+                        shockGlow:  'rgba(192, 132, 252, 0.55)',
+                        particleBg: 'radial-gradient(circle at 35% 30%, #ffffff 0%, #c084fc 55%, #7c3aed 100%)',
+                        particleShadow: '0 0 8px rgba(192, 132, 252, 0.85)',
+                        textShadow: '0 0 14px rgba(192,132,252,1), 0 0 26px rgba(168,85,247,0.65), 0 2px 4px rgba(0,0,0,0.55)'
+                    }
+                };
+                const p = palettes[theme] || palettes.default;
 
                 // Bright flash at the centre
                 const flash = document.createElement('div');
                 flash.className = 'pop-flash';
                 flash.style.left = x + 'px';
                 flash.style.top = y + 'px';
+                flash.style.background = `radial-gradient(circle at center,
+                    ${p.flashLight} 0%,
+                    ${p.flashMid} 35%,
+                    ${p.flashDeep} 60%,
+                    transparent 80%)`;
                 body.appendChild(flash);
                 setTimeout(() => flash.remove(), 500);
 
@@ -3969,23 +4010,27 @@
                 shock.className = 'pop-shockwave';
                 shock.style.left = x + 'px';
                 shock.style.top = y + 'px';
+                shock.style.borderColor = p.shock;
+                shock.style.boxShadow = `0 0 18px ${p.shockGlow}, inset 0 0 18px ${p.shockGlow}`;
                 body.appendChild(shock);
                 setTimeout(() => shock.remove(), 800);
 
                 // Radial burst of particles
                 const PARTICLES = 12;
                 for (let i = 0; i < PARTICLES; i++) {
-                    const p = document.createElement('div');
-                    p.className = 'pop-particle';
+                    const part = document.createElement('div');
+                    part.className = 'pop-particle';
                     const angle = (i / PARTICLES) * Math.PI * 2 + (Math.random() - 0.5) * 0.4;
                     const dist = 80 + Math.random() * 60;
-                    p.style.setProperty('--dx', (Math.cos(angle) * dist).toFixed(1) + 'px');
-                    p.style.setProperty('--dy', (Math.sin(angle) * dist).toFixed(1) + 'px');
-                    p.style.setProperty('--size', (4 + Math.random() * 6).toFixed(1) + 'px');
-                    p.style.left = x + 'px';
-                    p.style.top = y + 'px';
-                    body.appendChild(p);
-                    setTimeout(() => p.remove(), 950);
+                    part.style.setProperty('--dx', (Math.cos(angle) * dist).toFixed(1) + 'px');
+                    part.style.setProperty('--dy', (Math.sin(angle) * dist).toFixed(1) + 'px');
+                    part.style.setProperty('--size', (4 + Math.random() * 6).toFixed(1) + 'px');
+                    part.style.left = x + 'px';
+                    part.style.top = y + 'px';
+                    part.style.background = p.particleBg;
+                    part.style.boxShadow = p.particleShadow;
+                    body.appendChild(part);
+                    setTimeout(() => part.remove(), 950);
                 }
 
                 // Floating "+N" text
@@ -3994,6 +4039,7 @@
                 effect.textContent = text;
                 effect.style.left = x + 'px';
                 effect.style.top = y + 'px';
+                effect.style.textShadow = p.textShadow;
                 body.appendChild(effect);
                 setTimeout(() => effect.remove(), 1150);
             }
