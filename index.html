@@ -2336,18 +2336,77 @@
             filter: drop-shadow(0 12px 32px rgba(0, 0, 0, 0.55))
                     drop-shadow(0 0 28px rgba(74, 222, 128, 0.35));
             transform: translate(-50%, -50%) scale(1);
-            animation: home-virus-breathe 4s ease-in-out infinite;
+            animation: home-virus-breathe 6s ease-in-out infinite;
             will-change: transform;
         }
 
         @keyframes home-virus-breathe {
-            0%, 100% { transform: translate(-50%, -50%) scale(1); }
-            50%      { transform: translate(-50%, -50%) scale(1.06); }
+            0%   { transform: translate(-50%, -50%) scale(1)    rotate(0deg); }
+            20%  { transform: translate(-50%, -54%) scale(1.05) rotate(-3deg); }
+            40%  { transform: translate(-50%, -47%) scale(1.10) rotate(2deg); }
+            55%  { transform: translate(-50%, -52%) scale(1.07) rotate(4deg); }
+            70%  { transform: translate(-50%, -48%) scale(1.04) rotate(-2deg); }
+            85%  { transform: translate(-50%, -51%) scale(1.02) rotate(1deg); }
+            100% { transform: translate(-50%, -50%) scale(1)    rotate(0deg); }
         }
 
         /* Hide the home virus during the tutorial (three fixed bubbles phase) */
         body.tutorial-active .home-virus {
             display: none;
+        }
+
+        /* First-visit Home hint — text bubble above the virus */
+        .home-hint {
+            position: absolute;
+            top: 10%;
+            left: 50%;
+            z-index: 50;
+            padding: 12px 22px;
+            background: rgba(10, 18, 28, 0.78);
+            border: 1px solid rgba(0, 255, 159, 0.45);
+            border-radius: 18px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5),
+                        0 0 22px rgba(0, 255, 159, 0.25);
+            pointer-events: none;
+            text-align: center;
+            transform: translateX(-50%) translateY(0);
+            animation: home-hint-pulse 2.4s ease-in-out infinite;
+        }
+
+        .home-hint-text {
+            font-family: 'Space Mono', monospace;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 1.4px;
+            text-transform: uppercase;
+            color: var(--accent-green);
+            line-height: 1.3;
+            text-shadow: 0 0 10px rgba(0, 255, 159, 0.55);
+            white-space: nowrap;
+        }
+
+        @keyframes home-hint-pulse {
+            0%, 100% { transform: translateX(-50%) translateY(0)    scale(1); }
+            50%      { transform: translateX(-50%) translateY(-4px) scale(1.04); }
+        }
+
+        /* Animated finger pointing at the bubble to tap */
+        .home-finger {
+            position: absolute;
+            z-index: 60;
+            font-size: 44px;
+            line-height: 1;
+            pointer-events: none;
+            filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.65));
+            transform: translate(-50%, -100%);
+            animation: home-finger-tap 1.1s ease-in-out infinite;
+            transition: left 0.4s ease, top 0.4s ease;
+        }
+
+        @keyframes home-finger-tap {
+            0%, 100% { transform: translate(-50%, -110%) scale(1); }
+            50%      { transform: translate(-50%, -78%)  scale(0.92); }
         }
 
         /* DNA helix glyph — same as inside the bubbles, rotated horizontal */
@@ -2607,6 +2666,10 @@
                 <span class="organelle o6"></span>
             </div>
             <img class="home-virus" src="assets/virus_levels_png/virus_level_1.png" alt="" aria-hidden="true"/>
+            <div class="home-hint" id="homeHint" hidden>
+                <div class="home-hint-text">Защити вирус<br>от антител</div>
+            </div>
+            <div class="home-finger" id="homeFinger" hidden>👇</div>
             <p class="game-subtitle">Лопай пузырьки — копи ДНК</p>
 
             <div class="dna-bubbles" id="dnaBubbles">
@@ -2817,6 +2880,7 @@
                 this.popCount = 0;
                 this.tutorialDone = false; // always show tutorial for now (dev)
                 this.tutorialCompleting = false;
+                this.homeHintShown = false; // first-visit Home hint
 
                 // Continents — infection state shared by map + spread upgrades
                 this.continents = {
@@ -2978,6 +3042,41 @@
                 }
             }
 
+            showHomeHint() {
+                const hint = document.getElementById('homeHint');
+                if (hint) hint.hidden = false;
+                this.homeHintActive = true;
+                this.pointHomeFingerAtExistingBubble();
+            }
+
+            hideHomeHint() {
+                const hint = document.getElementById('homeHint');
+                const finger = document.getElementById('homeFinger');
+                if (hint) hint.hidden = true;
+                if (finger) finger.hidden = true;
+                this.homeHintShown = true;
+                this.homeHintActive = false;
+            }
+
+            pointHomeFingerAtExistingBubble() {
+                if (!this.homeHintActive) return;
+                const home = document.getElementById('startScreen');
+                if (!home) return;
+                const target = home.querySelector('.dna-bubble.floating:not(.popping):not(.fading)');
+                if (target) this.movePointerToBubble(target);
+            }
+
+            movePointerToBubble(bubble) {
+                const home = document.getElementById('startScreen');
+                const finger = document.getElementById('homeFinger');
+                if (!home || !finger) return;
+                const rect = home.getBoundingClientRect();
+                const br = bubble.getBoundingClientRect();
+                finger.style.left = (br.left - rect.left + br.width / 2) + 'px';
+                finger.style.top  = (br.top  - rect.top) + 'px';
+                finger.hidden = false;
+            }
+
             spawnFloatingBubble() {
                 const home = document.getElementById('startScreen');
                 if (!home) return;
@@ -3014,6 +3113,19 @@
                     };
                 }
 
+                // Avoid stacking on top of already-spawned bubbles
+                const occupied = [];
+                home.querySelectorAll('.dna-bubble.floating:not(.popping):not(.fading)').forEach(b => {
+                    const br = b.getBoundingClientRect();
+                    occupied.push({
+                        left:   br.left   - rect.left,
+                        top:    br.top    - rect.top,
+                        right:  br.right  - rect.left,
+                        bottom: br.bottom - rect.top
+                    });
+                });
+                const bMargin = 12;
+
                 const intersectsVirus = (x, y) =>
                     virusRect &&
                     x + bs > virusRect.left &&
@@ -3021,11 +3133,17 @@
                     y + bs > virusRect.top &&
                     y      < virusRect.bottom;
 
+                const intersectsBubble = (x, y) => occupied.some(o =>
+                    x + bs > o.left  - bMargin &&
+                    x      < o.right + bMargin &&
+                    y + bs > o.top   - bMargin &&
+                    y      < o.bottom + bMargin);
+
                 let x = padX, y = padTop;
-                for (let attempt = 0; attempt < 30; attempt++) {
+                for (let attempt = 0; attempt < 40; attempt++) {
                     x = padX + Math.random() * maxX;
                     y = padTop + Math.random() * maxY;
-                    if (!intersectsVirus(x, y)) break;
+                    if (!intersectsVirus(x, y) && !intersectsBubble(x, y)) break;
                 }
 
                 bubble.style.left = x + 'px';
@@ -3041,6 +3159,12 @@
                         setTimeout(() => { if (bubble.parentNode) bubble.remove(); }, 600);
                     }
                 }, 8500);
+
+                // If the first-visit hint is up, point the finger at this fresh bubble
+                if (this.homeHintActive) {
+                    const finger = document.getElementById('homeFinger');
+                    if (finger && finger.hidden) this.movePointerToBubble(bubble);
+                }
             }
 
             getCardCost(card) {
@@ -3315,7 +3439,10 @@
                 });
 
                 if (id === 'evolutionScreen') this.renderVirusScreen();
-                if (id === 'startScreen' && this.tutorialDone) this.topUpFloatingBubbles(2);
+                if (id === 'startScreen' && this.tutorialDone) {
+                    this.topUpFloatingBubbles(2);
+                    if (!this.homeHintShown) this.showHomeHint();
+                }
                 if (id === 'newsScreen') {
                     this.unreadNews = 0;
                     this.updateNewsBadge();
@@ -3918,6 +4045,11 @@
                 this.updateDNACounter();
 
                 bubble.classList.add('popping');
+
+                // If the first-Home-visit hint is up, dismiss it on first pop
+                if (this.homeHintActive && bubble.classList.contains('floating')) {
+                    this.hideHomeHint();
+                }
 
                 // Burst effects (flash, shockwave, particles, +N) appear AFTER
                 // the bubble shell has dissolved — at the smooth-pop opacity=0 frame.
