@@ -1226,18 +1226,19 @@
         .level-up-overlay[hidden] { display: none; }
         .level-up-overlay.active { opacity: 1; }
 
-        /* Soft halo behind the virus that pulses out */
+        /* Continuous halo that runs all the way through the title/number reveal,
+           tying the morph + the reveal into a single arc */
         .level-up-burst {
             position: absolute;
             left: 50%;
             top: 42%;
-            width: 240px;
-            height: 240px;
+            width: 260px;
+            height: 260px;
             border-radius: 50%;
             background: radial-gradient(circle,
-                rgba(0, 255, 159, 0.7) 0%,
-                rgba(74, 222, 128, 0.4) 28%,
-                rgba(34, 197, 94, 0.18) 55%,
+                rgba(0, 255, 159, 0.65) 0%,
+                rgba(74, 222, 128, 0.35) 28%,
+                rgba(34, 197, 94, 0.15) 55%,
                 transparent 80%);
             transform: translate(-50%, -50%) scale(0.2);
             opacity: 0;
@@ -1245,12 +1246,13 @@
             backface-visibility: hidden;
         }
         .level-up-overlay.active .level-up-burst {
-            animation: levelup-burst 2.1s cubic-bezier(0.18, 0.6, 0.3, 1) forwards;
+            animation: levelup-burst 2.8s cubic-bezier(0.16, 0.6, 0.3, 1) forwards;
         }
         @keyframes levelup-burst {
-            0%   { transform: translate(-50%, -50%) scale(0.2); opacity: 0; }
-            20%  { opacity: 0.95; }
-            100% { transform: translate(-50%, -50%) scale(5.5); opacity: 0; }
+            0%   { transform: translate(-50%, -50%) scale(0.25); opacity: 0; }
+            12%  { opacity: 0.95; }
+            65%  { opacity: 0.35; }
+            100% { transform: translate(-50%, -50%) scale(5.2);  opacity: 0; }
         }
 
         /* Two staggered shockwave rings, no border-width animation */
@@ -1270,7 +1272,7 @@
             will-change: transform, opacity;
         }
         .level-up-overlay.active .level-up-rings {
-            animation: levelup-ring 1.7s cubic-bezier(0.2, 0.6, 0.3, 1) 0.05s forwards;
+            animation: levelup-ring 1.9s cubic-bezier(0.2, 0.6, 0.3, 1) 0.05s forwards;
         }
         .level-up-overlay.active .level-up-rings::after {
             content: '';
@@ -1279,7 +1281,7 @@
             border-radius: 50%;
             border: 2px solid rgba(0, 255, 159, 0.55);
             box-shadow: 0 0 18px rgba(0, 255, 159, 0.4);
-            animation: levelup-ring 1.7s cubic-bezier(0.2, 0.6, 0.3, 1) 0.35s forwards;
+            animation: levelup-ring 1.9s cubic-bezier(0.2, 0.6, 0.3, 1) 0.4s forwards;
             opacity: 0;
         }
         @keyframes levelup-ring {
@@ -1287,7 +1289,7 @@
             100% { transform: translate(-50%, -50%) scale(4.2); opacity: 0; }
         }
 
-        /* Virus image stack — both occupy the exact same square, no offsets */
+        /* Virus image stack — both occupy the exact same square */
         .level-up-virus-stack {
             position: relative;
             width: 240px;
@@ -1310,23 +1312,27 @@
             backface-visibility: hidden;
             will-change: transform, opacity;
         }
+        /* The new virus sits in for the rest of the sequence and keeps
+           gently scaling down through the text reveal so the motion never
+           "stops" before the text appears. */
         .level-up-overlay.active .level-up-virus.old {
-            animation: levelup-old 1.25s cubic-bezier(0.55, 0.05, 0.7, 0.1) 0.1s forwards;
+            animation: levelup-old 0.75s cubic-bezier(0.5, 0, 0.85, 0.3) 0.1s forwards;
         }
         .level-up-overlay.active .level-up-virus.new {
-            animation: levelup-new 1.35s cubic-bezier(0.18, 0.95, 0.28, 1) 0.85s forwards;
+            animation: levelup-new 2.3s cubic-bezier(0.18, 0.7, 0.3, 1) 0.55s forwards;
         }
 
         @keyframes levelup-old {
             0%   { transform: scale(1)    rotate(0deg);   opacity: 1; }
-            45%  { transform: scale(1.18) rotate(70deg);  opacity: 0.65; }
-            100% { transform: scale(0.35) rotate(180deg); opacity: 0; }
+            100% { transform: scale(0.3)  rotate(160deg); opacity: 0; }
         }
         @keyframes levelup-new {
-            0%   { transform: scale(0.35) rotate(-180deg); opacity: 0; }
-            55%  { transform: scale(1.12) rotate(-12deg);  opacity: 1; }
-            78%  { transform: scale(0.98) rotate(3deg);    opacity: 1; }
-            100% { transform: scale(1)    rotate(0deg);    opacity: 1; }
+            0%   { transform: scale(0.35) rotate(-160deg); opacity: 0; }
+            30%  { transform: scale(1.15) rotate(-12deg);  opacity: 1; }
+            48%  { transform: scale(0.98) rotate(2deg);    opacity: 1; }
+            60%  { transform: scale(1)    rotate(0deg);    opacity: 1; }
+            /* Smoothly drift up + shrink a touch as the title rises into place */
+            100% { transform: scale(0.94) translateY(-22px) rotate(0deg); opacity: 1; }
         }
 
         .level-up-title {
@@ -1337,7 +1343,7 @@
             color: var(--accent-green);
             text-transform: uppercase;
             opacity: 0;
-            transform: translateY(14px);
+            transform: translateY(34px);
             text-shadow: 0 0 16px rgba(0, 255, 159, 0.8);
             will-change: transform, opacity, letter-spacing;
         }
@@ -1349,29 +1355,31 @@
             line-height: 1;
             margin-top: -2px;
             opacity: 0;
-            transform: scale(0.35);
+            transform: scale(0.35) translateY(28px);
             text-shadow:
                 0 0 26px rgba(0, 255, 159, 0.95),
                 0 0 52px rgba(0, 255, 159, 0.55),
                 0 0 90px rgba(0, 255, 159, 0.28);
             will-change: transform, opacity;
         }
+        /* Title and number rise into place while the new virus is still
+           settling, so the whole arc reads as one motion. */
         .level-up-overlay.active .level-up-title {
-            animation: levelup-title 0.8s cubic-bezier(0.2, 0.7, 0.3, 1) 1.45s forwards;
+            animation: levelup-title 1.0s cubic-bezier(0.2, 0.7, 0.3, 1) 1.05s forwards;
         }
         .level-up-overlay.active .level-up-num {
-            animation: levelup-num 0.95s cubic-bezier(0.18, 1.0, 0.3, 1) 1.6s forwards;
+            animation: levelup-num 1.1s cubic-bezier(0.18, 0.85, 0.3, 1) 1.2s forwards;
         }
 
         @keyframes levelup-title {
-            0%   { opacity: 0; transform: translateY(14px); letter-spacing: 3px; }
+            0%   { opacity: 0; transform: translateY(34px); letter-spacing: 2px; }
             60%  { opacity: 1; letter-spacing: 9px; }
-            100% { opacity: 1; transform: translateY(0); letter-spacing: 7px; }
+            100% { opacity: 1; transform: translateY(0);    letter-spacing: 7px; }
         }
         @keyframes levelup-num {
-            0%   { opacity: 0; transform: scale(0.35); }
-            60%  { opacity: 1; transform: scale(1.12); }
-            100% { opacity: 1; transform: scale(1); }
+            0%   { opacity: 0; transform: scale(0.35) translateY(28px); }
+            65%  { opacity: 1; transform: scale(1.12) translateY(-2px); }
+            100% { opacity: 1; transform: scale(1)    translateY(0); }
         }
 
         .placement-toast {
@@ -3497,8 +3505,8 @@
                 clearTimeout(this._levelUpTimer);
                 this._levelUpTimer = setTimeout(() => {
                     overlay.classList.remove('active');
-                    setTimeout(() => { overlay.hidden = true; }, 550);
-                }, 3100);
+                    setTimeout(() => { overlay.hidden = true; }, 600);
+                }, 3400);
             }
 
             renderAbilityGrid() {
