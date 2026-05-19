@@ -2116,6 +2116,65 @@
             75% { transform: translateX(6px); }
         }
 
+        @keyframes card-upgrade-pop {
+            0%   { transform: scale(1); }
+            22%  { transform: scale(0.96); }
+            55%  { transform: scale(1.07); }
+            100% { transform: scale(1); }
+        }
+        @keyframes card-upgrade-glow-green {
+            0%   { box-shadow: 0 10px 26px rgba(0,0,0,0.5), 0 0 0 0 rgba(74,222,128,0.95), inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -2px 0 rgba(0,0,0,0.35); }
+            35%  { box-shadow: 0 10px 26px rgba(0,0,0,0.5), 0 0 44px 10px rgba(74,222,128,0.9), inset 0 1px 0 rgba(255,255,255,0.22), inset 0 -2px 0 rgba(0,0,0,0.35); }
+            100% { box-shadow: 0 10px 26px rgba(0,0,0,0.5), 0 0 22px rgba(74,222,128,0.18), inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -2px 0 rgba(0,0,0,0.35); }
+        }
+        @keyframes card-upgrade-glow-yellow {
+            0%   { box-shadow: 0 10px 26px rgba(0,0,0,0.5), 0 0 0 0 rgba(251,191,36,0.95), inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -2px 0 rgba(0,0,0,0.35); }
+            35%  { box-shadow: 0 10px 26px rgba(0,0,0,0.5), 0 0 44px 10px rgba(251,191,36,0.9), inset 0 1px 0 rgba(255,255,255,0.22), inset 0 -2px 0 rgba(0,0,0,0.35); }
+            100% { box-shadow: 0 10px 26px rgba(0,0,0,0.5), 0 0 22px rgba(251,191,36,0.18), inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -2px 0 rgba(0,0,0,0.35); }
+        }
+        @keyframes card-upgrade-glow-red {
+            0%   { box-shadow: 0 10px 26px rgba(0,0,0,0.5), 0 0 0 0 rgba(248,113,113,0.95), inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -2px 0 rgba(0,0,0,0.35); }
+            35%  { box-shadow: 0 10px 26px rgba(0,0,0,0.5), 0 0 44px 10px rgba(248,113,113,0.9), inset 0 1px 0 rgba(255,255,255,0.22), inset 0 -2px 0 rgba(0,0,0,0.35); }
+            100% { box-shadow: 0 10px 26px rgba(0,0,0,0.5), 0 0 22px rgba(248,113,113,0.18), inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -2px 0 rgba(0,0,0,0.35); }
+        }
+        .ability-card.infectivity-card.upgraded {
+            animation: card-upgrade-pop 0.6s cubic-bezier(0.18, 0.9, 0.3, 1),
+                       card-upgrade-glow-green 0.85s ease-out;
+        }
+        .ability-card.severity-card.upgraded {
+            animation: card-upgrade-pop 0.6s cubic-bezier(0.18, 0.9, 0.3, 1),
+                       card-upgrade-glow-yellow 0.85s ease-out;
+        }
+        .ability-card.lethality-card.upgraded {
+            animation: card-upgrade-pop 0.6s cubic-bezier(0.18, 0.9, 0.3, 1),
+                       card-upgrade-glow-red 0.85s ease-out;
+        }
+        @keyframes card-upgrade-ring {
+            0%   { opacity: 0.85; transform: translate(-50%, -50%) scale(0.4); }
+            100% { opacity: 0;    transform: translate(-50%, -50%) scale(2.0); }
+        }
+        .card-upgrade-ring {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 110%;
+            height: 110%;
+            border-radius: 22px;
+            border: 2px solid currentColor;
+            pointer-events: none;
+            z-index: 5;
+            animation: card-upgrade-ring 0.7s ease-out forwards;
+        }
+        .card-upgrade-particle {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            will-change: transform, opacity;
+        }
+
         .upgrade-icon {
             font-size: 26px;
             width: 36px;
@@ -3743,9 +3802,68 @@
                 });
                 this.updateDNACounter();
                 this.renderVirusScreen();
+                const newCard = document.querySelector(`.ability-card[data-id="${cardData.id}"]`);
+                if (newCard) this.playCardUpgradeFX(newCard);
                 if (this.virusLevel > oldVirusLevel) {
                     this.showLevelUpAnimation(oldVirusLevel, this.virusLevel);
                 }
+            }
+
+            playCardUpgradeFX(card) {
+                card.classList.remove('upgraded');
+                void card.offsetWidth;
+                card.classList.add('upgraded');
+
+                const palettes = {
+                    infectivity: { ring: '#4ade80', colors: ['#86efac', '#4ade80', '#16a34a', '#bbf7d0'] },
+                    severity:    { ring: '#fbbf24', colors: ['#fde047', '#fbbf24', '#d97706', '#fef3c7'] },
+                    lethality:   { ring: '#f87171', colors: ['#fca5a5', '#f87171', '#b91c1c', '#fee2e2'] }
+                };
+                const p = palettes[this.activeAbilityTab] || palettes.severity;
+
+                const ring = document.createElement('div');
+                ring.className = 'card-upgrade-ring';
+                ring.style.color = p.ring;
+                card.appendChild(ring);
+                setTimeout(() => ring.remove(), 750);
+
+                const rect = card.getBoundingClientRect();
+                const cx = rect.left + rect.width / 2;
+                const cy = rect.top + rect.height / 2;
+                const count = 14;
+                for (let i = 0; i < count; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'card-upgrade-particle';
+                    const color = p.colors[i % p.colors.length];
+                    particle.style.background = color;
+                    particle.style.boxShadow = `0 0 10px ${color}, 0 0 4px #fff`;
+                    const size = 6 + Math.random() * 8;
+                    particle.style.width = size + 'px';
+                    particle.style.height = size + 'px';
+                    particle.style.left = (cx - size / 2) + 'px';
+                    particle.style.top = (cy - size / 2) + 'px';
+                    document.body.appendChild(particle);
+
+                    const angle = (i / count) * Math.PI * 2 + Math.random() * 0.4;
+                    const dist = 70 + Math.random() * 60;
+                    const dx = Math.cos(angle) * dist;
+                    const dy = Math.sin(angle) * dist;
+                    const duration = 600 + Math.random() * 250;
+
+                    particle.animate([
+                        { transform: 'translate(0, 0) scale(1)', opacity: 1 },
+                        { transform: `translate(${dx * 0.5}px, ${dy * 0.5}px) scale(1.1)`, opacity: 1, offset: 0.4 },
+                        { transform: `translate(${dx}px, ${dy + 30}px) scale(0.2)`, opacity: 0 }
+                    ], {
+                        duration: duration,
+                        easing: 'cubic-bezier(0.22, 0.61, 0.36, 1)',
+                        fill: 'forwards'
+                    });
+
+                    setTimeout(() => particle.remove(), duration + 50);
+                }
+
+                setTimeout(() => card.classList.remove('upgraded'), 900);
             }
 
             showLevelUpAnimation(oldLevel, newLevel) {
