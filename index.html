@@ -2960,8 +2960,37 @@
                 const padBottom = 100;
                 const maxX = Math.max(0, rect.width - bs - padX * 2);
                 const maxY = Math.max(0, rect.height - bs - padTop - padBottom);
-                bubble.style.left = (padX + Math.random() * maxX) + 'px';
-                bubble.style.top  = (padTop + Math.random() * maxY) + 'px';
+
+                // Avoid overlapping the centred virus image (if it's visible)
+                let virusRect = null;
+                const virusEl = home.querySelector('.home-virus');
+                if (virusEl && getComputedStyle(virusEl).display !== 'none') {
+                    const vr = virusEl.getBoundingClientRect();
+                    const margin = 14;
+                    virusRect = {
+                        left:   vr.left   - rect.left - margin,
+                        top:    vr.top    - rect.top  - margin,
+                        right:  vr.right  - rect.left + margin,
+                        bottom: vr.bottom - rect.top  + margin
+                    };
+                }
+
+                const intersectsVirus = (x, y) =>
+                    virusRect &&
+                    x + bs > virusRect.left &&
+                    x      < virusRect.right &&
+                    y + bs > virusRect.top &&
+                    y      < virusRect.bottom;
+
+                let x = padX, y = padTop;
+                for (let attempt = 0; attempt < 30; attempt++) {
+                    x = padX + Math.random() * maxX;
+                    y = padTop + Math.random() * maxY;
+                    if (!intersectsVirus(x, y)) break;
+                }
+
+                bubble.style.left = x + 'px';
+                bubble.style.top  = y + 'px';
 
                 home.appendChild(bubble);
                 this.tap(bubble, () => this.collectDNA(bubble));
