@@ -3209,10 +3209,10 @@
             </div>
 
             <div class="ability-tabs" id="abilityTabs">
-                <button class="ability-tab" data-tab="severity">
+                <button class="ability-tab active" data-tab="severity">
                     <span class="tab-icon">🤒</span><span class="tab-text">Тяжесть</span>
                 </button>
-                <button class="ability-tab active" data-tab="infectivity">
+                <button class="ability-tab" data-tab="infectivity">
                     <span class="tab-icon">🦠</span><span class="tab-text">Заразность</span>
                 </button>
                 <button class="ability-tab" data-tab="lethality">
@@ -3426,7 +3426,7 @@
 
                 // Ability cards organised by tab. Each tap on a card spends DNA,
                 // raises its own level, and applies its `effect` to the stats.
-                this.activeAbilityTab = 'infectivity';
+                this.activeAbilityTab = 'severity';
                 this.abilityLevels = {};
                 this.abilityCards = {
                     infectivity: [
