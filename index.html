@@ -1211,134 +1211,166 @@
             position: fixed;
             inset: 0;
             z-index: 500;
-            background: radial-gradient(circle at center, rgba(6, 30, 22, 0.96) 0%, rgba(0, 0, 0, 0.97) 70%);
+            background:
+                radial-gradient(circle at 50% 42%, rgba(8, 60, 42, 0.75) 0%, rgba(0, 0, 0, 0.96) 65%);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 16px;
+            gap: 18px;
             pointer-events: none;
             opacity: 0;
-            transition: opacity 0.4s ease;
+            transition: opacity 0.55s cubic-bezier(0.4, 0, 0.2, 1);
             overflow: hidden;
         }
         .level-up-overlay[hidden] { display: none; }
         .level-up-overlay.active { opacity: 1; }
 
+        /* Soft halo behind the virus that pulses out */
         .level-up-burst {
             position: absolute;
             left: 50%;
-            top: 46%;
-            width: 90px;
-            height: 90px;
+            top: 42%;
+            width: 240px;
+            height: 240px;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(0, 255, 159, 0.85) 0%, rgba(74, 222, 128, 0.45) 40%, transparent 75%);
-            transform: translate(-50%, -50%) scale(0);
+            background: radial-gradient(circle,
+                rgba(0, 255, 159, 0.7) 0%,
+                rgba(74, 222, 128, 0.4) 28%,
+                rgba(34, 197, 94, 0.18) 55%,
+                transparent 80%);
+            transform: translate(-50%, -50%) scale(0.2);
             opacity: 0;
+            will-change: transform, opacity;
+            backface-visibility: hidden;
         }
         .level-up-overlay.active .level-up-burst {
-            animation: levelup-burst 1.6s ease-out forwards;
+            animation: levelup-burst 2.1s cubic-bezier(0.18, 0.6, 0.3, 1) forwards;
         }
-
         @keyframes levelup-burst {
-            0%   { transform: translate(-50%, -50%) scale(0);    opacity: 0.95; }
-            55%  { transform: translate(-50%, -50%) scale(11);   opacity: 0.5; }
-            100% { transform: translate(-50%, -50%) scale(17);   opacity: 0; }
+            0%   { transform: translate(-50%, -50%) scale(0.2); opacity: 0; }
+            20%  { opacity: 0.95; }
+            100% { transform: translate(-50%, -50%) scale(5.5); opacity: 0; }
         }
 
+        /* Two staggered shockwave rings, no border-width animation */
         .level-up-rings {
             position: absolute;
             left: 50%;
-            top: 46%;
-            width: 60px;
-            height: 60px;
+            top: 42%;
+            width: 160px;
+            height: 160px;
             border-radius: 50%;
-            border: 2px solid rgba(0, 255, 159, 0.85);
-            transform: translate(-50%, -50%) scale(0);
+            border: 2px solid rgba(0, 255, 159, 0.9);
+            transform: translate(-50%, -50%) scale(0.2);
             opacity: 0;
-            box-shadow: 0 0 24px rgba(0, 255, 159, 0.4);
+            box-shadow:
+                0 0 22px rgba(0, 255, 159, 0.55),
+                inset 0 0 18px rgba(0, 255, 159, 0.22);
+            will-change: transform, opacity;
         }
         .level-up-overlay.active .level-up-rings {
-            animation: levelup-rings 1.3s cubic-bezier(0.2, 0.6, 0.3, 1) 0.15s forwards;
+            animation: levelup-ring 1.7s cubic-bezier(0.2, 0.6, 0.3, 1) 0.05s forwards;
         }
-        @keyframes levelup-rings {
-            0%   { transform: translate(-50%, -50%) scale(0);   opacity: 1; border-width: 4px; }
-            100% { transform: translate(-50%, -50%) scale(6);   opacity: 0; border-width: 0; }
+        .level-up-overlay.active .level-up-rings::after {
+            content: '';
+            position: absolute;
+            inset: -8px;
+            border-radius: 50%;
+            border: 2px solid rgba(0, 255, 159, 0.55);
+            box-shadow: 0 0 18px rgba(0, 255, 159, 0.4);
+            animation: levelup-ring 1.7s cubic-bezier(0.2, 0.6, 0.3, 1) 0.35s forwards;
+            opacity: 0;
+        }
+        @keyframes levelup-ring {
+            0%   { transform: translate(-50%, -50%) scale(0.2); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(4.2); opacity: 0; }
         }
 
+        /* Virus image stack — both occupy the exact same square, no offsets */
         .level-up-virus-stack {
             position: relative;
-            width: 230px;
-            height: 230px;
+            width: 240px;
+            height: 240px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .level-up-virus {
             position: absolute;
-            left: 50%;
-            top: 50%;
+            inset: 0;
             width: 100%;
             height: 100%;
             object-fit: contain;
-            transform: translate(-50%, -50%) scale(0);
+            transform: scale(0);
             opacity: 0;
-            filter: drop-shadow(0 12px 36px rgba(0, 255, 159, 0.55))
-                    drop-shadow(0 0 28px rgba(0, 255, 159, 0.35));
+            filter: drop-shadow(0 14px 36px rgba(0, 255, 159, 0.55))
+                    drop-shadow(0 0 30px rgba(0, 255, 159, 0.35));
+            transform-origin: 50% 50%;
+            backface-visibility: hidden;
+            will-change: transform, opacity;
         }
         .level-up-overlay.active .level-up-virus.old {
-            animation: levelup-old 0.85s cubic-bezier(0.5, 0, 0.75, 0.1) 0.1s forwards;
+            animation: levelup-old 1.25s cubic-bezier(0.55, 0.05, 0.7, 0.1) 0.1s forwards;
         }
         .level-up-overlay.active .level-up-virus.new {
-            animation: levelup-new 0.95s cubic-bezier(0.18, 1.1, 0.3, 1) 0.7s forwards;
+            animation: levelup-new 1.35s cubic-bezier(0.18, 0.95, 0.28, 1) 0.85s forwards;
         }
 
         @keyframes levelup-old {
-            0%   { transform: translate(-50%, -50%) scale(1)    rotate(0deg);   opacity: 1; }
-            70%  { transform: translate(-50%, -50%) scale(1.25) rotate(120deg); opacity: 0.55; }
-            100% { transform: translate(-50%, -50%) scale(0.2)  rotate(220deg); opacity: 0; }
+            0%   { transform: scale(1)    rotate(0deg);   opacity: 1; }
+            45%  { transform: scale(1.18) rotate(70deg);  opacity: 0.65; }
+            100% { transform: scale(0.35) rotate(180deg); opacity: 0; }
         }
         @keyframes levelup-new {
-            0%   { transform: translate(-50%, -50%) scale(0)    rotate(-90deg); opacity: 0; }
-            55%  { transform: translate(-50%, -50%) scale(1.18) rotate(15deg);  opacity: 1; }
-            80%  { transform: translate(-50%, -50%) scale(0.96) rotate(-3deg);  opacity: 1; }
-            100% { transform: translate(-50%, -50%) scale(1)    rotate(0deg);   opacity: 1; }
+            0%   { transform: scale(0.35) rotate(-180deg); opacity: 0; }
+            55%  { transform: scale(1.12) rotate(-12deg);  opacity: 1; }
+            78%  { transform: scale(0.98) rotate(3deg);    opacity: 1; }
+            100% { transform: scale(1)    rotate(0deg);    opacity: 1; }
         }
 
         .level-up-title {
             font-family: 'Space Mono', monospace;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 700;
-            letter-spacing: 5px;
+            letter-spacing: 3px;
             color: var(--accent-green);
             text-transform: uppercase;
             opacity: 0;
-            transform: translateY(8px);
-            text-shadow: 0 0 14px rgba(0, 255, 159, 0.7);
+            transform: translateY(14px);
+            text-shadow: 0 0 16px rgba(0, 255, 159, 0.8);
+            will-change: transform, opacity, letter-spacing;
         }
         .level-up-num {
             font-family: 'Space Mono', monospace;
-            font-size: 68px;
+            font-size: 76px;
             font-weight: 800;
             color: #fff;
             line-height: 1;
-            margin-top: -4px;
+            margin-top: -2px;
             opacity: 0;
-            transform: scale(0.4);
-            text-shadow: 0 0 22px rgba(0, 255, 159, 0.95),
-                         0 0 44px rgba(0, 255, 159, 0.55);
+            transform: scale(0.35);
+            text-shadow:
+                0 0 26px rgba(0, 255, 159, 0.95),
+                0 0 52px rgba(0, 255, 159, 0.55),
+                0 0 90px rgba(0, 255, 159, 0.28);
+            will-change: transform, opacity;
         }
         .level-up-overlay.active .level-up-title {
-            animation: levelup-title 0.55s ease-out 1.1s forwards;
+            animation: levelup-title 0.8s cubic-bezier(0.2, 0.7, 0.3, 1) 1.45s forwards;
         }
         .level-up-overlay.active .level-up-num {
-            animation: levelup-num 0.7s cubic-bezier(0.18, 1.1, 0.3, 1) 1.25s forwards;
+            animation: levelup-num 0.95s cubic-bezier(0.18, 1.0, 0.3, 1) 1.6s forwards;
         }
 
         @keyframes levelup-title {
-            0%   { opacity: 0; transform: translateY(10px); }
-            100% { opacity: 1; transform: translateY(0); }
+            0%   { opacity: 0; transform: translateY(14px); letter-spacing: 3px; }
+            60%  { opacity: 1; letter-spacing: 9px; }
+            100% { opacity: 1; transform: translateY(0); letter-spacing: 7px; }
         }
         @keyframes levelup-num {
-            0%   { opacity: 0; transform: scale(0.4); }
-            55%  { opacity: 1; transform: scale(1.25); }
+            0%   { opacity: 0; transform: scale(0.35); }
+            60%  { opacity: 1; transform: scale(1.12); }
             100% { opacity: 1; transform: scale(1); }
         }
 
@@ -3392,8 +3424,8 @@
                 clearTimeout(this._levelUpTimer);
                 this._levelUpTimer = setTimeout(() => {
                     overlay.classList.remove('active');
-                    setTimeout(() => { overlay.hidden = true; }, 450);
-                }, 2600);
+                    setTimeout(() => { overlay.hidden = true; }, 550);
+                }, 3100);
             }
 
             renderAbilityGrid() {
