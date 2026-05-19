@@ -2285,11 +2285,13 @@
             height: auto;
         }
 
-        /* Centred virus on the Home screen with its own breathing pulse */
+        /* Centred virus on the Home screen with its own breathing pulse.
+           Top is set to 42% so it lands in the visual centre of the play area
+           (between the DNA counter at the top and the bottom nav). */
         .home-virus {
             position: absolute;
             left: 50%;
-            top: 50%;
+            top: 42%;
             width: 64%;
             max-width: 280px;
             height: auto;
@@ -2306,6 +2308,11 @@
         @keyframes home-virus-breathe {
             0%, 100% { transform: translate(-50%, -50%) scale(1); }
             50%      { transform: translate(-50%, -50%) scale(1.06); }
+        }
+
+        /* Hide the home virus during the tutorial (three fixed bubbles phase) */
+        body.tutorial-active .home-virus {
+            display: none;
         }
 
         /* DNA helix glyph — same as inside the bubbles, rotated horizontal */
