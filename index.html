@@ -2618,12 +2618,16 @@
         .virus-character-container {
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: space-between;
             gap: 14px;
             width: 100%;
             max-width: 420px;
             margin: 0 auto 14px;
-            padding: 0 8px;
+            padding: 0 18px 0 12px;
+        }
+
+        .virus-character-container .virus-character {
+            margin-right: 6px;
         }
 
         .virus-stats-col {
@@ -3065,7 +3069,7 @@
                 <span class="organelle o5"></span>
                 <span class="organelle o6"></span>
             </div>
-            <img class="home-virus" src="assets/virus_levels_png/virus_level_1.png" alt="" aria-hidden="true"/>
+            <img class="home-virus" src="assets/virus_levels_png/virus_level_2.png" alt="" aria-hidden="true"/>
             <div class="home-hint" id="homeHint" hidden>
                 <div class="home-hint-text">Защити вирус<br>от антител</div>
             </div>
@@ -3205,7 +3209,7 @@
                     </div>
                 </div>
                 <div class="virus-character">
-                    <img class="virus-art" src="assets/virus_levels_png/virus_level_1.png" alt=""/>
+                    <img class="virus-art" src="assets/virus_levels_png/virus_level_2.png" alt=""/>
                 </div>
             </div>
 
@@ -3755,9 +3759,10 @@
                 const oldImg = overlay.querySelector('.level-up-virus.old');
                 const newImg = overlay.querySelector('.level-up-virus.new');
                 const numEl = document.getElementById('levelUpNum');
-                const clamp = (n) => Math.max(1, Math.min(10, n));
-                if (oldImg) oldImg.src = `assets/virus_levels_png/virus_level_${clamp(oldLevel)}.png`;
-                if (newImg) newImg.src = `assets/virus_levels_png/virus_level_${clamp(newLevel)}.png`;
+                // +1 shift so the morph stays in sync with getCurrentVirusImage
+                const shift = (n) => Math.max(2, Math.min(10, n + 1));
+                if (oldImg) oldImg.src = `assets/virus_levels_png/virus_level_${shift(oldLevel)}.png`;
+                if (newImg) newImg.src = `assets/virus_levels_png/virus_level_${shift(newLevel)}.png`;
                 if (numEl) numEl.textContent = newLevel;
 
                 // Clean previous animation state so it can replay cleanly
@@ -3813,8 +3818,10 @@
             }
 
             getCurrentVirusImage() {
-                const lvl = Math.max(1, Math.min(10, this.virusLevel || 1));
-                return `assets/virus_levels_png/virus_level_${lvl}.png`;
+                // Shifted by +1 so level 1 starts at virus_level_2.png
+                // (virus_level_1.png is unused). Levels 2..10 map to 3..10 with a cap.
+                const shifted = Math.max(2, Math.min(10, (this.virusLevel || 1) + 1));
+                return `assets/virus_levels_png/virus_level_${shifted}.png`;
             }
 
             updateVirusArt() {
