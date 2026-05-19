@@ -463,12 +463,47 @@
         }
         
         @keyframes smooth-pop {
-            0%   { transform: scale(1);    opacity: 1; }
-            32%  { transform: scale(0.78); opacity: 1; }   /* anticipation squeeze */
-            58%  { transform: scale(1.45); opacity: 1; }   /* peak burst — still visible */
-            66%  { transform: scale(1.55); opacity: 0; }   /* shell pops — gone */
-            100% { transform: scale(1.7);  opacity: 0; }
+            0%   { transform: scale(1)    rotate(0deg);   opacity: 1; }
+            32%  { transform: scale(0.78) rotate(-10deg); opacity: 1; }
+            58%  { transform: scale(1.45) rotate(8deg);   opacity: 1; }
+            66%  { transform: scale(1.6)  rotate(14deg);  opacity: 0; }
+            100% { transform: scale(1.75) rotate(20deg);  opacity: 0; }
         }
+
+        /* Artwork-based bubbles (antibody / macrophage) override the old purple sphere */
+        .dna-bubble {
+            background: none;
+            box-shadow: none;
+            border: 0;
+        }
+        .dna-bubble::before,
+        .dna-bubble::after {
+            display: none;
+        }
+        @media (hover: hover) {
+            .dna-bubble:hover { box-shadow: none; }
+        }
+
+        .bubble-art {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            pointer-events: none;
+            user-select: none;
+            -webkit-user-select: none;
+            filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.55));
+            animation: bubble-art-idle 3.2s ease-in-out infinite;
+            will-change: transform;
+        }
+
+        @keyframes bubble-art-idle {
+            0%, 100% { transform: scale(1)    rotate(-3deg); }
+            50%      { transform: scale(1.06) rotate(3deg); }
+        }
+
+        /* During pop, let the parent's smooth-pop drive the burst */
+        .dna-bubble.popping .bubble-art { animation: none; }
 
         /* Pop visual effects: flash, shockwave, particles, +N text */
         .pop-flash {
@@ -2571,19 +2606,19 @@
                 <span class="organelle o5"></span>
                 <span class="organelle o6"></span>
             </div>
-            <img class="home-virus" src="assets/virus.png" alt="" aria-hidden="true"/>
+            <img class="home-virus" src="assets/virus_levels_png/virus_level_1.png" alt="" aria-hidden="true"/>
             <p class="game-subtitle">Лопай пузырьки — копи ДНК</p>
 
             <div class="dna-bubbles" id="dnaBubbles">
                 <div class="dna-bubble" data-dna="10">
-                    <div class="dna-symbol">🧬</div>
+                    <img class="bubble-art" src="assets/antibody_blue.png" alt=""/>
                 </div>
                 <div class="dna-bubble" data-dna="15">
-                    <div class="dna-symbol">🧬</div>
+                    <img class="bubble-art" src="assets/macrophage_red.png" alt=""/>
                     <div class="finger-hint hidden" id="fingerHint">👇</div>
                 </div>
                 <div class="dna-bubble" data-dna="12">
-                    <div class="dna-symbol">🧬</div>
+                    <img class="bubble-art" src="assets/antibody_blue.png" alt=""/>
                 </div>
             </div>
         </div>
@@ -2707,7 +2742,7 @@
                     </div>
                 </div>
                 <div class="virus-character">
-                    <img class="virus-art" src="assets/virus.png" alt=""/>
+                    <img class="virus-art" src="assets/virus_levels_png/virus_level_1.png" alt=""/>
                 </div>
             </div>
 
@@ -2899,6 +2934,7 @@
                 this.bindEvents();
                 this.updateDNACounter();
                 this.cloneHelixToMap();
+                this.updateVirusArt();
                 this.renderVirusScreen();
                 if (!this.tutorialDone) {
                     document.body.classList.add('tutorial-active');
@@ -2950,7 +2986,8 @@
 
                 const bubble = document.createElement('div');
                 bubble.className = 'dna-bubble floating';
-                bubble.innerHTML = '<div class="dna-symbol">🧬</div>';
+                const art = Math.random() < 0.5 ? 'antibody_blue' : 'macrophage_red';
+                bubble.innerHTML = `<img class="bubble-art" src="assets/${art}.png" alt=""/>`;
                 bubble.dataset.dna = Math.floor(Math.random() * 10) + 8;
 
                 const rect = home.getBoundingClientRect();
@@ -3089,10 +3126,25 @@
                 });
             }
 
+            getCurrentVirusImage() {
+                const lvl = Math.max(1, Math.min(10, this.virusLevel || 1));
+                return `assets/virus_levels_png/virus_level_${lvl}.png`;
+            }
+
+            updateVirusArt() {
+                const src = this.getCurrentVirusImage();
+                document.querySelectorAll('.virus-art, .home-virus').forEach(img => {
+                    if (img.tagName === 'IMG' && img.getAttribute('src') !== src) {
+                        img.src = src;
+                    }
+                });
+            }
+
             updateVirusLevelProgress() {
                 const total = this.getTotalAbilityLevels();
                 const PER_LEVEL = 4;
                 this.virusLevel = Math.floor(total / PER_LEVEL) + 1;
+                this.updateVirusArt();
                 const lvl = document.getElementById('virusLevel');
                 if (lvl) lvl.textContent = this.virusLevel;
                 const pct = ((total % PER_LEVEL) / PER_LEVEL) * 100;
@@ -3163,7 +3215,7 @@
                 if (slot && !slot.querySelector('.virus-art')) {
                     const img = document.createElement('img');
                     img.className = 'virus-art';
-                    img.src = 'assets/virus.png';
+                    img.src = this.getCurrentVirusImage();
                     img.alt = '';
                     slot.appendChild(img);
                 }
@@ -3845,7 +3897,7 @@
             showToast(title, sub) {
                 const toast = document.createElement('div');
                 toast.className = 'placement-toast';
-                toast.innerHTML = `<img class="toast-icon-img" src="assets/virus.png" alt=""/><div class="toast-title">${title}</div>${sub ? `<div class="toast-sub">${sub}</div>` : ''}`;
+                toast.innerHTML = `<img class="toast-icon-img" src="${this.getCurrentVirusImage()}" alt=""/><div class="toast-title">${title}</div>${sub ? `<div class="toast-sub">${sub}</div>` : ''}`;
                 document.body.appendChild(toast);
                 setTimeout(() => toast.remove(), 1700);
             }
