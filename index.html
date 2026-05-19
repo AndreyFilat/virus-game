@@ -2618,16 +2618,11 @@
         .virus-character-container {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            gap: 14px;
+            gap: 12px;
             width: 100%;
             max-width: 420px;
             margin: 0 auto 14px;
-            padding: 0 18px 0 12px;
-        }
-
-        .virus-character-container .virus-character {
-            margin-right: 6px;
+            padding: 0 12px;
         }
 
         .virus-stats-col {
@@ -2689,9 +2684,9 @@
         .stat-line.lethality   .stat-num { color: #fca5a5; text-shadow: 0 0 8px rgba(248, 113, 113, 0.55); }
 
         .virus-character {
-            flex: 0 0 auto;
-            width: 95px;
-            height: 55px;
+            flex: 1 1 auto;
+            min-width: 0;
+            height: 110px;
             display: flex;
             align-items: center;
             justify-content: center;
