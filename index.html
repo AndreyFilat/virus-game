@@ -4178,14 +4178,12 @@
                      r * Math.sin(phi) * Math.sin(theta)
                 );
 
-                // City dots use a vivid coral-pink that contrasts cleanly
-                // against ocean blue, green vegetation, and the warm tones
-                // of deserts/savannas. A dark outline ring (a slightly
-                // bigger black sphere sitting just *behind* the bright
-                // dot) gives the marker a sticker-like edge so it reads on
-                // any region of the globe.
-                const DOT_FILL = 0xff4d7c;
-                const DOT_RING = 0x10162a;
+                // White city dots with a thin dark-navy outline ring. White
+                // reads against every region of the globe — ocean blue,
+                // forest green, desert tan — and the dark rim keeps even
+                // the small dots crisp where the texture is bright.
+                const DOT_FILL = 0xffffff;
+                const DOT_RING = 0x0a1428;
                 const size = famous ? 0.024 : (capital ? 0.018 : 0.015);
 
                 // Outer ring slightly behind the dot (closer to sphere
