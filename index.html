@@ -4178,18 +4178,20 @@
                      r * Math.sin(phi) * Math.sin(theta)
                 );
 
-                // White city dots with a thin dark-navy outline ring. White
-                // reads against every region of the globe — ocean blue,
-                // forest green, desert tan — and the dark rim keeps even
-                // the small dots crisp where the texture is bright.
-                const DOT_FILL = 0xffffff;
+                // Mint-tinted white dot with a thin dark-navy outline ring.
+                // The slight green push helps it sit on the globe palette
+                // (warm continents + cool ocean) without reading as a
+                // sterile lab marker; the ring keeps the edge crisp on
+                // any region.
+                const DOT_FILL = 0xd4f5d8;
                 const DOT_RING = 0x0a1428;
-                const size = famous ? 0.024 : (capital ? 0.018 : 0.015);
+                // Smaller world-space sizes so the dots don't overlap each
+                // other when the player zooms in on a dense region like
+                // Western Europe.
+                const size = famous ? 0.016 : (capital ? 0.012 : 0.009);
 
-                // Outer ring slightly behind the dot (closer to sphere
-                // surface) so it shows as a rim around the bright fill.
-                const ringR = 1.004;
-                const dotR  = ringR + size * 0.85;  // push dot outward
+                const ringR = 1.003;
+                const dotR  = ringR + size * 0.85;
                 const dir = pos.clone().normalize();
                 const ringPos = dir.clone().multiplyScalar(ringR);
                 const dotPos  = dir.clone().multiplyScalar(dotR);
@@ -4204,8 +4206,16 @@
                 const mat = new THREE.MeshBasicMaterial({ color: DOT_FILL });
                 const mesh = new THREE.Mesh(new THREE.SphereGeometry(size, 14, 12), mat);
                 mesh.position.copy(dotPos);
+                // Level-of-detail threshold expressed as a fraction of the
+                // base camera distance. Famous markers stay visible across
+                // the whole zoom range; capitals appear at default zoom or
+                // closer; the long tail of non-capital cities only shows
+                // when the player zooms in past the default view.
+                const maxVisFactor =
+                    famous  ? 99   :
+                    capital ? 1.05 : 0.70;
                 mesh.userData = { idx, name, continent,
-                    baseColor: DOT_FILL, baseSize: size, ring };
+                    baseColor: DOT_FILL, baseSize: size, ring, maxVisFactor };
                 if (famous) {
                     const haloGeom = new THREE.SphereGeometry(size * 2.2, 12, 10);
                     const haloMat = new THREE.MeshBasicMaterial({
@@ -4380,8 +4390,19 @@
 
             _tick() {
                 this._raf = requestAnimationFrame(this._tick);
-                // Subtle starfield drift for life
                 if (this.stars) this.stars.rotation.y += 0.0003;
+                // Level-of-detail visibility based on current camera zoom:
+                // the further the camera is (larger z), the fewer cities
+                // we let through so the globe stays readable.
+                const factor = this.camera.position.z / (this._baseZ || 2.6);
+                for (let i = 0; i < this.cityMeshes.length; i++) {
+                    const m = this.cityMeshes[i];
+                    const v = factor <= m.userData.maxVisFactor;
+                    if (m.visible !== v) m.visible = v;
+                    if (m.userData.ring && m.userData.ring.visible !== v) {
+                        m.userData.ring.visible = v;
+                    }
+                }
                 this.renderer.render(this.scene, this.camera);
             }
         }
