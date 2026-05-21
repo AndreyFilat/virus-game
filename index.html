@@ -3946,11 +3946,6 @@
                 this.earth.rotation.y = -Math.PI / 2;
                 this.scene.add(this.earth);
 
-                // Polar ice caps — small white disks on either pole. They
-                // sit just above the surface so they hide the texture
-                // pinching at v=0 and v=1.
-                this._addPolarCaps();
-
                 // Soft atmospheric halo behind the globe.
                 const haloGeom = new THREE.SphereGeometry(1.06, 64, 48);
                 const haloMat = new THREE.ShaderMaterial({
@@ -4042,28 +4037,6 @@
                 });
                 this.stars = new THREE.Points(geom, mat);
                 this.scene.add(this.stars);
-            }
-
-            _addPolarCaps() {
-                // Slight inset caps so they hide the equirectangular pole
-                // pinching of the painted map.
-                const capMat = new THREE.MeshBasicMaterial({
-                    color: 0xf5fbff, transparent: true, opacity: 0.94
-                });
-                const phiSegments = 32;
-                // North cap — covers ~lat > 73° (theta from 0 to ~17°)
-                const northGeom = new THREE.SphereGeometry(
-                    1.001, phiSegments, 16, 0, Math.PI * 2, 0, Math.PI * 17 / 180
-                );
-                this.northCap = new THREE.Mesh(northGeom, capMat);
-                this.earth.add(this.northCap);
-                // South cap — covers ~lat < -75° (theta from ~165° to 180°)
-                const southGeom = new THREE.SphereGeometry(
-                    1.001, phiSegments, 16, 0, Math.PI * 2,
-                    Math.PI - Math.PI * 15 / 180, Math.PI * 15 / 180
-                );
-                this.southCap = new THREE.Mesh(southGeom, capMat);
-                this.earth.add(this.southCap);
             }
 
             _addCity(c, idx) {
