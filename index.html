@@ -1149,11 +1149,13 @@
             pointer-events: none !important;
         }
 
-        /* Docked phase: helix sits above the map — pure transform move so
-           the animation stays on the GPU (no per-frame layout reflow). */
+        /* Picker hides the helix entirely — the globe replaces it as the
+           focal element. The intro animation still gets to play before
+           selecting kicks in. */
         .world-map-screen.selecting .map-helix-slot {
-            opacity: 1;
-            transform: translate(-50%, calc(-50% - 26dvh)) scale(0.62);
+            opacity: 0;
+            pointer-events: none;
+            transform: translate(-50%, calc(-50% - 26dvh)) scale(0.4);
         }
 
         /* Once the player zooms in, the map takes over the screen:
@@ -3932,19 +3934,35 @@
                 // Sparse starfield backdrop drawn behind the globe.
                 this._addStarfield();
 
-                // Earth sphere — radius 1, equirectangular UV mapping.
-                const tex = new THREE.TextureLoader().load(textureUrl);
-                if ('SRGBColorSpace' in THREE) tex.colorSpace = THREE.SRGBColorSpace;
-                tex.anisotropy = 8;
+                // Earth sphere — radius 1, equirectangular UV mapping. We
+                // load a true equirectangular Earth texture from the
+                // Three.js CDN so real (lat, lon) maps to the correct spot
+                // for every city, no per-city manual overrides needed.
+                // The illustrated `assets/world map.png` is kept as a
+                // fallback in case the CDN can't be reached.
+                const loader = new THREE.TextureLoader();
+                loader.crossOrigin = 'anonymous';
+                const fallback = loader.load(textureUrl);
+                if ('SRGBColorSpace' in THREE) fallback.colorSpace = THREE.SRGBColorSpace;
                 const earthGeom = new THREE.SphereGeometry(1, 128, 96);
-                const earthMat = new THREE.MeshBasicMaterial({ map: tex });
+                const earthMat = new THREE.MeshBasicMaterial({ map: fallback });
                 this.earth = new THREE.Mesh(earthGeom, earthMat);
-                // Three.js SphereGeometry default UVs put u=0.5 at +x. Rotate
-                // the earth -π/2 around y so the texture's central column
-                // (lon ≈ 0 for our map, i.e. Africa/Europe) faces the camera
-                // at start.
                 this.earth.rotation.y = -Math.PI / 2;
                 this.scene.add(this.earth);
+                // Async-swap the real equirectangular texture as soon as it
+                // arrives. Three.js CDN hosts a 2048×1024 Blue-Marble image
+                // already used by the official examples.
+                loader.load(
+                    'https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg',
+                    (tex) => {
+                        if ('SRGBColorSpace' in THREE) tex.colorSpace = THREE.SRGBColorSpace;
+                        tex.anisotropy = 8;
+                        earthMat.map = tex;
+                        earthMat.needsUpdate = true;
+                    },
+                    undefined,
+                    () => { /* fallback already in use */ }
+                );
 
                 // Soft atmospheric halo behind the globe.
                 const haloGeom = new THREE.SphereGeometry(1.06, 64, 48);
@@ -4041,14 +4059,20 @@
 
             _addCity(c, idx) {
                 const [name, lat, lon, capital, continent, famous] = c;
-                // The painted texture is non-uniformly distorted (artistic
-                // map), so real lat/lon doesn't line up with painted
-                // continents. Use vbox positions — manually measured against
-                // the texture for famous cities, projected via per-continent
-                // affine for the rest — then convert that texture coordinate
-                // to its matching point on the sphere.
-                const vb = this.vboxForCity(c);
-                const pos = this._vboxToVec3(vb.x, vb.y, 1.005);
+                // The globe uses a strict equirectangular Earth texture, so
+                // we can put every dot at its real geographic lat/lon and
+                // it will land on the right country automatically. No more
+                // per-city manual overrides.
+                const u = (lon + 180) / 360;
+                const v = (90 - lat) / 180;
+                const phi = u * 2 * Math.PI;
+                const theta = v * Math.PI;
+                const r = 1.005;
+                const pos = new THREE.Vector3(
+                    -r * Math.cos(phi) * Math.sin(theta),
+                     r * Math.cos(theta),
+                     r * Math.sin(phi) * Math.sin(theta)
+                );
 
                 const size = famous ? 0.024 : (capital ? 0.017 : 0.012);
                 const color = famous ? 0xfde68a : (capital ? 0xfca5a5 : 0xfde68a);
