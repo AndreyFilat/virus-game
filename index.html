@@ -1242,17 +1242,12 @@
         .city-group {
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.25s ease;
+            transition: opacity 0.2s ease;
         }
-        /* Tier 0 — globally famous cities (always visible) */
-        .city-group[data-tier="0"],
+        /* Visibility is driven by JS — each city gets a .city-visible class
+           once the current zoom passes its computed min-zoom threshold. */
+        .city-group.city-visible,
         .city-group.selected { opacity: 1; }
-        /* Each zoom level reveals one more tier; lower-tier cities stay
-           visible because their class persists at higher thresholds. */
-        .world-map-screen.zoom-t1 .city-group[data-tier="1"] { opacity: 1; }
-        .world-map-screen.zoom-t2 .city-group[data-tier="2"] { opacity: 1; }
-        .world-map-screen.zoom-t3 .city-group[data-tier="3"] { opacity: 1; }
-        .world-map-screen.zoom-t4 .city-group[data-tier="4"] { opacity: 1; }
         .city-group.tappable { pointer-events: auto; cursor: pointer; }
 
         /* Default (base zoom) — only famous dots get the bright golden look. */
@@ -1276,9 +1271,9 @@
             filter: drop-shadow(0 0 7px rgba(253, 224, 71, 1))
                     drop-shadow(0 0 12px rgba(252, 211, 77, 0.8));
         }
-        /* Once the player zooms in, every visible city dot gets the same
-           prominent golden treatment as the famous anchors. */
-        .world-map-screen.zoomed .city-group .city-dot {
+        /* Once a non-famous city has earned its place on screen, give it
+           the same prominent golden treatment as the famous anchors. */
+        .city-group.city-visible:not(.famous) .city-dot {
             fill: #fffbe6;
             stroke: #0b0f17;
             stroke-width: 1;
@@ -1286,7 +1281,6 @@
             filter: drop-shadow(0 0 6px rgba(253, 224, 71, 1))
                     drop-shadow(0 0 10px rgba(252, 211, 77, 0.7));
         }
-        .world-map-screen.zoomed .city-group .city-dot.famous { r: 4.6; }
         .city-group.famous .city-pulse {
             fill: rgba(253, 224, 71, 0.7);
             transform-box: fill-box;
@@ -1330,14 +1324,10 @@
             transition: opacity 0.2s ease;
             pointer-events: none;
         }
-        /* Labels follow the same staged reveal — each tier's labels turn
-           on as soon as the tier becomes visible. */
-        .city-group[data-tier="0"] .city-label,
-        .city-group.selected .city-label { opacity: 1; }
-        .world-map-screen.zoom-t1 .city-group[data-tier="1"] .city-label { opacity: 0.95; }
-        .world-map-screen.zoom-t2 .city-group[data-tier="2"] .city-label { opacity: 0.95; }
-        .world-map-screen.zoom-t3 .city-group[data-tier="3"] .city-label { opacity: 0.95; }
-        .world-map-screen.zoom-t4 .city-group[data-tier="4"] .city-label { opacity: 0.95; }
+        /* Labels appear at the same time as their dot becomes visible. */
+        .city-group.city-visible .city-label,
+        .city-group.selected .city-label { opacity: 0.95; }
+        .city-group.famous .city-label { opacity: 1; }
 
         /* At deep zoom we slightly darken the raster map. The cities then
            pop in front of it like a tactical overlay, which also hides the
@@ -5067,34 +5057,46 @@
 
             // ---- Map pan / zoom -----------------------------------------
 
-            // Convert lat/lon to the SVG viewBox (1050×700). The map uses an
-            // equirectangular projection covering the full globe; the wrapper
-            // crops via xMidYMid slice, so polygons and dots stay aligned.
+            // Project lat/lon onto the 1050×700 viewBox. The illustrated
+            // world map isn't a strict equirectangular projection, so we use
+            // a 2D cubic polynomial fitted to ~30 anchor cities measured
+            // directly off the image. Residual error is < 25 vbox units
+            // (~2.5% of width).
             cityToXY(lat, lon) {
-                const x = ((lon + 180) / 360) * 1050;
-                const y = ((90 - lat) / 180) * 700;
+                const lt = lat, ln = lon;
+                const lt2 = lt * lt, ln2 = ln * ln;
+                const xc = [541.69, 0.343717, 2.81042, 0.00100809, -0.0108888,
+                            -0.000954915, -8.72486e-05, 2.89067e-05,
+                            -8.81413e-05, 2.20896e-05];
+                const yc = [451.069, -3.54422, -0.0361042, -0.0032314, -0.00102602,
+                            -0.000103567, 8.84475e-05, 1.29726e-05,
+                            -0.000523288, -7.04159e-07];
+                const phi = [1, lt, ln, lt*ln, lt2, ln2,
+                             lt2*ln, lt*ln2, lt2*lt, ln2*ln];
+                let x = 0, y = 0;
+                for (let i = 0; i < phi.length; i++) {
+                    x += xc[i] * phi[i];
+                    y += yc[i] * phi[i];
+                }
                 return { x, y };
             }
 
             renderCities() {
                 const layer = document.getElementById('cityLayer');
                 if (!layer || layer.dataset.rendered === '1') return;
-                // Tier 1 — major capitals (G20-ish) plus the biggest
-                // non-capital metros. Shown right after the tutorial-anchor
-                // famous cities.
+
+                // Priority for the spacing-based reveal: 0 = always visible
+                // anchors, higher = more "extra" cities that need a wider
+                // canvas before they earn their slot.
                 const TIER1_PROMOTED = new Set([
-                    // Major capitals (those not already famous)
                     'Washington', 'Ottawa', 'Rome', 'Madrid', 'Riyadh',
                     'Tehran', 'Ankara', 'Jakarta', 'Hanoi', 'Manila',
                     'Canberra', 'Brasília', 'Pretoria', 'Athens', 'Vienna',
                     'Warsaw', 'Stockholm',
-                    // Largest non-capital metros
                     'Los Angeles', 'Chicago', 'Toronto', 'Shanghai',
                     'Karachi', 'Kolkata', 'Osaka', 'Guangzhou', 'Shenzhen',
                     'Hong Kong', 'Mumbai', 'Bangalore'
                 ]);
-                // Tier 3 — larger non-capitals that should still appear
-                // before the long tail of small cities.
                 const TIER3_NONCAPITAL = new Set([
                     'Vancouver', 'Montreal', 'Houston', 'San Francisco',
                     'Boston', 'Seattle', 'Atlanta', 'Miami', 'Dallas',
@@ -5117,17 +5119,56 @@
                     'Córdoba', 'Rosario',
                     'Tijuana', 'Guadalajara', 'Monterrey', 'Puebla'
                 ]);
+                const priority = (c) => {
+                    if (c[5]) return 0;
+                    if (TIER1_PROMOTED.has(c[0])) return 1;
+                    if (c[3]) return 2;
+                    if (TIER3_NONCAPITAL.has(c[0])) return 3;
+                    return 4;
+                };
+
+                // Resolve each city's projected vbox position and compute
+                // its minimum-visible zoom: the lowest zoom at which the
+                // dot is at least MIN_SPACING screen-pixels away from every
+                // already-placed higher-priority dot. This naturally spreads
+                // cities out — at base zoom only the most distant anchors
+                // qualify; higher zoom unlocks denser detail.
+                const wrap = document.querySelector('.world-map-wrapper');
+                const wrapW = (wrap && wrap.offsetWidth) || 430;
+                const VBW = 1050;
+                const PX_PER_VBOX = wrapW / VBW;   // vbox→screen scale at zoom 1
+                const MIN_SPACING = 28;            // screen px between dots
+                const items = this.cities.map((c, i) => ({
+                    idx: i, c, p: priority(c),
+                    pos: this.cityToXY(c[1], c[2])
+                }));
+                items.sort((a, b) => a.p - b.p);
+                const placed = [];
+                items.forEach(it => {
+                    let minZ = 1.0;
+                    if (it.p > 0) {
+                        for (const v of placed) {
+                            const dx = it.pos.x - v.pos.x;
+                            const dy = it.pos.y - v.pos.y;
+                            const D = Math.hypot(dx, dy);
+                            if (D < 0.01) { minZ = 999; break; }
+                            const z = MIN_SPACING / (D * PX_PER_VBOX);
+                            if (z > minZ) minZ = z;
+                        }
+                    }
+                    it.minZ = minZ;
+                    placed.push(it);
+                });
+                // Cache for runtime visibility updates.
+                this.cityMinZoom = new Array(this.cities.length);
+                items.forEach(it => { this.cityMinZoom[it.idx] = it.minZ; });
+
                 const ns = 'http://www.w3.org/2000/svg';
                 const frag = document.createDocumentFragment();
                 this.cities.forEach((c, idx) => {
                     const [name, lat, lon, capital, continent, famous] = c;
                     const { x, y } = this.cityToXY(lat, lon);
-                    let tier;
-                    if (famous) tier = 0;
-                    else if (TIER1_PROMOTED.has(name)) tier = 1;
-                    else if (capital) tier = 2;
-                    else if (TIER3_NONCAPITAL.has(name)) tier = 3;
-                    else tier = 4;
+                    const minZ = this.cityMinZoom[idx];
 
                     const g = document.createElementNS(ns, 'g');
                     const classes = ['city-group'];
@@ -5137,7 +5178,7 @@
                     g.dataset.idx = idx;
                     g.dataset.continent = continent;
                     g.dataset.name = name;
-                    g.dataset.tier = tier;
+                    g.dataset.minz = minZ.toFixed(3);
 
                     if (famous) {
                         const pulse = document.createElementNS(ns, 'circle');
@@ -5187,7 +5228,18 @@
                 });
                 layer.appendChild(frag);
                 layer.dataset.rendered = '1';
+                this.updateCityVisibility();
                 this.updateCityPickerAffordance();
+            }
+
+            updateCityVisibility() {
+                const groups = document.querySelectorAll('.city-group');
+                if (!groups.length) return;
+                const z = this.mapView.zoom;
+                groups.forEach(g => {
+                    const minZ = parseFloat(g.dataset.minz || '1');
+                    g.classList.toggle('city-visible', z >= minZ - 0.01);
+                });
             }
 
             // Toggle city pointer-events based on picker mode + valid targets.
@@ -5200,7 +5252,8 @@
                 groups.forEach(g => {
                     const cont = g.dataset.continent;
                     const isInfected = !!(this.continents[cont] && this.continents[cont].infectionLevel > 0);
-                    const tappable = !!this.pickerMode &&
+                    const visible = g.classList.contains('city-visible');
+                    const tappable = !!this.pickerMode && visible &&
                         valid && valid.has(cont) && !isInfected;
                     g.classList.toggle('tappable', tappable);
                 });
@@ -5283,12 +5336,13 @@
                 screen.classList.toggle('deep-zoom', z > 2.6);
                 screen.classList.toggle('show-zoom-ctrl', z > 1.02 && !this.pickerMode);
                 screen.classList.toggle('picker-zoomed', z > 1.02 && !!this.pickerMode);
-                // Progressive city density: each tier kicks in at a higher
-                // zoom level so the map stays readable as the player zooms.
-                screen.classList.toggle('zoom-t1', z >= 1.5);
-                screen.classList.toggle('zoom-t2', z >= 2.6);
+                // City visibility is driven per-dot now, but we still flag
+                // the deep-zoom thresholds because the raster map fades
+                // into a tactical-style backdrop at those levels.
                 screen.classList.toggle('zoom-t3', z >= 4.0);
                 screen.classList.toggle('zoom-t4', z >= 5.8);
+                this.updateCityVisibility();
+                if (this.pickerMode) this.updateCityPickerAffordance();
 
                 if (this.pickerMode && this.selectedCityIdx == null) {
                     const sub = document.getElementById('selectionSub');
