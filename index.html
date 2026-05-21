@@ -4068,13 +4068,23 @@
 
             _addCity(c, idx) {
                 const [name, lat, lon, capital, continent, famous] = c;
-                // The painted texture isn't a strict equirectangular projection,
-                // so we don't use the real lat/lon. We use the *painted*
-                // position (vbox) — same data the 2D map uses — and convert
-                // it as if the texture were equirectangular. That way the dot
-                // sits right over the city as drawn on the illustration.
-                const vb = this.vboxForCity(c);
-                const pos = this._vboxToVec3(vb.x, vb.y, 1.005);
+                // Use real geographic lat/lon for the globe. The painted
+                // texture is roughly equirectangular but not strict, so a
+                // dot may sit a few pixels off the artist's drawn coast,
+                // but it will land at the real-world geographic position
+                // and that's the contract the player expects ("Tokyo is
+                // in Japan", not "Tokyo is on whatever pixel Tokyo was
+                // measured to in the illustration").
+                const u = (lon + 180) / 360;
+                const v = (90 - lat) / 180;
+                const phi = u * 2 * Math.PI;
+                const theta = v * Math.PI;
+                const r = 1.005;
+                const pos = new THREE.Vector3(
+                    -r * Math.cos(phi) * Math.sin(theta),
+                     r * Math.cos(theta),
+                     r * Math.sin(phi) * Math.sin(theta)
+                );
 
                 const size = famous ? 0.024 : (capital ? 0.017 : 0.012);
                 const color = famous ? 0xfde68a : (capital ? 0xfca5a5 : 0xfde68a);
@@ -4129,7 +4139,10 @@
                     const dx = x - lastX;
                     const dy = y - lastY;
                     if (Math.hypot(x - tapStartX, y - tapStartY) > 4) moved = true;
-                    const k = 0.005 * (this.camera.position.z / 2.6);
+                    // Rotation speed scales with current zoom so it feels
+                    // similar at any distance.
+                    const baseZ = this._baseZ || 2.6;
+                    const k = 0.005 * (this.camera.position.z / baseZ);
                     this.earth.rotation.y += dx * k;
                     this.earth.rotation.x = Math.max(
                         -1.35,
@@ -4162,8 +4175,10 @@
                         const a = e.touches[0], b = e.touches[1];
                         const d = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
                         if (d > 0 && pinchStart > 0) {
+                            const baseZ = this._baseZ || 2.6;
                             this.camera.position.z = Math.max(
-                                1.3, Math.min(5, pinchZ * pinchStart / d)
+                                baseZ * 0.4,
+                                Math.min(baseZ * 1.6, pinchZ * pinchStart / d)
                             );
                         }
                         if (e.cancelable) e.preventDefault();
@@ -4181,8 +4196,12 @@
 
                 this.canvas.addEventListener('wheel', (e) => {
                     e.preventDefault();
+                    const baseZ = this._baseZ || 2.6;
                     const factor = e.deltaY < 0 ? 0.92 : 1.08;
-                    this.camera.position.z = Math.max(1.3, Math.min(5, this.camera.position.z * factor));
+                    this.camera.position.z = Math.max(
+                        baseZ * 0.4,
+                        Math.min(baseZ * 1.6, this.camera.position.z * factor)
+                    );
                 }, { passive: false });
             }
 
@@ -4202,6 +4221,18 @@
                 if (this.onEmptyTap) this.onEmptyTap();
             }
 
+            // Camera distance that lets the full sphere (incl. halo) fit
+            // within the current canvas dimensions with breathing room.
+            _fitDistance() {
+                const fovV = this.camera.fov * Math.PI / 180;
+                const tan = Math.tan(fovV / 2);
+                const minAspect = Math.min(this.camera.aspect, 1);
+                // Want sphere diameter (~2.12 with halo) to take ~0.85 of the
+                // shorter screen dimension → world target = 2.12 / 0.85.
+                const target = 2.12 / 0.85;
+                return target / (2 * tan * minAspect);
+            }
+
             _resize() {
                 const w = this.canvas.clientWidth;
                 const h = this.canvas.clientHeight;
@@ -4209,11 +4240,20 @@
                 this.camera.aspect = w / h;
                 this.camera.updateProjectionMatrix();
                 this.renderer.setSize(w, h, false);
+                // Preserve the user's pinch-zoom factor across resizes.
+                const newBase = this._fitDistance();
+                if (this._baseZ) {
+                    this.camera.position.z *= newBase / this._baseZ;
+                } else {
+                    this.camera.position.z = newBase;
+                }
+                this._baseZ = newBase;
             }
 
             resetView() {
                 this.earth.rotation.set(0, -Math.PI / 2, 0);
-                this.camera.position.z = 2.6;
+                this._baseZ = this._fitDistance();
+                this.camera.position.z = this._baseZ;
             }
 
             destroy() {
