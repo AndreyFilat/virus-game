@@ -4191,9 +4191,10 @@
                 const fovV = this.camera.fov * Math.PI / 180;
                 const tan = Math.tan(fovV / 2);
                 const minAspect = Math.min(this.camera.aspect, 1);
-                // Want sphere diameter (~2.12 with halo) to take ~0.85 of the
-                // shorter screen dimension → world target = 2.12 / 0.85.
-                const target = 2.12 / 0.85;
+                // Want the sphere body (radius 1) to fill ~0.95 of the
+                // shorter screen dimension. The halo extends a bit beyond
+                // but it's translucent so it can clip the edges safely.
+                const target = 2.0 / 0.95;
                 return target / (2 * tan * minAspect);
             }
 
@@ -5567,14 +5568,14 @@
                     'Bogotá':          [275, 405],
                     'Caracas':         [305, 395],
                     'Brasília':        [375, 480],
-                    'London':          [485, 203],
+                    'London':          [440, 195],
                     'Paris':           [505, 225],
                     'Madrid':          [478, 247],
                     'Rome':            [555, 253],
                     'Berlin':          [545, 197],
                     'Moscow':          [665, 155],
                     'Stockholm':       [568, 130],
-                    'Istanbul':        [608, 253],
+                    'Istanbul':        [615, 256],
                     'Athens':          [588, 258],
                     'Vienna':          [550, 208],
                     'Warsaw':          [565, 188],
