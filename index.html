@@ -1005,8 +1005,13 @@
             display: none;
             touch-action: none;
         }
+        .world-map-screen.intro .globe-canvas,
         .world-map-screen.selecting .globe-canvas,
         .world-map-screen.picker-zoomed .globe-canvas { display: block; }
+        /* Hide the flat map during every picker phase — including the
+           intro animation — so the player never gets a flash of the 2D
+           texture before the globe takes over. */
+        .world-map-screen.intro .world-map-pan,
         .world-map-screen.selecting .world-map-pan,
         .world-map-screen.picker-zoomed .world-map-pan { display: none; }
 
@@ -4023,16 +4028,22 @@
                         // 0 (deep) .. 1 (shallow) from source brightness
                         const lum = (0.299*r + 0.587*g + 0.114*b) / 255;
                         let t = Math.pow(Math.min(1, lum * 1.25), 0.48);
-                        // Five-octave "current" noise. Lower frequencies =
-                        // continental-scale gyres, higher frequencies =
-                        // local ripples / wave streaks. Amplitudes sum to 1.
-                        const n1 = Math.sin(x * 0.0048 + y * 0.0061);   // gyres
-                        const n2 = Math.sin(x * 0.0123 - y * 0.0095);   // currents
-                        const n3 = Math.sin(x * 0.0341 + y * 0.0287);   // eddies
-                        const n4 = Math.sin(x * 0.0823 - y * 0.0719);   // chop
-                        const n5 = Math.sin(x * 0.1612 + y * 0.1473);   // ripples
+                        // Multi-octave "current" noise. Each sine's input is
+                        // warped by lower-frequency sines so the resulting
+                        // pattern is curly / organic instead of showing
+                        // straight diagonal stripes.
+                        const w1x = Math.sin(y * 0.0023) * 38 + Math.sin(x * 0.0017) * 22;
+                        const w1y = Math.cos(x * 0.0019) * 31 + Math.cos(y * 0.0015) * 19;
+                        const w2x = Math.sin(y * 0.0061) * 14;
+                        const w2y = Math.cos(x * 0.0057) * 12;
+                        const n1 = Math.sin((x + w1x) * 0.0048 + (y + w1y) * 0.0061);
+                        const n2 = Math.sin((x + w2x) * 0.0123 - (y + w2y) * 0.0095);
+                        const n3 = Math.sin((x + w1y) * 0.0341 + (y - w1x) * 0.0287);
+                        const n4 = Math.sin((x - w2y) * 0.0823 - (y + w2x) * 0.0719);
+                        const n5 = Math.sin((x * 0.16 + Math.sin(y * 0.03) * 6)
+                                          + (y * 0.15 + Math.cos(x * 0.027) * 5));
                         const noise = n1*0.32 + n2*0.26 + n3*0.20 + n4*0.14 + n5*0.08;
-                        t = Math.max(0, Math.min(1, t + noise * 0.14));
+                        t = Math.max(0, Math.min(1, t + noise * 0.13));
                         let [R, G, B] = ramp(t);
                         // Two-tier highlight system. First tier kicks in
                         // earlier (t > 0.5) and gives soft cyan glow on
@@ -4167,20 +4178,40 @@
                      r * Math.sin(phi) * Math.sin(theta)
                 );
 
-                // Every city dot uses the same warm-gold accent — it reads
-                // crisply against the blue ocean and the brown continents
-                // without splitting attention between several palette tiers.
-                const DOT_COLOR = 0xfff0b3;
-                const size = famous ? 0.022 : (capital ? 0.016 : 0.013);
-                const geom = new THREE.SphereGeometry(size, 12, 10);
-                const mat = new THREE.MeshBasicMaterial({ color: DOT_COLOR });
-                const mesh = new THREE.Mesh(geom, mat);
-                mesh.position.copy(pos);
-                mesh.userData = { idx, name, continent, baseColor: DOT_COLOR, baseSize: size };
+                // City dots use a vivid coral-pink that contrasts cleanly
+                // against ocean blue, green vegetation, and the warm tones
+                // of deserts/savannas. A dark outline ring (a slightly
+                // bigger black sphere sitting just *behind* the bright
+                // dot) gives the marker a sticker-like edge so it reads on
+                // any region of the globe.
+                const DOT_FILL = 0xff4d7c;
+                const DOT_RING = 0x10162a;
+                const size = famous ? 0.024 : (capital ? 0.018 : 0.015);
+
+                // Outer ring slightly behind the dot (closer to sphere
+                // surface) so it shows as a rim around the bright fill.
+                const ringR = 1.004;
+                const dotR  = ringR + size * 0.85;  // push dot outward
+                const dir = pos.clone().normalize();
+                const ringPos = dir.clone().multiplyScalar(ringR);
+                const dotPos  = dir.clone().multiplyScalar(dotR);
+
+                const ringMat = new THREE.MeshBasicMaterial({ color: DOT_RING });
+                const ring = new THREE.Mesh(
+                    new THREE.SphereGeometry(size * 1.35, 12, 10), ringMat
+                );
+                ring.position.copy(ringPos);
+                this.cityGroup.add(ring);
+
+                const mat = new THREE.MeshBasicMaterial({ color: DOT_FILL });
+                const mesh = new THREE.Mesh(new THREE.SphereGeometry(size, 14, 12), mat);
+                mesh.position.copy(dotPos);
+                mesh.userData = { idx, name, continent,
+                    baseColor: DOT_FILL, baseSize: size, ring };
                 if (famous) {
                     const haloGeom = new THREE.SphereGeometry(size * 2.2, 12, 10);
                     const haloMat = new THREE.MeshBasicMaterial({
-                        color: DOT_COLOR, transparent: true, opacity: 0.28, depthWrite: false
+                        color: DOT_FILL, transparent: true, opacity: 0.30, depthWrite: false
                     });
                     const halo = new THREE.Mesh(haloGeom, haloMat);
                     mesh.add(halo);
@@ -4195,9 +4226,11 @@
                     if (i === idx) {
                         m.material.color.set(0x00ff9f);
                         m.scale.setScalar(1.6);
+                        if (ud.ring) ud.ring.scale.setScalar(1.6);
                     } else {
                         m.material.color.set(ud.baseColor);
                         m.scale.setScalar(1);
+                        if (ud.ring) ud.ring.scale.setScalar(1);
                     }
                 });
             }
