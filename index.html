@@ -1002,12 +1002,18 @@
             inset: 0;
             width: 100%;
             height: 100%;
-            display: none;
+            opacity: 0;
+            pointer-events: none;
             touch-action: none;
+            transition: opacity 0.65s cubic-bezier(0.4, 0, 0.6, 1);
         }
-        .world-map-screen.intro .globe-canvas,
+        /* Globe stays invisible while the helix intro plays, then fades
+           in as the picker becomes interactive. */
         .world-map-screen.selecting .globe-canvas,
-        .world-map-screen.picker-zoomed .globe-canvas { display: block; }
+        .world-map-screen.picker-zoomed .globe-canvas {
+            opacity: 1;
+            pointer-events: auto;
+        }
         /* Hide the flat map during every picker phase — including the
            intro animation — so the player never gets a flash of the 2D
            texture before the globe takes over. */
@@ -4178,16 +4184,12 @@
                      r * Math.sin(phi) * Math.sin(theta)
                 );
 
-                // Mint-tinted white dot with a thin dark-navy outline ring.
-                // The slight green push helps it sit on the globe palette
-                // (warm continents + cool ocean) without reading as a
-                // sterile lab marker; the ring keeps the edge crisp on
-                // any region.
+                // Mint-tinted white dot with a thin grey outline ring. The
+                // soft green push helps it sit on the globe palette as a
+                // map pin; the slim grey rim defines the edge without
+                // weighing the dot down with a heavy black outline.
                 const DOT_FILL = 0xd4f5d8;
-                const DOT_RING = 0x0a1428;
-                // Smaller world-space sizes so the dots don't overlap each
-                // other when the player zooms in on a dense region like
-                // Western Europe.
+                const DOT_RING = 0x6b7280;
                 const size = famous ? 0.016 : (capital ? 0.012 : 0.009);
 
                 const ringR = 1.003;
@@ -4197,8 +4199,10 @@
                 const dotPos  = dir.clone().multiplyScalar(dotR);
 
                 const ringMat = new THREE.MeshBasicMaterial({ color: DOT_RING });
+                // Thin rim — only ~12% larger than the fill so the outline
+                // reads as a faint border, not a halo.
                 const ring = new THREE.Mesh(
-                    new THREE.SphereGeometry(size * 1.35, 12, 10), ringMat
+                    new THREE.SphereGeometry(size * 1.12, 12, 10), ringMat
                 );
                 ring.position.copy(ringPos);
                 this.cityGroup.add(ring);
