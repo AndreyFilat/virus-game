@@ -1338,13 +1338,13 @@
 
         .city-label {
             fill: #f8fafc;
-            font-size: 11.5px;
+            font-size: 9px;
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             font-weight: 800;
             letter-spacing: 0.15px;
             paint-order: stroke;
             stroke: rgba(0, 0, 0, 0.95);
-            stroke-width: 2.6px;
+            stroke-width: 2px;
             stroke-linejoin: round;
             opacity: 0;
             transition: opacity 0.2s ease;
@@ -1356,10 +1356,14 @@
             pointer-events: auto;
             cursor: pointer;
         }
-        /* Labels appear at the same time as their dot becomes visible. */
-        .city-group.city-visible .city-label,
-        .city-group.selected .city-label { opacity: 0.95; }
-        .city-group.famous .city-label { opacity: 1; }
+        /* Label visibility is staged separately from dots so the player
+           doesn't drown in overlapping names. Famous + selected labels
+           are always on; other cities only show a label once their
+           computed minZL — based on a wider label-spacing budget — is
+           reached at the current zoom (see renderCities). */
+        .city-group.famous .city-label,
+        .city-group.selected .city-label { opacity: 1; }
+        .city-group.label-visible .city-label { opacity: 0.92; }
 
         /* At deep zoom we slightly darken the raster map. The cities then
            pop in front of it like a tactical overlay, which also hides the
@@ -5207,14 +5211,14 @@
                     'Bogotá':          [275, 405],
                     'Caracas':         [305, 395],
                     'Brasília':        [375, 480],
-                    'London':          [478, 198],
-                    'Paris':           [498, 215],
-                    'Madrid':          [475, 232],
-                    'Rome':            [548, 238],
-                    'Berlin':          [538, 184],
-                    'Moscow':          [660, 145],
-                    'Stockholm':       [560, 122],
-                    'Istanbul':        [615, 250],
+                    'London':          [488, 215],
+                    'Paris':           [505, 230],
+                    'Madrid':          [478, 247],
+                    'Rome':            [555, 253],
+                    'Berlin':          [545, 197],
+                    'Moscow':          [665, 155],
+                    'Stockholm':       [568, 130],
+                    'Istanbul':        [620, 262],
                     'Athens':          [588, 258],
                     'Vienna':          [550, 208],
                     'Warsaw':          [565, 188],
@@ -5359,7 +5363,8 @@
                 const wrapW = (wrap && wrap.offsetWidth) || 430;
                 const VBW = 1050;
                 const PX_PER_VBOX = wrapW / VBW;   // vbox→screen scale at zoom 1
-                const MIN_SPACING = 28;            // screen px between dots
+                const MIN_DOT_SPACING   = 28;  // screen px between dots
+                const MIN_LABEL_SPACING = 90;  // screen px between labels
                 const items = this.cities.map((c, i) => ({
                     idx: i, c, p: priority(c),
                     pos: this.cityToXY(c[1], c[2], c[4], c[0])
@@ -5368,22 +5373,31 @@
                 const placed = [];
                 items.forEach(it => {
                     let minZ = 1.0;
+                    let minZL = 1.0;
                     if (it.p > 0) {
                         for (const v of placed) {
                             const dx = it.pos.x - v.pos.x;
                             const dy = it.pos.y - v.pos.y;
                             const D = Math.hypot(dx, dy);
-                            if (D < 0.01) { minZ = 999; break; }
-                            const z = MIN_SPACING / (D * PX_PER_VBOX);
-                            if (z > minZ) minZ = z;
+                            if (D < 0.01) { minZ = minZL = 999; break; }
+                            const PXD = D * PX_PER_VBOX;
+                            const zd = MIN_DOT_SPACING   / PXD;
+                            const zl = MIN_LABEL_SPACING / PXD;
+                            if (zd > minZ)  minZ  = zd;
+                            if (zl > minZL) minZL = zl;
                         }
                     }
-                    it.minZ = minZ;
+                    it.minZ  = minZ;
+                    it.minZL = minZL;
                     placed.push(it);
                 });
                 // Cache for runtime visibility updates.
-                this.cityMinZoom = new Array(this.cities.length);
-                items.forEach(it => { this.cityMinZoom[it.idx] = it.minZ; });
+                this.cityMinZoom      = new Array(this.cities.length);
+                this.cityMinZoomLabel = new Array(this.cities.length);
+                items.forEach(it => {
+                    this.cityMinZoom[it.idx]      = it.minZ;
+                    this.cityMinZoomLabel[it.idx] = it.minZL;
+                });
 
                 const ns = 'http://www.w3.org/2000/svg';
                 const frag = document.createDocumentFragment();
@@ -5401,6 +5415,7 @@
                     g.dataset.continent = continent;
                     g.dataset.name = name;
                     g.dataset.minz = minZ.toFixed(3);
+                    g.dataset.minzl = (this.cityMinZoomLabel[idx] || minZ).toFixed(3);
                     g.dataset.bx = x.toFixed(2);
                     g.dataset.by = y.toFixed(2);
 
@@ -5461,8 +5476,10 @@
                 if (!groups.length) return;
                 const z = this.mapView.zoom;
                 groups.forEach(g => {
-                    const minZ = parseFloat(g.dataset.minz || '1');
-                    g.classList.toggle('city-visible', z >= minZ - 0.01);
+                    const minZ  = parseFloat(g.dataset.minz  || '1');
+                    const minZL = parseFloat(g.dataset.minzl || minZ);
+                    g.classList.toggle('city-visible',  z >= minZ  - 0.01);
+                    g.classList.toggle('label-visible', z >= minZL - 0.01);
                 });
             }
 
