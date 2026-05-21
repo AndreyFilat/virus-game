@@ -990,7 +990,10 @@
             transition: opacity 0.55s ease, transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
 
-        /* DNA helix slot on the map screen */
+        /* DNA helix slot on the map screen.
+           Anchored at top: 50% always; movement is done purely via
+           transform so the browser can keep it on the compositor and
+           the shrink+rise stays smooth on weaker devices. */
         .map-helix-slot {
             position: absolute;
             left: 50%;
@@ -1002,10 +1005,9 @@
             pointer-events: none;
             opacity: 0;
             transform: translate(-50%, -50%) scale(0);
-            transition: top 0.7s cubic-bezier(0.2, 0.8, 0.2, 1),
-                        transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1),
-                        opacity 0.4s ease;
-            will-change: transform, top, opacity;
+            transition: transform 0.85s cubic-bezier(0.22, 0.85, 0.28, 1),
+                        opacity 0.45s ease;
+            will-change: transform, opacity;
         }
 
         /* Radial halo behind the helix */
@@ -1113,7 +1115,6 @@
         /* Intro phase: helix bursts in centered */
         .world-map-screen.intro .map-helix-slot {
             opacity: 1;
-            top: 50%;
             transform: translate(-50%, -50%) scale(1.2);
         }
 
@@ -1128,11 +1129,11 @@
             pointer-events: none !important;
         }
 
-        /* Docked phase: helix sits above the map — smaller and tighter */
+        /* Docked phase: helix sits above the map — pure transform move so
+           the animation stays on the GPU (no per-frame layout reflow). */
         .world-map-screen.selecting .map-helix-slot {
             opacity: 1;
-            top: 24%;
-            transform: translate(-50%, -50%) scale(0.62);
+            transform: translate(-50%, calc(-50% - 26dvh)) scale(0.62);
         }
 
         /* Absolute-positioned map during the placement flow so the layout is even */
@@ -5106,28 +5107,31 @@
 
             // ---- Map pan / zoom -----------------------------------------
 
-            // Project lat/lon onto the 1050×700 viewBox. The illustrated
-            // world map isn't a strict equirectangular projection, so we use
-            // a 2D cubic polynomial fitted to ~30 anchor cities measured
-            // directly off the image. Residual error is < 25 vbox units
-            // (~2.5% of width).
-            cityToXY(lat, lon) {
-                const lt = lat, ln = lon;
-                const lt2 = lt * lt, ln2 = ln * ln;
-                const xc = [541.69, 0.343717, 2.81042, 0.00100809, -0.0108888,
-                            -0.000954915, -8.72486e-05, 2.89067e-05,
-                            -8.81413e-05, 2.20896e-05];
-                const yc = [451.069, -3.54422, -0.0361042, -0.0032314, -0.00102602,
-                            -0.000103567, 8.84475e-05, 1.29726e-05,
-                            -0.000523288, -7.04159e-07];
-                const phi = [1, lt, ln, lt*ln, lt2, ln2,
-                             lt2*ln, lt*ln2, lt2*lt, ln2*ln];
-                let x = 0, y = 0;
-                for (let i = 0; i < phi.length; i++) {
-                    x += xc[i] * phi[i];
-                    y += yc[i] * phi[i];
+            // Project (lat, lon) onto the 1050×700 viewBox. The illustrated
+            // world map isn't strictly equirectangular, so each continent
+            // gets its own affine fit anchored on ~10 cities measured off
+            // the image. Residual error is < 10 vbox units (< 1% of width)
+            // for every continent except Oceania (4 anchors, ~15 units).
+            cityToXY(lat, lon, continent) {
+                if (!this._mapProj) this._mapProj = {
+                    'north-america': { x: [4.67189, 0.01611, 711.6675], y: [0.00492, -6.48687, 515.5070] },
+                    'south-america': { x: [3.15268, 0.37643, 540.5862], y: [-0.42239, -4.60084, 403.8768] },
+                    'europe':        { x: [3.99540, 0.10860, 499.4558], y: [0.28271, -6.38400, 522.0273] },
+                    'africa':        { x: [2.92266, -0.20859, 513.8734], y: [0.08010, -4.44621, 446.8697] },
+                    'asia':          { x: [3.31391, -0.07397, 516.4193], y: [0.09261, -5.03785, 452.6695] },
+                    'australia':     { x: [2.54114, -3.97125, 445.2503], y: [0.06834, -4.01811, 440.1093] }
+                };
+                // Fall back to a generic equirectangular blend if continent
+                // is unknown (e.g. internal callers that don't pass it).
+                const p = this._mapProj[continent];
+                if (!p) {
+                    return { x: ((lon + 180) / 360) * 1050,
+                             y: ((90 - lat) / 180) * 700 };
                 }
-                return { x, y };
+                return {
+                    x: p.x[0] * lon + p.x[1] * lat + p.x[2],
+                    y: p.y[0] * lon + p.y[1] * lat + p.y[2]
+                };
             }
 
             renderCities() {
@@ -5189,7 +5193,7 @@
                 const MIN_SPACING = 28;            // screen px between dots
                 const items = this.cities.map((c, i) => ({
                     idx: i, c, p: priority(c),
-                    pos: this.cityToXY(c[1], c[2])
+                    pos: this.cityToXY(c[1], c[2], c[4])
                 }));
                 items.sort((a, b) => a.p - b.p);
                 const placed = [];
@@ -5216,7 +5220,7 @@
                 const frag = document.createDocumentFragment();
                 this.cities.forEach((c, idx) => {
                     const [name, lat, lon, capital, continent, famous] = c;
-                    const { x, y } = this.cityToXY(lat, lon);
+                    const { x, y } = this.cityToXY(lat, lon, continent);
                     const minZ = this.cityMinZoom[idx];
 
                     const g = document.createElementNS(ns, 'g');
@@ -5228,6 +5232,8 @@
                     g.dataset.continent = continent;
                     g.dataset.name = name;
                     g.dataset.minz = minZ.toFixed(3);
+                    g.dataset.bx = x.toFixed(2);
+                    g.dataset.by = y.toFixed(2);
 
                     if (famous) {
                         const pulse = document.createElementNS(ns, 'circle');
@@ -5285,9 +5291,30 @@
                 const groups = document.querySelectorAll('.city-group');
                 if (!groups.length) return;
                 const z = this.mapView.zoom;
+                // Spread factor — at higher zooms we slightly push dots away
+                // from the viewport centre so dense clusters loosen up. The
+                // exponent is tuned so the effect kicks in past zoom 2.
+                const spread = 1 + Math.max(0, (z - 2) * 0.07);
+                const cx = 525, cy = 350; // viewBox centre
                 groups.forEach(g => {
                     const minZ = parseFloat(g.dataset.minz || '1');
                     g.classList.toggle('city-visible', z >= minZ - 0.01);
+                    const baseX = parseFloat(g.dataset.bx);
+                    const baseY = parseFloat(g.dataset.by);
+                    if (!Number.isFinite(baseX) || !Number.isFinite(baseY)) return;
+                    const nx = cx + (baseX - cx) * spread;
+                    const ny = cy + (baseY - cy) * spread;
+                    g.querySelectorAll('circle').forEach(c => {
+                        c.setAttribute('cx', nx.toFixed(2));
+                        c.setAttribute('cy', ny.toFixed(2));
+                    });
+                    const t = g.querySelector('text');
+                    if (t) {
+                        const anchor = t.getAttribute('text-anchor');
+                        const lx = anchor === 'end' ? nx - 5 : nx + 5;
+                        t.setAttribute('x', lx.toFixed(2));
+                        t.setAttribute('y', (ny - 4).toFixed(2));
+                    }
                 });
             }
 
@@ -5353,7 +5380,7 @@
                     if (cityIdx == null) return;
                     const city = this.cities[cityIdx];
                     if (!city) return;
-                    const { x, y } = this.cityToXY(city[1], city[2]);
+                    const { x, y } = this.cityToXY(city[1], city[2], city[4]);
                     // Radius scales with infection level: ~22 at lvl 1, ~110 at lvl 100
                     const r = 20 + c.infectionLevel * 0.9;
                     const halo = document.createElementNS(ns, 'circle');
