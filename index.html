@@ -57,7 +57,7 @@
         }
         
         /* DNA Counter */
-        .dna-bar {
+        .dna-counter {
             position: absolute;
             top: 10px;
             right: 12px;
@@ -65,17 +65,10 @@
             display: flex;
             align-items: center;
             gap: 8px;
-        }
-        .dna-counter {
-            position: static;
-            z-index: 100;
-            display: flex;
-            align-items: center;
-            gap: 6px;
             background: linear-gradient(170deg, rgba(45, 58, 80, 0.95), rgba(20, 28, 42, 0.95));
             backdrop-filter: blur(12px);
-            padding: 5px 11px 5px 6px;
-            border-radius: 14px;
+            padding: 6px 12px 6px 7px;
+            border-radius: 16px;
             border: 1.5px solid rgba(168, 85, 247, 0.4);
             box-shadow:
                 0 6px 16px rgba(0, 0, 0, 0.45),
@@ -83,6 +76,13 @@
                 inset 0 1px 0 rgba(255, 255, 255, 0.12),
                 inset 0 -1px 0 rgba(0, 0, 0, 0.35);
             font-size: 12px;
+        }
+        .dna-stack {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            line-height: 1;
+            gap: 1px;
         }
 
         .dna-icon {
@@ -2496,74 +2496,52 @@
         }
 
         .dna-rate {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 5px 10px 5px 6px;
-            border-radius: 14px;
-            background: linear-gradient(170deg, rgba(34, 64, 50, 0.95), rgba(14, 32, 22, 0.95));
-            backdrop-filter: blur(12px);
-            border: 1.5px solid rgba(74, 222, 128, 0.45);
-            box-shadow:
-                0 6px 16px rgba(0, 0, 0, 0.45),
-                0 0 18px rgba(74, 222, 128, 0.22),
-                inset 0 1px 0 rgba(255, 255, 255, 0.12),
-                inset 0 -1px 0 rgba(0, 0, 0, 0.35);
-            font-size: 12px;
-            opacity: 0;
-            transform: translateX(8px) scale(0.92);
-            pointer-events: none;
-            transition: opacity 0.3s, transform 0.3s cubic-bezier(0.18, 0.9, 0.3, 1);
-        }
-        .dna-rate.visible {
-            opacity: 1;
-            transform: translateX(0) scale(1);
-        }
-        .dna-rate-icon {
-            width: 18px;
-            height: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            background:
-                radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.5), transparent 55%),
-                linear-gradient(135deg, #86efac, #16a34a);
-            box-shadow:
-                0 0 12px rgba(74, 222, 128, 0.7),
-                inset 0 1px 0 rgba(255, 255, 255, 0.45),
-                inset 0 -1px 0 rgba(0, 0, 0, 0.25);
-            color: #0a1f12;
-            font-size: 11px;
-            font-weight: 900;
+            display: none;
+            align-items: baseline;
+            gap: 2px;
+            margin-top: 2px;
+            padding-top: 3px;
+            border-top: 1px solid rgba(74, 222, 128, 0.18);
+            font-family: 'Space Mono', monospace;
             line-height: 1;
-            animation: dna-rate-pulse 2s infinite;
+            transform-origin: right center;
+        }
+        .dna-rate.visible { display: inline-flex; }
+        .dna-rate-arrow {
+            font-size: 9px;
+            color: #4ade80;
+            font-weight: 900;
+            margin-right: 1px;
+            animation: dna-rate-pulse 1.6s ease-in-out infinite;
         }
         @keyframes dna-rate-pulse {
-            0%, 100% { box-shadow: 0 0 12px rgba(74,222,128,0.7), inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -1px 0 rgba(0,0,0,0.25); }
-            50%      { box-shadow: 0 0 18px rgba(74,222,128,0.95), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -1px 0 rgba(0,0,0,0.25); }
+            0%, 100% { opacity: 0.75; transform: translateY(0); }
+            50%      { opacity: 1;    transform: translateY(-1px); }
         }
         .dna-rate-num {
             font-weight: 700;
-            font-size: 13px;
-            color: #bbf7d0;
-            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            color: #86efac;
             letter-spacing: 0.3px;
-            text-shadow: 0 1px 0 rgba(0,0,0,0.45), 0 0 10px rgba(74,222,128,0.5);
+            text-shadow: 0 0 8px rgba(74,222,128,0.55);
         }
         .dna-rate-unit {
-            font-family: 'Space Mono', monospace;
-            font-size: 10px;
-            color: rgba(187, 247, 208, 0.75);
+            font-size: 9px;
+            color: rgba(134, 239, 172, 0.7);
             font-weight: 600;
             letter-spacing: 0.4px;
+            margin-left: 1px;
         }
         @keyframes dna-rate-bump {
             0%   { transform: scale(1); }
-            45%  { transform: scale(1.18); }
+            45%  { transform: scale(1.22); }
             100% { transform: scale(1); }
         }
-        .dna-rate.bump .dna-rate-num { animation: dna-rate-bump 0.5s cubic-bezier(0.18, 0.9, 0.3, 1); }
+        .dna-rate.bump .dna-rate-num {
+            animation: dna-rate-bump 0.5s cubic-bezier(0.18, 0.9, 0.3, 1);
+            display: inline-block;
+            transform-origin: right center;
+        }
 
         /* Per-card income display */
         .card-income {
@@ -3238,15 +3216,15 @@
 <body>
     <div class="game-container">
         <!-- DNA Counter (always visible) -->
-        <div class="dna-bar">
-            <div class="dna-rate" id="dnaRate" aria-hidden="true">
-                <div class="dna-rate-icon">↑</div>
-                <span class="dna-rate-num" id="dnaRateNum">+0</span>
-                <span class="dna-rate-unit">/ч</span>
-            </div>
-            <div class="dna-counter">
-                <div class="dna-icon">🧬</div>
+        <div class="dna-counter">
+            <div class="dna-icon">🧬</div>
+            <div class="dna-stack">
                 <div class="dna-count" id="dnaCount">0</div>
+                <div class="dna-rate" id="dnaRate" aria-hidden="true">
+                    <span class="dna-rate-arrow">↑</span>
+                    <span class="dna-rate-num" id="dnaRateNum">+0</span>
+                    <span class="dna-rate-unit">/ч</span>
+                </div>
             </div>
         </div>
         
@@ -4162,7 +4140,7 @@
                     if (maxed) {
                         incomeHTML = `<div class="card-income"><span class="ci-now">+${incNow}/ч</span></div>`;
                     } else if (level === 0) {
-                        incomeHTML = `<div class="card-income"><span class="ci-zero">—</span><span class="ci-arrow">→</span><span class="ci-next">+${incNext}/ч</span></div>`;
+                        incomeHTML = `<div class="card-income"><span class="ci-next">+${incNext}/ч</span></div>`;
                     } else {
                         incomeHTML = `<div class="card-income"><span class="ci-now">+${incNow}/ч</span><span class="ci-arrow">→</span><span class="ci-next">+${incNext}/ч</span></div>`;
                     }
