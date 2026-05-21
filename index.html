@@ -1160,15 +1160,17 @@
                         0 0 22px rgba(168, 85, 247, 0.18);
         }
 
-        /* Absolute-positioned map during the placement flow so the layout is even */
+        /* Absolute-positioned map during the placement flow. Aspect
+           matches the source PNG (1536:1024 ≈ 3:2) so the whole world
+           is visible without horizontal cropping at base zoom. */
         .world-map-screen.intro .world-map-wrapper,
         .world-map-screen.selecting .world-map-wrapper {
-            aspect-ratio: 5 / 4;
+            aspect-ratio: 3 / 2;
             position: absolute;
             left: 0;
             right: 0;
             margin: 0 auto;
-            top: 38%;
+            top: 44%;
         }
 
         /* Picker backdrop — sampled directly from the map's ocean
@@ -5171,9 +5173,88 @@
 
             // Project (lat, lon) onto the 1050×700 viewBox. The illustrated
             // world map isn't strictly equirectangular, so each continent
-            // gets its own bilinear (lat·lon cross-term) fit anchored on
-            // 10–18 cities measured off the source PNG.
-            cityToXY(lat, lon, continent) {
+            // gets its own bilinear (lat·lon cross-term) fit. Famous and
+            // important cities additionally get hand-measured pixel
+            // overrides for pixel-perfect placement.
+            cityToXY(lat, lon, continent, name) {
+                if (!this._cityOverrides) this._cityOverrides = {
+                    // === Famous / globally recognised — measured directly
+                    // from the illustrated map at a 30-vbox-unit grid. ===
+                    'New York':        [262, 222],
+                    'Washington':      [252, 240],
+                    'Mexico City':     [203, 375],
+                    'Los Angeles':     [ 95, 280],
+                    'Vancouver':       [ 85, 185],
+                    'Chicago':         [232, 218],
+                    'Toronto':         [240, 205],
+                    'Miami':           [248, 320],
+                    'Havana':          [240, 335],
+                    'Houston':         [205, 295],
+                    'São Paulo':       [360, 510],
+                    'Rio de Janeiro':  [375, 502],
+                    'Buenos Aires':    [320, 575],
+                    'Lima':            [270, 460],
+                    'Santiago':        [285, 575],
+                    'Bogotá':          [275, 405],
+                    'Caracas':         [305, 395],
+                    'Brasília':        [375, 480],
+                    'London':          [482, 185],
+                    'Paris':           [495, 198],
+                    'Madrid':          [475, 230],
+                    'Rome':            [548, 235],
+                    'Berlin':          [538, 180],
+                    'Moscow':          [660, 145],
+                    'Stockholm':       [560, 122],
+                    'Istanbul':        [598, 248],
+                    'Athens':          [588, 252],
+                    'Vienna':          [550, 205],
+                    'Warsaw':          [565, 185],
+                    'Lisbon':          [453, 235],
+                    'Dublin':          [455, 165],
+                    'Reykjavík':       [475,  85],
+                    'Cairo':           [608, 290],
+                    'Lagos':           [498, 410],
+                    'Cape Town':       [562, 583],
+                    'Nairobi':         [625, 445],
+                    'Casablanca':      [457, 282],
+                    'Algiers':         [505, 270],
+                    'Johannesburg':    [605, 540],
+                    'Addis Ababa':     [638, 410],
+                    'Kinshasa':        [560, 450],
+                    'Khartoum':        [615, 380],
+                    'Dakar':           [430, 380],
+                    'Tehran':          [690, 258],
+                    'Riyadh':          [668, 320],
+                    'Dubai':           [690, 320],
+                    'Baghdad':         [660, 275],
+                    'Karachi':         [745, 315],
+                    'Mumbai':          [762, 335],
+                    'Delhi':           [778, 295],
+                    'Bangalore':       [780, 380],
+                    'Chennai':         [790, 380],
+                    'Kolkata':         [820, 320],
+                    'Dhaka':           [830, 320],
+                    'Bangkok':         [858, 365],
+                    'Singapore':       [868, 415],
+                    'Jakarta':         [882, 450],
+                    'Manila':          [928, 365],
+                    'Hong Kong':       [900, 320],
+                    'Beijing':         [888, 215],
+                    'Shanghai':        [918, 250],
+                    'Tokyo':           [950, 230],
+                    'Seoul':           [912, 230],
+                    'Osaka':           [938, 248],
+                    'Sydney':          [970, 545],
+                    'Melbourne':       [955, 568],
+                    'Perth':           [845, 548],
+                    'Brisbane':        [967, 520],
+                    'Auckland':        [1015, 558],
+                    'Wellington':      [1015, 580]
+                };
+                if (name && this._cityOverrides[name]) {
+                    return { x: this._cityOverrides[name][0],
+                             y: this._cityOverrides[name][1] };
+                }
                 if (!this._mapProj) this._mapProj = {
                     'north-america': {
                         x: [3.722658, -0.782548, -0.0037284, 569.2791],
@@ -5271,7 +5352,7 @@
                 const MIN_SPACING = 28;            // screen px between dots
                 const items = this.cities.map((c, i) => ({
                     idx: i, c, p: priority(c),
-                    pos: this.cityToXY(c[1], c[2], c[4])
+                    pos: this.cityToXY(c[1], c[2], c[4], c[0])
                 }));
                 items.sort((a, b) => a.p - b.p);
                 const placed = [];
@@ -5298,7 +5379,7 @@
                 const frag = document.createDocumentFragment();
                 this.cities.forEach((c, idx) => {
                     const [name, lat, lon, capital, continent, famous] = c;
-                    const { x, y } = this.cityToXY(lat, lon, continent);
+                    const { x, y } = this.cityToXY(lat, lon, continent, name);
                     const minZ = this.cityMinZoom[idx];
 
                     const g = document.createElementNS(ns, 'g');
@@ -5437,7 +5518,7 @@
                     if (cityIdx == null) return;
                     const city = this.cities[cityIdx];
                     if (!city) return;
-                    const { x, y } = this.cityToXY(city[1], city[2], city[4]);
+                    const { x, y } = this.cityToXY(city[1], city[2], city[4], city[0]);
                     // Radius scales with infection level: ~22 at lvl 1, ~110 at lvl 100
                     const r = 20 + c.infectionLevel * 0.9;
                     const halo = document.createElementNS(ns, 'circle');
@@ -5507,9 +5588,16 @@
                 const rect = this.getMapBounds();
                 if (!rect) return;
                 const z = this.mapView.zoom;
+                // At base zoom always snap back to (0, 0) so zooming in
+                // and out doesn't leave the map drifted.
+                if (z <= 1.01) {
+                    this.mapView.tx = 0;
+                    this.mapView.ty = 0;
+                    return;
+                }
                 // Allow ~35% of the viewport of "overscan" past each map
-                // edge so the player can pan all the way to corners and
-                // still see them; the wrapper's water-coloured background
+                // edge so the player can pan all the way to the corners
+                // and still see them; the wrapper's water-coloured fill
                 // shows through where the map no longer covers.
                 const slack = 0.35;
                 const maxX = rect.width  * slack;
