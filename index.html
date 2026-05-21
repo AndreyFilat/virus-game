@@ -1025,8 +1025,8 @@
             pointer-events: none;
             opacity: 0;
             transform: translate(-50%, -50%) scale(0);
-            transition: transform 0.85s cubic-bezier(0.22, 0.85, 0.28, 1),
-                        opacity 0.45s ease;
+            transition: transform 1.25s cubic-bezier(0.22, 0.7, 0.18, 1),
+                        opacity   1.05s cubic-bezier(0.4, 0, 0.6, 1);
             will-change: transform, opacity;
         }
 
@@ -1094,7 +1094,7 @@
             position: absolute;
             left: 50%;
             top: 50%;
-            transform: translate(-50%, 130px) scale(0.85);
+            transform: translate(-50%, 60px) scale(0.85);
             z-index: 90;
             font-family: 'Space Mono', monospace;
             font-size: 22px;
@@ -1111,7 +1111,9 @@
             color: transparent;
             filter: drop-shadow(0 0 12px rgba(227, 179, 154, 0.85))
                     drop-shadow(0 4px 14px rgba(0, 0, 0, 0.55));
-            transition: opacity 0.5s ease, transform 0.65s cubic-bezier(0.2, 0.8, 0.2, 1);
+            transition: opacity 1.05s cubic-bezier(0.4, 0, 0.6, 1),
+                        transform 1.2s cubic-bezier(0.22, 0.7, 0.18, 1);
+            will-change: opacity, transform;
         }
 
         .world-map-screen.intro .virus-created-label {
@@ -3961,8 +3963,31 @@
                     c.width = sourceImg.naturalWidth;
                     c.height = sourceImg.naturalHeight;
                     const ctx = c.getContext('2d');
-                    ctx.filter = 'brightness(1.45) saturate(1.4) contrast(1.05)';
                     ctx.drawImage(sourceImg, 0, 0);
+                    // Per-pixel ocean lift: any pixel that reads as blue-
+                    // dominant gets shifted toward a bright sky-blue. Land
+                    // pixels (green/brown/grey) are left alone so the
+                    // continents don't lose their character.
+                    const img = ctx.getImageData(0, 0, c.width, c.height);
+                    const d = img.data;
+                    for (let i = 0; i < d.length; i += 4) {
+                        const r = d[i], g = d[i+1], b = d[i+2];
+                        const isOcean = (b > r + 18) && (b > g - 5) && (r < 95);
+                        if (isOcean) {
+                            // Blend toward #4ec3ff with a strength that keeps
+                            // shallow vs deep variation visible.
+                            d[i]   = Math.min(255, Math.round(r * 0.45 + 78 * 0.55));
+                            d[i+1] = Math.min(255, Math.round(g * 0.45 + 195 * 0.55));
+                            d[i+2] = Math.min(255, Math.round(b * 0.45 + 255 * 0.55));
+                        } else {
+                            // Mild brightness/saturation boost for the rest
+                            // so continents read against the brighter ocean.
+                            d[i]   = Math.min(255, Math.round(r * 1.12));
+                            d[i+1] = Math.min(255, Math.round(g * 1.12));
+                            d[i+2] = Math.min(255, Math.round(b * 1.08));
+                        }
+                    }
+                    ctx.putImageData(img, 0, 0);
                     const tex = new THREE.CanvasTexture(c);
                     if ('SRGBColorSpace' in THREE) tex.colorSpace = THREE.SRGBColorSpace;
                     tex.anisotropy = 8;
