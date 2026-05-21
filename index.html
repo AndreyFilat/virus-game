@@ -1446,6 +1446,43 @@
             font-size: 11px;
             color: var(--text-secondary);
             margin-top: 3px;
+            transition: font-size 0.25s ease, color 0.25s ease, letter-spacing 0.25s ease;
+        }
+        .selection-prompt.city-chosen .selection-title {
+            font-size: 10px;
+            opacity: 0.7;
+            margin-bottom: 1px;
+        }
+        .selection-prompt.city-chosen .selection-sub {
+            font-family: 'Space Mono', monospace;
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            margin-top: 4px;
+            background: linear-gradient(135deg, #fffbe6 0%, #fde68a 40%, #f59e0b 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+            text-shadow: 0 0 18px rgba(253, 224, 71, 0.45);
+            filter: drop-shadow(0 0 8px rgba(253, 224, 71, 0.5));
+            animation: chosen-name-pop 0.4s cubic-bezier(0.2, 0.85, 0.3, 1.15);
+        }
+        @keyframes chosen-name-pop {
+            0%   { transform: scale(0.6); opacity: 0; letter-spacing: 6px; }
+            55%  { transform: scale(1.08); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; letter-spacing: 1.2px; }
+        }
+
+        /* Confirmation phase: hide the picker UI immediately when the
+           player commits to a city — before the toast lands. */
+        .world-map-screen.placing .selection-prompt,
+        .world-map-screen.placing .map-helix-slot,
+        .world-map-screen.placing #confirmContinent {
+            opacity: 0 !important;
+            pointer-events: none !important;
+            transition: opacity 0.25s ease;
+        }
         }
 
         /* Confirm button */
@@ -4766,6 +4803,10 @@
                 this.renderCities();
                 this.updateCityPickerAffordance();
                 document.querySelectorAll('.city-group.selected').forEach(g => g.classList.remove('selected'));
+                const prompt = document.getElementById('selectionPrompt');
+                if (prompt) prompt.classList.remove('city-chosen');
+                const ws = document.getElementById('worldMapScreen');
+                if (ws) ws.classList.remove('placing');
                 document.querySelectorAll('.continent-zone').forEach(c => {
                     c.classList.remove('selected');
                     c.classList.remove('valid-target');
@@ -4840,6 +4881,10 @@
                 const isTutorial = this.pickerMode === 'tutorial';
                 const mode = this.pickerMode;
 
+                // Fade out the picker chrome (prompt, helix, confirm) before
+                // the placement animation / toast appears.
+                const screen = document.getElementById('worldMapScreen');
+                if (screen) screen.classList.add('placing');
                 document.querySelector('.world-map-wrapper').classList.remove('selecting');
                 document.getElementById('confirmContinent').classList.remove('visible');
                 document.querySelectorAll('.city-group.selected').forEach(g => g.classList.remove('selected'));
@@ -4847,8 +4892,12 @@
                 const finish = () => {
                     setTimeout(() => {
                         document.body.classList.remove('selecting');
-                        document.getElementById('worldMapScreen').classList.remove('selecting');
+                        const ws = document.getElementById('worldMapScreen');
+                        ws.classList.remove('selecting');
+                        ws.classList.remove('placing');
                         document.querySelector('.bottom-nav').classList.remove('locked');
+                        const prompt = document.getElementById('selectionPrompt');
+                        if (prompt) prompt.classList.remove('city-chosen');
                         this.pickerMode = null;
                         this.selectedContinent = null;
                         this.selectedCityIdx = null;
@@ -5274,8 +5323,18 @@
                 if (groups[idx]) groups[idx].classList.add('selected');
                 const confirm = document.getElementById('confirmContinent');
                 if (confirm) confirm.classList.add('visible');
+                const prompt = document.getElementById('selectionPrompt');
+                const title = prompt && prompt.querySelector('.selection-title');
                 const sub = document.getElementById('selectionSub');
-                if (sub) sub.textContent = c[0];
+                if (prompt) prompt.classList.add('city-chosen');
+                if (title) title.textContent = 'Выбран';
+                if (sub) {
+                    // Restart the pop animation by toggling content + reflow.
+                    sub.textContent = c[0];
+                    sub.style.animation = 'none';
+                    void sub.offsetWidth;
+                    sub.style.animation = '';
+                }
             }
 
             // ---- Infection rendering ------------------------------------
