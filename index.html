@@ -4041,23 +4041,14 @@
 
             _addCity(c, idx) {
                 const [name, lat, lon, capital, continent, famous] = c;
-                // Use real geographic lat/lon for the globe. The painted
-                // texture is roughly equirectangular but not strict, so a
-                // dot may sit a few pixels off the artist's drawn coast,
-                // but it will land at the real-world geographic position
-                // and that's the contract the player expects ("Tokyo is
-                // in Japan", not "Tokyo is on whatever pixel Tokyo was
-                // measured to in the illustration").
-                const u = (lon + 180) / 360;
-                const v = (90 - lat) / 180;
-                const phi = u * 2 * Math.PI;
-                const theta = v * Math.PI;
-                const r = 1.005;
-                const pos = new THREE.Vector3(
-                    -r * Math.cos(phi) * Math.sin(theta),
-                     r * Math.cos(theta),
-                     r * Math.sin(phi) * Math.sin(theta)
-                );
+                // The painted texture is non-uniformly distorted (artistic
+                // map), so real lat/lon doesn't line up with painted
+                // continents. Use vbox positions — manually measured against
+                // the texture for famous cities, projected via per-continent
+                // affine for the rest — then convert that texture coordinate
+                // to its matching point on the sphere.
+                const vb = this.vboxForCity(c);
+                const pos = this._vboxToVec3(vb.x, vb.y, 1.005);
 
                 const size = famous ? 0.024 : (capital ? 0.017 : 0.012);
                 const color = famous ? 0xfde68a : (capital ? 0xfca5a5 : 0xfde68a);
@@ -5576,14 +5567,14 @@
                     'Bogotá':          [275, 405],
                     'Caracas':         [305, 395],
                     'Brasília':        [375, 480],
-                    'London':          [488, 215],
-                    'Paris':           [505, 230],
+                    'London':          [485, 203],
+                    'Paris':           [505, 225],
                     'Madrid':          [478, 247],
                     'Rome':            [555, 253],
                     'Berlin':          [545, 197],
                     'Moscow':          [665, 155],
                     'Stockholm':       [568, 130],
-                    'Istanbul':        [620, 262],
+                    'Istanbul':        [608, 253],
                     'Athens':          [588, 258],
                     'Vienna':          [550, 208],
                     'Warsaw':          [565, 188],
