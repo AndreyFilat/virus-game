@@ -1128,22 +1128,61 @@
             pointer-events: none !important;
         }
 
-        /* Docked phase: helix sits above the map */
+        /* Docked phase: helix sits above the map — smaller and tighter */
         .world-map-screen.selecting .map-helix-slot {
             opacity: 1;
-            top: 32%;
-            transform: translate(-50%, -50%) scale(0.85);
+            top: 24%;
+            transform: translate(-50%, -50%) scale(0.62);
         }
 
         /* Absolute-positioned map during the placement flow so the layout is even */
         .world-map-screen.intro .world-map-wrapper,
         .world-map-screen.selecting .world-map-wrapper {
-            aspect-ratio: 5 / 4;       /* keep compact during continent picker */
+            aspect-ratio: 5 / 4;
             position: absolute;
             left: 0;
             right: 0;
             margin: 0 auto;
-            top: 49%;
+            top: 38%;
+        }
+
+        /* Feather the top/bottom edges of the map so it bleeds into the
+           screen background without a hard rectangular seam. */
+        .world-map-screen.intro .world-map-wrapper,
+        .world-map-screen.selecting .world-map-wrapper {
+            -webkit-mask-image: linear-gradient(180deg,
+                transparent 0%, #000 6%, #000 94%, transparent 100%);
+                    mask-image: linear-gradient(180deg,
+                transparent 0%, #000 6%, #000 94%, transparent 100%);
+        }
+
+        /* Atmospheric water-coloured glow that bleeds above and below the
+           map so the dark navy ocean fades smoothly into the dark backdrop. */
+        .world-map-screen.intro::before,
+        .world-map-screen.selecting::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 14%;
+            bottom: 6%;
+            pointer-events: none;
+            z-index: 0;
+            background:
+                radial-gradient(ellipse 90% 70% at 50% 55%,
+                    rgba(20, 52, 96, 0.55) 0%,
+                    rgba(15, 36, 70, 0.35) 45%,
+                    rgba(13, 20, 33, 0) 80%);
+        }
+        .world-map-screen.intro .world-map-wrapper,
+        .world-map-screen.selecting .world-map-wrapper,
+        .world-map-screen.intro .map-helix-slot,
+        .world-map-screen.selecting .map-helix-slot,
+        .world-map-screen.intro .selection-prompt,
+        .world-map-screen.selecting .selection-prompt,
+        .world-map-screen.intro #confirmContinent,
+        .world-map-screen.selecting #confirmContinent {
+            z-index: 1;
         }
 
         .world-map-screen.intro,
@@ -1203,13 +1242,15 @@
         .city-group {
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.3s ease;
+            transition: opacity 0.25s ease;
         }
-        .world-map-screen.zoomed .city-group,
-        .world-map-screen.picker-zoomed .city-group { opacity: 1; }
-        /* Famous cities and the currently selected one stay visible even at base zoom. */
-        .city-group.famous,
+        /* Tier 0 — globally famous cities (always visible) */
+        .city-group[data-tier="0"],
         .city-group.selected { opacity: 1; }
+        /* Tier 1 — capitals + promoted major non-capitals (visible at moderate zoom) */
+        .world-map-screen.zoom-t1 .city-group[data-tier="1"] { opacity: 1; }
+        /* Tier 2 — everything else (visible only when zoomed deep enough) */
+        .world-map-screen.zoom-t2 .city-group[data-tier="2"] { opacity: 1; }
         .city-group.tappable { pointer-events: auto; cursor: pointer; }
 
         .city-dot {
@@ -1225,21 +1266,26 @@
             filter: drop-shadow(0 0 3px rgba(248, 113, 113, 0.85));
         }
         .city-dot.famous {
-            fill: #fef3c7;
+            fill: #fffbe6;
             stroke: #0b0f17;
-            stroke-width: 0.8;
-            filter: drop-shadow(0 0 6px rgba(253, 224, 71, 0.95));
+            stroke-width: 1;
+            filter: drop-shadow(0 0 7px rgba(253, 224, 71, 1))
+                    drop-shadow(0 0 12px rgba(252, 211, 77, 0.8));
         }
         .city-group.famous .city-pulse {
-            fill: rgba(253, 224, 71, 0.55);
+            fill: rgba(253, 224, 71, 0.7);
             transform-box: fill-box;
             transform-origin: center;
-            animation: city-pulse 2.4s ease-out infinite;
+            animation: city-pulse 2s ease-out infinite;
+        }
+        .city-group.famous .city-pulse.outer {
+            animation: city-pulse 2s ease-out 0.4s infinite;
+            fill: rgba(253, 224, 71, 0.45);
         }
         @keyframes city-pulse {
-            0%   { transform: scale(0.6); opacity: 0.85; }
-            70%  { transform: scale(2.6); opacity: 0;    }
-            100% { transform: scale(2.6); opacity: 0;    }
+            0%   { transform: scale(0.55); opacity: 0.95; }
+            70%  { transform: scale(2.8);  opacity: 0;    }
+            100% { transform: scale(2.8);  opacity: 0;    }
         }
 
         .city-group.selected .city-dot {
@@ -1269,9 +1315,11 @@
             transition: opacity 0.2s ease;
             pointer-events: none;
         }
-        .city-group.famous .city-label,
+        /* Labels follow the same staged reveal */
+        .city-group[data-tier="0"] .city-label,
         .city-group.selected .city-label { opacity: 1; }
-        .world-map-screen.zoomed .city-group .city-label { opacity: 0.95; }
+        .world-map-screen.zoom-t2 .city-group[data-tier="1"] .city-label { opacity: 0.95; }
+        .world-map-screen.zoom-t3 .city-group .city-label { opacity: 0.95; }
 
         /* Infection halo around an infected city. Radius scales with infectionLevel. */
         .infection-halo {
@@ -5000,11 +5048,23 @@
             renderCities() {
                 const layer = document.getElementById('cityLayer');
                 if (!layer || layer.dataset.rendered === '1') return;
+                // Non-capital cities promoted to tier 1 — large, globally
+                // recognised metros that should appear before the long tail.
+                const TIER1_PROMOTED = new Set([
+                    'Los Angeles', 'Chicago', 'Toronto', 'Vancouver',
+                    'Frankfurt', 'Hamburg', 'Munich', 'Milan', 'Barcelona',
+                    'Karachi', 'Kolkata', 'Yokohama', 'Osaka',
+                    'Guangzhou', 'Shenzhen', 'Bangalore', 'Chennai',
+                    'Casablanca', 'Alexandria', 'Johannesburg'
+                ]);
                 const ns = 'http://www.w3.org/2000/svg';
                 const frag = document.createDocumentFragment();
                 this.cities.forEach((c, idx) => {
                     const [name, lat, lon, capital, continent, famous] = c;
                     const { x, y } = this.cityToXY(lat, lon);
+                    const tier = famous ? 0
+                              : (capital || TIER1_PROMOTED.has(name)) ? 1
+                              : 2;
 
                     const g = document.createElementNS(ns, 'g');
                     const classes = ['city-group'];
@@ -5014,20 +5074,27 @@
                     g.dataset.idx = idx;
                     g.dataset.continent = continent;
                     g.dataset.name = name;
+                    g.dataset.tier = tier;
 
                     if (famous) {
                         const pulse = document.createElementNS(ns, 'circle');
                         pulse.setAttribute('cx', x);
                         pulse.setAttribute('cy', y);
-                        pulse.setAttribute('r', famous ? 5.5 : 4);
-                        pulse.setAttribute('class', 'city-pulse');
+                        pulse.setAttribute('r', 7);
+                        pulse.setAttribute('class', 'city-pulse outer');
                         g.appendChild(pulse);
+                        const pulseInner = document.createElementNS(ns, 'circle');
+                        pulseInner.setAttribute('cx', x);
+                        pulseInner.setAttribute('cy', y);
+                        pulseInner.setAttribute('r', 5);
+                        pulseInner.setAttribute('class', 'city-pulse');
+                        g.appendChild(pulseInner);
                     }
 
                     const dot = document.createElementNS(ns, 'circle');
                     dot.setAttribute('cx', x);
                     dot.setAttribute('cy', y);
-                    const r = famous ? 3.6 : (capital ? 2.9 : 2.2);
+                    const r = famous ? 4.5 : (capital ? 2.9 : 2.2);
                     dot.setAttribute('r', r);
                     let dotCls = 'city-dot';
                     if (capital) dotCls += ' capital';
@@ -5150,9 +5217,14 @@
                 if (!screen) return;
                 const z = this.mapView.zoom;
                 screen.classList.toggle('zoomed', z > 1.02);
-                screen.classList.toggle('deep-zoom', z > 2.4);
+                screen.classList.toggle('deep-zoom', z > 2.6);
                 screen.classList.toggle('show-zoom-ctrl', z > 1.02 && !this.pickerMode);
                 screen.classList.toggle('picker-zoomed', z > 1.02 && !!this.pickerMode);
+                // Progressive city density: each tier kicks in at a higher
+                // zoom level so the map stays readable as the player zooms.
+                screen.classList.toggle('zoom-t1', z >= 1.6);
+                screen.classList.toggle('zoom-t2', z >= 2.6);
+                screen.classList.toggle('zoom-t3', z >= 3.8);
 
                 if (this.pickerMode && this.selectedCityIdx == null) {
                     const sub = document.getElementById('selectionSub');
