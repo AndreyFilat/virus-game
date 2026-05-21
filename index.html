@@ -1191,44 +1191,93 @@
         }
         .world-map-pan.dragging { transition: none; }
 
+        .infection-layer,
         .city-layer {
             position: absolute;
             inset: 0;
             width: 100%;
             height: 100%;
             pointer-events: none;
-            opacity: 0;
             transition: opacity 0.3s ease;
         }
-        .world-map-screen.zoomed .city-layer,
-        .world-map-screen.picker-zoomed .city-layer { opacity: 1; }
+        .city-group {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .world-map-screen.zoomed .city-group,
+        .world-map-screen.picker-zoomed .city-group { opacity: 1; }
+        /* Famous cities and the currently selected one stay visible even at base zoom. */
+        .city-group.famous,
+        .city-group.selected { opacity: 1; }
+        .city-group.tappable { pointer-events: auto; cursor: pointer; }
 
         .city-dot {
             fill: #fde68a;
-            stroke: #1a1f2e;
-            stroke-width: 0.45;
-            filter: drop-shadow(0 0 1.5px rgba(253, 224, 71, 0.7));
+            stroke: #0b0f17;
+            stroke-width: 0.6;
+            filter: drop-shadow(0 0 2px rgba(253, 224, 71, 0.75));
         }
         .city-dot.capital {
-            fill: #f87171;
-            stroke: #1a1f2e;
-            stroke-width: 0.55;
-            filter: drop-shadow(0 0 2.5px rgba(248, 113, 113, 0.85));
+            fill: #fca5a5;
+            stroke: #0b0f17;
+            stroke-width: 0.65;
+            filter: drop-shadow(0 0 3px rgba(248, 113, 113, 0.85));
         }
+        .city-dot.famous {
+            fill: #fef3c7;
+            stroke: #0b0f17;
+            stroke-width: 0.8;
+            filter: drop-shadow(0 0 6px rgba(253, 224, 71, 0.95));
+        }
+        .city-group.famous .city-pulse {
+            fill: rgba(253, 224, 71, 0.55);
+            transform-box: fill-box;
+            transform-origin: center;
+            animation: city-pulse 2.4s ease-out infinite;
+        }
+        @keyframes city-pulse {
+            0%   { transform: scale(0.6); opacity: 0.85; }
+            70%  { transform: scale(2.6); opacity: 0;    }
+            100% { transform: scale(2.6); opacity: 0;    }
+        }
+
+        .city-group.selected .city-dot {
+            fill: #00ff9f !important;
+            stroke: #0b0f17;
+            stroke-width: 1 !important;
+            filter: drop-shadow(0 0 8px rgba(0, 255, 159, 0.95)) !important;
+        }
+        .city-group.selected .city-pulse {
+            fill: rgba(0, 255, 159, 0.55);
+            transform-box: fill-box;
+            transform-origin: center;
+            animation: city-pulse 1.3s ease-out infinite;
+        }
+
         .city-label {
-            fill: #f1f5f9;
-            font-size: 4.5px;
-            font-family: 'Inter', sans-serif;
-            font-weight: 600;
+            fill: #f8fafc;
+            font-size: 11.5px;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            font-weight: 800;
+            letter-spacing: 0.15px;
             paint-order: stroke;
-            stroke: rgba(0, 0, 0, 0.85);
-            stroke-width: 1.1px;
+            stroke: rgba(0, 0, 0, 0.95);
+            stroke-width: 2.6px;
             stroke-linejoin: round;
             opacity: 0;
             transition: opacity 0.2s ease;
             pointer-events: none;
         }
-        .world-map-screen.deep-zoom .city-label { opacity: 1; }
+        .city-group.famous .city-label,
+        .city-group.selected .city-label { opacity: 1; }
+        .world-map-screen.zoomed .city-group .city-label { opacity: 0.95; }
+
+        /* Infection halo around an infected city. Radius scales with infectionLevel. */
+        .infection-halo {
+            mix-blend-mode: screen;
+            filter: blur(0.6px);
+        }
 
         .map-zoom-controls {
             position: absolute;
@@ -1274,13 +1323,10 @@
         .map-zoom-btn.map-zoom-reset { font-size: 15px; }
 
         .continent-zone {
-            fill: rgba(255, 255, 255, 0.05);
-            stroke: rgba(255, 255, 255, 0.8);
-            stroke-width: 4;
-            stroke-dasharray: 10 8;
-            cursor: pointer;
-            transition: fill 0.2s ease, stroke 0.2s ease;
-            animation: continent-pulse 1.6s ease-in-out infinite;
+            fill: transparent;
+            stroke: transparent;
+            pointer-events: none;
+            animation: none;
         }
 
         @keyframes continent-pulse {
@@ -1289,12 +1335,10 @@
         }
 
         .continent-zone.selected {
-            fill: rgba(255, 255, 255, 0.22);
-            stroke: rgba(255, 255, 255, 1);
-            stroke-dasharray: none;
-            stroke-width: 5;
-            filter: drop-shadow(0 0 14px rgba(255, 255, 255, 0.85));
+            fill: transparent;
+            stroke: transparent;
             animation: none;
+            filter: none;
         }
 
         /* Continent selection prompt */
@@ -2785,46 +2829,23 @@
 
         /* Infected continent overlay — visible all the time on the map */
         .continents-overlay {
-            opacity: 1 !important;          /* keep visible to show infections */
+            opacity: 0 !important;
+            pointer-events: none !important;
         }
         .continent-zone {
-            fill: rgba(120, 130, 145, 0.18);    /* gray for uninfected */
-            stroke: rgba(170, 180, 200, 0.45);
-            stroke-width: 2.5;
-            stroke-dasharray: none;
-            transition: fill 0.45s ease, stroke 0.35s ease;
+            fill: transparent;
+            stroke: transparent;
             pointer-events: none;
             animation: none;
         }
-        .continent-zone.infected {
-            pointer-events: none;
-            stroke-width: 3.5;
-            stroke-dasharray: none;
-            animation: infected-pulse 3.2s ease-in-out infinite;
-            filter: drop-shadow(0 0 8px rgba(255, 80, 60, 0.55));
-        }
-        @keyframes infected-pulse {
-            0%, 100% { filter: drop-shadow(0 0 6px rgba(255, 80, 60, 0.45)); }
-            50%      { filter: drop-shadow(0 0 14px rgba(255, 100, 70, 0.75)); }
-        }
-
-        /* During picker mode, only continents marked .valid-target light up.
-           Non-valid uninfected zones stay subtle and non-tappable. */
-        .world-map-wrapper.selecting .continent-zone.valid-target:not(.infected) {
-            fill: rgba(255, 255, 255, 0.06);
-            stroke: rgba(255, 255, 255, 0.75);
-            stroke-dasharray: 10 8;
-            pointer-events: auto;
-            cursor: pointer;
-            animation: continent-pulse 1.6s ease-in-out infinite;
-        }
+        .continent-zone.infected,
+        .world-map-wrapper.selecting .continent-zone.valid-target:not(.infected),
         .world-map-wrapper.selecting .continent-zone.selected {
-            fill: rgba(255, 255, 255, 0.25);
-            stroke: rgba(255, 255, 255, 1);
-            stroke-dasharray: none;
-            stroke-width: 5;
-            filter: drop-shadow(0 0 14px rgba(255, 255, 255, 0.85));
+            fill: transparent;
+            stroke: transparent;
             animation: none;
+            filter: none;
+            pointer-events: none;
         }
 
         /* Travelling vehicle for spread infection animation */
@@ -3375,7 +3396,16 @@
                     <polygon class="continent-zone" data-id="australia" data-name="Австралия и Океания"
                         points="878,462 867,456 859,460 832,442 814,450 809,446 783,452 786,444 776,431 778,418 802,406 810,396 833,390 842,383 835,376 805,376 800,380 806,383 805,390 779,388 751,374 750,360 833,360 840,366 846,362 885,376 878,384 880,394 866,388 858,391 892,426 890,445"/>
                     </svg>
-                    <svg class="city-layer" id="cityLayer" viewBox="0 0 1050 700" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>
+                    <svg class="infection-layer" id="infectionLayer" viewBox="0 0 1050 700" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+                        <defs>
+                            <radialGradient id="infectionGrad" cx="50%" cy="50%" r="50%">
+                                <stop offset="0%"  stop-color="#ff4d3a" stop-opacity="0.75"/>
+                                <stop offset="55%" stop-color="#ff7a4d" stop-opacity="0.35"/>
+                                <stop offset="100%" stop-color="#ff7a4d" stop-opacity="0"/>
+                            </radialGradient>
+                        </defs>
+                    </svg>
+                    <svg class="city-layer" id="cityLayer" viewBox="0 0 1050 700" preserveAspectRatio="xMidYMid slice"></svg>
                 </div>
                 <div class="map-zoom-controls" id="mapZoomControls">
                     <button class="map-zoom-btn" id="mapZoomIn" aria-label="Приблизить">+</button>
@@ -3699,168 +3729,172 @@
                 this.MAP_MIN_ZOOM = 1;
                 this.MAP_MAX_ZOOM = 6;
 
-                // Major world cities — capitals + >1M population. Coordinates
-                // map to the 1050×700 viewBox via equirectangular projection,
-                // matching how continent polygons were drawn. Format:
-                // [name, latitude, longitude, isCapital?(0|1)]
+                // Major world cities — capitals + >1M population, English
+                // names. Each entry maps to a 1050×700 viewBox via the
+                // equirectangular projection. Format:
+                // [name, lat, lon, capital(0|1), continentId, famous(0|1)]
+                // `famous` cities show a pulsing dot even at base zoom and
+                // serve as the visible "anchors" before the player zooms in.
+                const NA = 'north-america', SA = 'south-america', EU = 'europe',
+                      AF = 'africa', AS = 'asia', OC = 'australia';
                 this.cities = [
                     // === North America ===
-                    ['Вашингтон', 38.90, -77.04, 1], ['Нью-Йорк', 40.71, -74.01, 0],
-                    ['Лос-Анджелес', 34.05, -118.24, 0], ['Чикаго', 41.88, -87.63, 0],
-                    ['Хьюстон', 29.76, -95.37, 0], ['Финикс', 33.45, -112.07, 0],
-                    ['Филадельфия', 39.95, -75.17, 0], ['Сан-Антонио', 29.42, -98.49, 0],
-                    ['Сан-Диего', 32.72, -117.16, 0], ['Даллас', 32.78, -96.80, 0],
-                    ['Сан-Хосе', 37.34, -121.89, 0], ['Майами', 25.77, -80.19, 0],
-                    ['Атланта', 33.75, -84.39, 0], ['Бостон', 42.36, -71.06, 0],
-                    ['Сиэтл', 47.61, -122.33, 0], ['Денвер', 39.74, -104.99, 0],
-                    ['Сан-Франциско', 37.77, -122.42, 0], ['Детройт', 42.33, -83.05, 0],
-                    ['Оттава', 45.42, -75.70, 1], ['Торонто', 43.65, -79.38, 0],
-                    ['Монреаль', 45.50, -73.57, 0], ['Ванкувер', 49.28, -123.12, 0],
-                    ['Калгари', 51.04, -114.07, 0], ['Эдмонтон', 53.55, -113.49, 0],
-                    ['Мехико', 19.43, -99.13, 1], ['Гвадалахара', 20.67, -103.34, 0],
-                    ['Монтеррей', 25.69, -100.32, 0], ['Пуэбла', 19.04, -98.21, 0],
-                    ['Тихуана', 32.51, -117.04, 0], ['Гавана', 23.13, -82.38, 1],
-                    ['Гватемала', 14.63, -90.51, 1], ['Тегусигальпа', 14.07, -87.19, 1],
-                    ['Сан-Сальвадор', 13.69, -89.19, 1], ['Манагуа', 12.11, -86.24, 1],
-                    ['Сан-Хосе (КР)', 9.93, -84.08, 1], ['Панама', 8.97, -79.53, 1],
-                    ['Кингстон', 17.97, -76.79, 1], ['Санто-Доминго', 18.47, -69.89, 1],
-                    ['Порт-о-Пренс', 18.59, -72.30, 1], ['Нассау', 25.07, -77.34, 1],
+                    ['New York', 40.71, -74.01, 0, NA, 1], ['Washington', 38.90, -77.04, 1, NA, 0],
+                    ['Los Angeles', 34.05, -118.24, 0, NA, 1], ['Chicago', 41.88, -87.63, 0, NA, 0],
+                    ['Houston', 29.76, -95.37, 0, NA, 0], ['Phoenix', 33.45, -112.07, 0, NA, 0],
+                    ['Philadelphia', 39.95, -75.17, 0, NA, 0], ['San Antonio', 29.42, -98.49, 0, NA, 0],
+                    ['San Diego', 32.72, -117.16, 0, NA, 0], ['Dallas', 32.78, -96.80, 0, NA, 0],
+                    ['San Jose', 37.34, -121.89, 0, NA, 0], ['Miami', 25.77, -80.19, 0, NA, 0],
+                    ['Atlanta', 33.75, -84.39, 0, NA, 0], ['Boston', 42.36, -71.06, 0, NA, 0],
+                    ['Seattle', 47.61, -122.33, 0, NA, 0], ['Denver', 39.74, -104.99, 0, NA, 0],
+                    ['San Francisco', 37.77, -122.42, 0, NA, 0], ['Detroit', 42.33, -83.05, 0, NA, 0],
+                    ['Ottawa', 45.42, -75.70, 1, NA, 0], ['Toronto', 43.65, -79.38, 0, NA, 0],
+                    ['Montreal', 45.50, -73.57, 0, NA, 0], ['Vancouver', 49.28, -123.12, 0, NA, 0],
+                    ['Calgary', 51.04, -114.07, 0, NA, 0], ['Edmonton', 53.55, -113.49, 0, NA, 0],
+                    ['Mexico City', 19.43, -99.13, 1, NA, 1], ['Guadalajara', 20.67, -103.34, 0, NA, 0],
+                    ['Monterrey', 25.69, -100.32, 0, NA, 0], ['Puebla', 19.04, -98.21, 0, NA, 0],
+                    ['Tijuana', 32.51, -117.04, 0, NA, 0], ['Havana', 23.13, -82.38, 1, NA, 0],
+                    ['Guatemala City', 14.63, -90.51, 1, NA, 0], ['Tegucigalpa', 14.07, -87.19, 1, NA, 0],
+                    ['San Salvador', 13.69, -89.19, 1, NA, 0], ['Managua', 12.11, -86.24, 1, NA, 0],
+                    ['San Jose (CR)', 9.93, -84.08, 1, NA, 0], ['Panama City', 8.97, -79.53, 1, NA, 0],
+                    ['Kingston', 17.97, -76.79, 1, NA, 0], ['Santo Domingo', 18.47, -69.89, 1, NA, 0],
+                    ['Port-au-Prince', 18.59, -72.30, 1, NA, 0], ['Nassau', 25.07, -77.34, 1, NA, 0],
 
                     // === South America ===
-                    ['Бразилиа', -15.79, -47.88, 1], ['Сан-Паулу', -23.55, -46.63, 0],
-                    ['Рио-де-Жанейро', -22.91, -43.17, 0], ['Сальвадор', -12.97, -38.50, 0],
-                    ['Форталеза', -3.71, -38.54, 0], ['Белу-Оризонти', -19.92, -43.94, 0],
-                    ['Манаус', -3.10, -60.02, 0], ['Куритиба', -25.43, -49.27, 0],
-                    ['Ресифи', -8.05, -34.89, 0], ['Порту-Алегри', -30.03, -51.23, 0],
-                    ['Буэнос-Айрес', -34.60, -58.38, 1], ['Кордова', -31.42, -64.18, 0],
-                    ['Росарио', -32.95, -60.66, 0], ['Сантьяго', -33.45, -70.66, 1],
-                    ['Лима', -12.05, -77.04, 1], ['Богота', 4.71, -74.07, 1],
-                    ['Медельин', 6.24, -75.58, 0], ['Кали', 3.45, -76.53, 0],
-                    ['Каракас', 10.49, -66.88, 1], ['Маракайбо', 10.65, -71.65, 0],
-                    ['Кито', -0.18, -78.47, 1], ['Гуаякиль', -2.17, -79.92, 0],
-                    ['Ла-Пас', -16.50, -68.13, 1], ['Санта-Крус', -17.78, -63.18, 0],
-                    ['Асунсьон', -25.26, -57.58, 1], ['Монтевидео', -34.91, -56.16, 1],
-                    ['Джорджтаун', 6.80, -58.16, 1], ['Парамарибо', 5.85, -55.20, 1],
+                    ['Brasília', -15.79, -47.88, 1, SA, 0], ['São Paulo', -23.55, -46.63, 0, SA, 1],
+                    ['Rio de Janeiro', -22.91, -43.17, 0, SA, 1], ['Salvador', -12.97, -38.50, 0, SA, 0],
+                    ['Fortaleza', -3.71, -38.54, 0, SA, 0], ['Belo Horizonte', -19.92, -43.94, 0, SA, 0],
+                    ['Manaus', -3.10, -60.02, 0, SA, 0], ['Curitiba', -25.43, -49.27, 0, SA, 0],
+                    ['Recife', -8.05, -34.89, 0, SA, 0], ['Porto Alegre', -30.03, -51.23, 0, SA, 0],
+                    ['Buenos Aires', -34.60, -58.38, 1, SA, 1], ['Córdoba', -31.42, -64.18, 0, SA, 0],
+                    ['Rosario', -32.95, -60.66, 0, SA, 0], ['Santiago', -33.45, -70.66, 1, SA, 0],
+                    ['Lima', -12.05, -77.04, 1, SA, 0], ['Bogotá', 4.71, -74.07, 1, SA, 0],
+                    ['Medellín', 6.24, -75.58, 0, SA, 0], ['Cali', 3.45, -76.53, 0, SA, 0],
+                    ['Caracas', 10.49, -66.88, 1, SA, 0], ['Maracaibo', 10.65, -71.65, 0, SA, 0],
+                    ['Quito', -0.18, -78.47, 1, SA, 0], ['Guayaquil', -2.17, -79.92, 0, SA, 0],
+                    ['La Paz', -16.50, -68.13, 1, SA, 0], ['Santa Cruz', -17.78, -63.18, 0, SA, 0],
+                    ['Asunción', -25.26, -57.58, 1, SA, 0], ['Montevideo', -34.91, -56.16, 1, SA, 0],
+                    ['Georgetown', 6.80, -58.16, 1, SA, 0], ['Paramaribo', 5.85, -55.20, 1, SA, 0],
 
                     // === Europe ===
-                    ['Лондон', 51.51, -0.13, 1], ['Манчестер', 53.48, -2.24, 0],
-                    ['Бирмингем', 52.49, -1.89, 0], ['Дублин', 53.35, -6.26, 1],
-                    ['Париж', 48.86, 2.35, 1], ['Марсель', 43.30, 5.37, 0],
-                    ['Лион', 45.76, 4.84, 0], ['Мадрид', 40.42, -3.70, 1],
-                    ['Барселона', 41.39, 2.17, 0], ['Валенсия', 39.47, -0.38, 0],
-                    ['Лиссабон', 38.72, -9.14, 1], ['Порту', 41.16, -8.62, 0],
-                    ['Рим', 41.90, 12.50, 1], ['Милан', 45.46, 9.19, 0],
-                    ['Неаполь', 40.85, 14.27, 0], ['Турин', 45.07, 7.69, 0],
-                    ['Берлин', 52.52, 13.40, 1], ['Гамбург', 53.55, 9.99, 0],
-                    ['Мюнхен', 48.14, 11.58, 0], ['Кёльн', 50.94, 6.96, 0],
-                    ['Франкфурт', 50.11, 8.68, 0], ['Вена', 48.21, 16.37, 1],
-                    ['Прага', 50.08, 14.44, 1], ['Варшава', 52.23, 21.01, 1],
-                    ['Краков', 50.06, 19.94, 0], ['Будапешт', 47.50, 19.04, 1],
-                    ['Бухарест', 44.43, 26.10, 1], ['София', 42.70, 23.32, 1],
-                    ['Афины', 37.98, 23.73, 1], ['Белград', 44.79, 20.45, 1],
-                    ['Загреб', 45.81, 15.98, 1], ['Сараево', 43.86, 18.41, 1],
-                    ['Скопье', 41.99, 21.43, 1], ['Тирана', 41.33, 19.82, 1],
-                    ['Кишинёв', 47.01, 28.86, 1], ['Киев', 50.45, 30.52, 1],
-                    ['Харьков', 49.99, 36.23, 0], ['Одесса', 46.48, 30.72, 0],
-                    ['Минск', 53.90, 27.57, 1], ['Москва', 55.75, 37.62, 1],
-                    ['Санкт-Петербург', 59.93, 30.34, 0], ['Новосибирск', 55.04, 82.94, 0],
-                    ['Екатеринбург', 56.84, 60.61, 0], ['Казань', 55.79, 49.12, 0],
-                    ['Нижний Новгород', 56.30, 43.94, 0], ['Самара', 53.20, 50.15, 0],
-                    ['Стокгольм', 59.33, 18.07, 1], ['Осло', 59.91, 10.75, 1],
-                    ['Копенгаген', 55.68, 12.57, 1], ['Хельсинки', 60.17, 24.94, 1],
-                    ['Таллин', 59.44, 24.75, 1], ['Рига', 56.95, 24.11, 1],
-                    ['Вильнюс', 54.69, 25.28, 1], ['Амстердам', 52.37, 4.90, 1],
-                    ['Брюссель', 50.85, 4.35, 1], ['Берн', 46.95, 7.45, 1],
-                    ['Цюрих', 47.38, 8.54, 0], ['Люксембург', 49.61, 6.13, 1],
-                    ['Рейкьявик', 64.15, -21.95, 1],
+                    ['London', 51.51, -0.13, 1, EU, 1], ['Manchester', 53.48, -2.24, 0, EU, 0],
+                    ['Birmingham', 52.49, -1.89, 0, EU, 0], ['Dublin', 53.35, -6.26, 1, EU, 0],
+                    ['Paris', 48.86, 2.35, 1, EU, 1], ['Marseille', 43.30, 5.37, 0, EU, 0],
+                    ['Lyon', 45.76, 4.84, 0, EU, 0], ['Madrid', 40.42, -3.70, 1, EU, 0],
+                    ['Barcelona', 41.39, 2.17, 0, EU, 0], ['Valencia', 39.47, -0.38, 0, EU, 0],
+                    ['Lisbon', 38.72, -9.14, 1, EU, 0], ['Porto', 41.16, -8.62, 0, EU, 0],
+                    ['Rome', 41.90, 12.50, 1, EU, 0], ['Milan', 45.46, 9.19, 0, EU, 0],
+                    ['Naples', 40.85, 14.27, 0, EU, 0], ['Turin', 45.07, 7.69, 0, EU, 0],
+                    ['Berlin', 52.52, 13.40, 1, EU, 1], ['Hamburg', 53.55, 9.99, 0, EU, 0],
+                    ['Munich', 48.14, 11.58, 0, EU, 0], ['Cologne', 50.94, 6.96, 0, EU, 0],
+                    ['Frankfurt', 50.11, 8.68, 0, EU, 0], ['Vienna', 48.21, 16.37, 1, EU, 0],
+                    ['Prague', 50.08, 14.44, 1, EU, 0], ['Warsaw', 52.23, 21.01, 1, EU, 0],
+                    ['Kraków', 50.06, 19.94, 0, EU, 0], ['Budapest', 47.50, 19.04, 1, EU, 0],
+                    ['Bucharest', 44.43, 26.10, 1, EU, 0], ['Sofia', 42.70, 23.32, 1, EU, 0],
+                    ['Athens', 37.98, 23.73, 1, EU, 0], ['Belgrade', 44.79, 20.45, 1, EU, 0],
+                    ['Zagreb', 45.81, 15.98, 1, EU, 0], ['Sarajevo', 43.86, 18.41, 1, EU, 0],
+                    ['Skopje', 41.99, 21.43, 1, EU, 0], ['Tirana', 41.33, 19.82, 1, EU, 0],
+                    ['Chișinău', 47.01, 28.86, 1, EU, 0], ['Kyiv', 50.45, 30.52, 1, EU, 0],
+                    ['Kharkiv', 49.99, 36.23, 0, EU, 0], ['Odesa', 46.48, 30.72, 0, EU, 0],
+                    ['Minsk', 53.90, 27.57, 1, EU, 0], ['Moscow', 55.75, 37.62, 1, EU, 1],
+                    ['Saint Petersburg', 59.93, 30.34, 0, EU, 0], ['Novosibirsk', 55.04, 82.94, 0, AS, 0],
+                    ['Yekaterinburg', 56.84, 60.61, 0, EU, 0], ['Kazan', 55.79, 49.12, 0, EU, 0],
+                    ['Nizhny Novgorod', 56.30, 43.94, 0, EU, 0], ['Samara', 53.20, 50.15, 0, EU, 0],
+                    ['Stockholm', 59.33, 18.07, 1, EU, 0], ['Oslo', 59.91, 10.75, 1, EU, 0],
+                    ['Copenhagen', 55.68, 12.57, 1, EU, 0], ['Helsinki', 60.17, 24.94, 1, EU, 0],
+                    ['Tallinn', 59.44, 24.75, 1, EU, 0], ['Riga', 56.95, 24.11, 1, EU, 0],
+                    ['Vilnius', 54.69, 25.28, 1, EU, 0], ['Amsterdam', 52.37, 4.90, 1, EU, 0],
+                    ['Brussels', 50.85, 4.35, 1, EU, 0], ['Bern', 46.95, 7.45, 1, EU, 0],
+                    ['Zurich', 47.38, 8.54, 0, EU, 0], ['Luxembourg', 49.61, 6.13, 1, EU, 0],
+                    ['Reykjavík', 64.15, -21.95, 1, EU, 0],
 
                     // === Asia ===
-                    ['Анкара', 39.93, 32.86, 1], ['Стамбул', 41.01, 28.98, 0],
-                    ['Измир', 38.42, 27.14, 0], ['Тбилиси', 41.72, 44.79, 1],
-                    ['Ереван', 40.18, 44.51, 1], ['Баку', 40.41, 49.87, 1],
-                    ['Тегеран', 35.69, 51.39, 1], ['Мешхед', 36.30, 59.61, 0],
-                    ['Исфахан', 32.65, 51.67, 0], ['Багдад', 33.31, 44.36, 1],
-                    ['Дамаск', 33.51, 36.29, 1], ['Бейрут', 33.89, 35.50, 1],
-                    ['Амман', 31.95, 35.93, 1], ['Иерусалим', 31.78, 35.22, 1],
-                    ['Тель-Авив', 32.08, 34.78, 0], ['Эр-Рияд', 24.71, 46.68, 1],
-                    ['Джидда', 21.49, 39.19, 0], ['Мекка', 21.42, 39.83, 0],
-                    ['Доха', 25.29, 51.53, 1], ['Дубай', 25.20, 55.27, 0],
-                    ['Абу-Даби', 24.47, 54.37, 1], ['Маскат', 23.59, 58.41, 1],
-                    ['Сана', 15.37, 44.19, 1], ['Кувейт', 29.38, 47.99, 1],
-                    ['Манама', 26.23, 50.59, 1], ['Кабул', 34.53, 69.17, 1],
-                    ['Исламабад', 33.69, 73.05, 1], ['Карачи', 24.86, 67.01, 0],
-                    ['Лахор', 31.55, 74.34, 0], ['Дели', 28.61, 77.21, 1],
-                    ['Мумбаи', 19.08, 72.88, 0], ['Бангалор', 12.97, 77.59, 0],
-                    ['Хайдарабад', 17.39, 78.49, 0], ['Ченнаи', 13.08, 80.27, 0],
-                    ['Калькутта', 22.57, 88.36, 0], ['Ахмадабад', 23.03, 72.59, 0],
-                    ['Пуна', 18.52, 73.86, 0], ['Сурат', 21.17, 72.83, 0],
-                    ['Джайпур', 26.92, 75.79, 0], ['Лакхнау', 26.85, 80.95, 0],
-                    ['Катманду', 27.71, 85.32, 1], ['Тхимпху', 27.47, 89.64, 1],
-                    ['Дакка', 23.81, 90.41, 1], ['Читтагонг', 22.36, 91.78, 0],
-                    ['Коломбо', 6.93, 79.86, 1], ['Мале', 4.18, 73.51, 1],
-                    ['Найпьидо', 19.76, 96.08, 1], ['Янгон', 16.87, 96.20, 0],
-                    ['Бангкок', 13.76, 100.50, 1], ['Ханой', 21.03, 105.85, 1],
-                    ['Хошимин', 10.82, 106.63, 0], ['Вьентьян', 17.97, 102.60, 1],
-                    ['Пномпень', 11.56, 104.92, 1], ['Куала-Лумпур', 3.14, 101.69, 1],
-                    ['Сингапур', 1.35, 103.82, 1], ['Джакарта', -6.21, 106.85, 1],
-                    ['Сурабая', -7.25, 112.75, 0], ['Бандунг', -6.92, 107.61, 0],
-                    ['Манила', 14.60, 120.98, 1], ['Кесон-Сити', 14.68, 121.04, 0],
-                    ['Пекин', 39.90, 116.41, 1], ['Шанхай', 31.23, 121.47, 0],
-                    ['Гуанчжоу', 23.13, 113.26, 0], ['Шэньчжэнь', 22.54, 114.05, 0],
-                    ['Тяньцзинь', 39.34, 117.36, 0], ['Чунцин', 29.56, 106.55, 0],
-                    ['Чэнду', 30.67, 104.07, 0], ['Ухань', 30.59, 114.30, 0],
-                    ['Сиань', 34.34, 108.94, 0], ['Нанкин', 32.06, 118.79, 0],
-                    ['Ханчжоу', 30.27, 120.15, 0], ['Гонконг', 22.32, 114.17, 0],
-                    ['Тайбэй', 25.03, 121.57, 1], ['Сеул', 37.57, 126.98, 1],
-                    ['Пусан', 35.18, 129.08, 0], ['Пхеньян', 39.04, 125.76, 1],
-                    ['Токио', 35.68, 139.69, 1], ['Осака', 34.69, 135.50, 0],
-                    ['Иокогама', 35.44, 139.64, 0], ['Нагоя', 35.18, 136.91, 0],
-                    ['Саппоро', 43.06, 141.35, 0], ['Улан-Батор', 47.92, 106.92, 1],
-                    ['Астана', 51.17, 71.43, 1], ['Алматы', 43.24, 76.95, 0],
-                    ['Ташкент', 41.30, 69.24, 1], ['Душанбе', 38.56, 68.79, 1],
-                    ['Бишкек', 42.87, 74.59, 1], ['Ашхабад', 37.96, 58.33, 1],
-                    ['Никосия', 35.17, 33.36, 1],
+                    ['Ankara', 39.93, 32.86, 1, AS, 0], ['Istanbul', 41.01, 28.98, 0, AS, 1],
+                    ['İzmir', 38.42, 27.14, 0, AS, 0], ['Tbilisi', 41.72, 44.79, 1, AS, 0],
+                    ['Yerevan', 40.18, 44.51, 1, AS, 0], ['Baku', 40.41, 49.87, 1, AS, 0],
+                    ['Tehran', 35.69, 51.39, 1, AS, 0], ['Mashhad', 36.30, 59.61, 0, AS, 0],
+                    ['Isfahan', 32.65, 51.67, 0, AS, 0], ['Baghdad', 33.31, 44.36, 1, AS, 0],
+                    ['Damascus', 33.51, 36.29, 1, AS, 0], ['Beirut', 33.89, 35.50, 1, AS, 0],
+                    ['Amman', 31.95, 35.93, 1, AS, 0], ['Jerusalem', 31.78, 35.22, 1, AS, 0],
+                    ['Tel Aviv', 32.08, 34.78, 0, AS, 0], ['Riyadh', 24.71, 46.68, 1, AS, 0],
+                    ['Jeddah', 21.49, 39.19, 0, AS, 0], ['Mecca', 21.42, 39.83, 0, AS, 0],
+                    ['Doha', 25.29, 51.53, 1, AS, 0], ['Dubai', 25.20, 55.27, 0, AS, 1],
+                    ['Abu Dhabi', 24.47, 54.37, 1, AS, 0], ['Muscat', 23.59, 58.41, 1, AS, 0],
+                    ['Sanaa', 15.37, 44.19, 1, AS, 0], ['Kuwait City', 29.38, 47.99, 1, AS, 0],
+                    ['Manama', 26.23, 50.59, 1, AS, 0], ['Kabul', 34.53, 69.17, 1, AS, 0],
+                    ['Islamabad', 33.69, 73.05, 1, AS, 0], ['Karachi', 24.86, 67.01, 0, AS, 0],
+                    ['Lahore', 31.55, 74.34, 0, AS, 0], ['Delhi', 28.61, 77.21, 1, AS, 1],
+                    ['Mumbai', 19.08, 72.88, 0, AS, 1], ['Bangalore', 12.97, 77.59, 0, AS, 0],
+                    ['Hyderabad', 17.39, 78.49, 0, AS, 0], ['Chennai', 13.08, 80.27, 0, AS, 0],
+                    ['Kolkata', 22.57, 88.36, 0, AS, 0], ['Ahmedabad', 23.03, 72.59, 0, AS, 0],
+                    ['Pune', 18.52, 73.86, 0, AS, 0], ['Surat', 21.17, 72.83, 0, AS, 0],
+                    ['Jaipur', 26.92, 75.79, 0, AS, 0], ['Lucknow', 26.85, 80.95, 0, AS, 0],
+                    ['Kathmandu', 27.71, 85.32, 1, AS, 0], ['Thimphu', 27.47, 89.64, 1, AS, 0],
+                    ['Dhaka', 23.81, 90.41, 1, AS, 0], ['Chittagong', 22.36, 91.78, 0, AS, 0],
+                    ['Colombo', 6.93, 79.86, 1, AS, 0], ['Malé', 4.18, 73.51, 1, AS, 0],
+                    ['Naypyidaw', 19.76, 96.08, 1, AS, 0], ['Yangon', 16.87, 96.20, 0, AS, 0],
+                    ['Bangkok', 13.76, 100.50, 1, AS, 1], ['Hanoi', 21.03, 105.85, 1, AS, 0],
+                    ['Ho Chi Minh City', 10.82, 106.63, 0, AS, 0], ['Vientiane', 17.97, 102.60, 1, AS, 0],
+                    ['Phnom Penh', 11.56, 104.92, 1, AS, 0], ['Kuala Lumpur', 3.14, 101.69, 1, AS, 0],
+                    ['Singapore', 1.35, 103.82, 1, AS, 1], ['Jakarta', -6.21, 106.85, 1, AS, 0],
+                    ['Surabaya', -7.25, 112.75, 0, AS, 0], ['Bandung', -6.92, 107.61, 0, AS, 0],
+                    ['Manila', 14.60, 120.98, 1, AS, 0], ['Quezon City', 14.68, 121.04, 0, AS, 0],
+                    ['Beijing', 39.90, 116.41, 1, AS, 1], ['Shanghai', 31.23, 121.47, 0, AS, 1],
+                    ['Guangzhou', 23.13, 113.26, 0, AS, 0], ['Shenzhen', 22.54, 114.05, 0, AS, 0],
+                    ['Tianjin', 39.34, 117.36, 0, AS, 0], ['Chongqing', 29.56, 106.55, 0, AS, 0],
+                    ['Chengdu', 30.67, 104.07, 0, AS, 0], ['Wuhan', 30.59, 114.30, 0, AS, 0],
+                    ['Xi\'an', 34.34, 108.94, 0, AS, 0], ['Nanjing', 32.06, 118.79, 0, AS, 0],
+                    ['Hangzhou', 30.27, 120.15, 0, AS, 0], ['Hong Kong', 22.32, 114.17, 0, AS, 1],
+                    ['Taipei', 25.03, 121.57, 1, AS, 0], ['Seoul', 37.57, 126.98, 1, AS, 1],
+                    ['Busan', 35.18, 129.08, 0, AS, 0], ['Pyongyang', 39.04, 125.76, 1, AS, 0],
+                    ['Tokyo', 35.68, 139.69, 1, AS, 1], ['Osaka', 34.69, 135.50, 0, AS, 0],
+                    ['Yokohama', 35.44, 139.64, 0, AS, 0], ['Nagoya', 35.18, 136.91, 0, AS, 0],
+                    ['Sapporo', 43.06, 141.35, 0, AS, 0], ['Ulaanbaatar', 47.92, 106.92, 1, AS, 0],
+                    ['Astana', 51.17, 71.43, 1, AS, 0], ['Almaty', 43.24, 76.95, 0, AS, 0],
+                    ['Tashkent', 41.30, 69.24, 1, AS, 0], ['Dushanbe', 38.56, 68.79, 1, AS, 0],
+                    ['Bishkek', 42.87, 74.59, 1, AS, 0], ['Ashgabat', 37.96, 58.33, 1, AS, 0],
+                    ['Nicosia', 35.17, 33.36, 1, AS, 0],
 
                     // === Africa ===
-                    ['Каир', 30.04, 31.24, 1], ['Александрия', 31.20, 29.92, 0],
-                    ['Триполи', 32.89, 13.19, 1], ['Тунис', 36.81, 10.18, 1],
-                    ['Алжир', 36.75, 3.06, 1], ['Касабланка', 33.57, -7.59, 0],
-                    ['Рабат', 34.02, -6.83, 1], ['Нуакшот', 18.08, -15.97, 1],
-                    ['Дакар', 14.69, -17.45, 1], ['Бамако', 12.65, -8.00, 1],
-                    ['Уагадугу', 12.37, -1.52, 1], ['Ниамей', 13.51, 2.11, 1],
-                    ['Абуджа', 9.08, 7.39, 1], ['Лагос', 6.52, 3.38, 0],
-                    ['Кано', 12.00, 8.52, 0], ['Аккра', 5.60, -0.19, 1],
-                    ['Ломе', 6.17, 1.22, 1], ['Котону', 6.36, 2.43, 1],
-                    ['Яунде', 3.85, 11.50, 1], ['Дуала', 4.05, 9.77, 0],
-                    ['Малабо', 3.75, 8.78, 1], ['Либревиль', 0.42, 9.45, 1],
-                    ['Браззавиль', -4.27, 15.28, 1], ['Киншаса', -4.32, 15.31, 1],
-                    ['Луанда', -8.84, 13.23, 1], ['Виндхук', -22.56, 17.08, 1],
-                    ['Габороне', -24.66, 25.91, 1], ['Претория', -25.75, 28.19, 1],
-                    ['Йоханнесбург', -26.20, 28.05, 0], ['Кейптаун', -33.92, 18.42, 0],
-                    ['Дурбан', -29.86, 31.02, 0], ['Масеру', -29.31, 27.48, 1],
-                    ['Мбабане', -26.32, 31.14, 1], ['Мапуту', -25.97, 32.57, 1],
-                    ['Хараре', -17.83, 31.05, 1], ['Лусака', -15.42, 28.28, 1],
-                    ['Лилонгве', -13.97, 33.79, 1], ['Дар-эс-Салам', -6.79, 39.21, 0],
-                    ['Додома', -6.17, 35.74, 1], ['Найроби', -1.29, 36.82, 1],
-                    ['Момбаса', -4.04, 39.66, 0], ['Кампала', 0.35, 32.58, 1],
-                    ['Кигали', -1.94, 30.06, 1], ['Бужумбура', -3.36, 29.36, 1],
-                    ['Аддис-Абеба', 9.03, 38.74, 1], ['Асмэра', 15.32, 38.93, 1],
-                    ['Хартум', 15.50, 32.56, 1], ['Джуба', 4.85, 31.58, 1],
-                    ['Могадишо', 2.04, 45.34, 1], ['Джибути', 11.59, 43.15, 1],
-                    ['Антананариву', -18.88, 47.51, 1], ['Порт-Луи', -20.16, 57.50, 1],
-                    ['Бангуи', 4.39, 18.55, 1], ['Нджамена', 12.13, 15.05, 1],
-                    ['Фритаун', 8.48, -13.23, 1], ['Монровия', 6.30, -10.80, 1],
-                    ['Конакри', 9.51, -13.69, 1], ['Бисау', 11.86, -15.58, 1],
-                    ['Банжул', 13.45, -16.58, 1],
+                    ['Cairo', 30.04, 31.24, 1, AF, 1], ['Alexandria', 31.20, 29.92, 0, AF, 0],
+                    ['Tripoli', 32.89, 13.19, 1, AF, 0], ['Tunis', 36.81, 10.18, 1, AF, 0],
+                    ['Algiers', 36.75, 3.06, 1, AF, 0], ['Casablanca', 33.57, -7.59, 0, AF, 0],
+                    ['Rabat', 34.02, -6.83, 1, AF, 0], ['Nouakchott', 18.08, -15.97, 1, AF, 0],
+                    ['Dakar', 14.69, -17.45, 1, AF, 0], ['Bamako', 12.65, -8.00, 1, AF, 0],
+                    ['Ouagadougou', 12.37, -1.52, 1, AF, 0], ['Niamey', 13.51, 2.11, 1, AF, 0],
+                    ['Abuja', 9.08, 7.39, 1, AF, 0], ['Lagos', 6.52, 3.38, 0, AF, 1],
+                    ['Kano', 12.00, 8.52, 0, AF, 0], ['Accra', 5.60, -0.19, 1, AF, 0],
+                    ['Lomé', 6.17, 1.22, 1, AF, 0], ['Cotonou', 6.36, 2.43, 1, AF, 0],
+                    ['Yaoundé', 3.85, 11.50, 1, AF, 0], ['Douala', 4.05, 9.77, 0, AF, 0],
+                    ['Malabo', 3.75, 8.78, 1, AF, 0], ['Libreville', 0.42, 9.45, 1, AF, 0],
+                    ['Brazzaville', -4.27, 15.28, 1, AF, 0], ['Kinshasa', -4.32, 15.31, 1, AF, 0],
+                    ['Luanda', -8.84, 13.23, 1, AF, 0], ['Windhoek', -22.56, 17.08, 1, AF, 0],
+                    ['Gaborone', -24.66, 25.91, 1, AF, 0], ['Pretoria', -25.75, 28.19, 1, AF, 0],
+                    ['Johannesburg', -26.20, 28.05, 0, AF, 0], ['Cape Town', -33.92, 18.42, 0, AF, 1],
+                    ['Durban', -29.86, 31.02, 0, AF, 0], ['Maseru', -29.31, 27.48, 1, AF, 0],
+                    ['Mbabane', -26.32, 31.14, 1, AF, 0], ['Maputo', -25.97, 32.57, 1, AF, 0],
+                    ['Harare', -17.83, 31.05, 1, AF, 0], ['Lusaka', -15.42, 28.28, 1, AF, 0],
+                    ['Lilongwe', -13.97, 33.79, 1, AF, 0], ['Dar es Salaam', -6.79, 39.21, 0, AF, 0],
+                    ['Dodoma', -6.17, 35.74, 1, AF, 0], ['Nairobi', -1.29, 36.82, 1, AF, 0],
+                    ['Mombasa', -4.04, 39.66, 0, AF, 0], ['Kampala', 0.35, 32.58, 1, AF, 0],
+                    ['Kigali', -1.94, 30.06, 1, AF, 0], ['Bujumbura', -3.36, 29.36, 1, AF, 0],
+                    ['Addis Ababa', 9.03, 38.74, 1, AF, 0], ['Asmara', 15.32, 38.93, 1, AF, 0],
+                    ['Khartoum', 15.50, 32.56, 1, AF, 0], ['Juba', 4.85, 31.58, 1, AF, 0],
+                    ['Mogadishu', 2.04, 45.34, 1, AF, 0], ['Djibouti', 11.59, 43.15, 1, AF, 0],
+                    ['Antananarivo', -18.88, 47.51, 1, AF, 0], ['Port Louis', -20.16, 57.50, 1, AF, 0],
+                    ['Bangui', 4.39, 18.55, 1, AF, 0], ['N\'Djamena', 12.13, 15.05, 1, AF, 0],
+                    ['Freetown', 8.48, -13.23, 1, AF, 0], ['Monrovia', 6.30, -10.80, 1, AF, 0],
+                    ['Conakry', 9.51, -13.69, 1, AF, 0], ['Bissau', 11.86, -15.58, 1, AF, 0],
+                    ['Banjul', 13.45, -16.58, 1, AF, 0],
 
                     // === Oceania ===
-                    ['Канберра', -35.28, 149.13, 1], ['Сидней', -33.87, 151.21, 0],
-                    ['Мельбурн', -37.81, 144.96, 0], ['Брисбен', -27.47, 153.03, 0],
-                    ['Перт', -31.95, 115.86, 0], ['Аделаида', -34.93, 138.60, 0],
-                    ['Окленд', -36.85, 174.76, 0], ['Веллингтон', -41.29, 174.78, 1],
-                    ['Порт-Морсби', -9.44, 147.18, 1], ['Сува', -18.14, 178.44, 1],
-                    ['Хониара', -9.43, 159.96, 1], ['Порт-Вила', -17.74, 168.31, 1],
-                    ['Нукуалофа', -21.13, -175.20, 1], ['Апиа', -13.84, -171.76, 1]
+                    ['Canberra', -35.28, 149.13, 1, OC, 0], ['Sydney', -33.87, 151.21, 0, OC, 1],
+                    ['Melbourne', -37.81, 144.96, 0, OC, 0], ['Brisbane', -27.47, 153.03, 0, OC, 0],
+                    ['Perth', -31.95, 115.86, 0, OC, 0], ['Adelaide', -34.93, 138.60, 0, OC, 0],
+                    ['Auckland', -36.85, 174.76, 0, OC, 0], ['Wellington', -41.29, 174.78, 1, OC, 0],
+                    ['Port Moresby', -9.44, 147.18, 1, OC, 0], ['Suva', -18.14, 178.44, 1, OC, 0],
+                    ['Honiara', -9.43, 159.96, 1, OC, 0], ['Port Vila', -17.74, 168.31, 1, OC, 0],
+                    ['Nukuʻalofa', -21.13, -175.20, 1, OC, 0], ['Apia', -13.84, -171.76, 1, OC, 0]
                 ];
 
                 // Virus progression
@@ -4658,8 +4692,11 @@
             enterContinentPicker(mode) {
                 this.pickerMode = mode;
                 this.selectedContinent = null;
+                this.selectedCityIdx = null;
                 this.resetMapView();
                 this.renderCities();
+                this.updateCityPickerAffordance();
+                document.querySelectorAll('.city-group.selected').forEach(g => g.classList.remove('selected'));
                 document.querySelectorAll('.continent-zone').forEach(c => {
                     c.classList.remove('selected');
                     c.classList.remove('valid-target');
@@ -4674,18 +4711,18 @@
                     if (z) z.classList.add('valid-target');
                 });
 
-                // Update prompt text
+                // Update prompt text — picker is city-based now
                 const title = document.querySelector('.selection-prompt .selection-title');
                 const sub = document.getElementById('selectionSub');
                 if (mode === 'tutorial') {
-                    if (title) title.textContent = 'Выберите континент';
-                    if (sub)   sub.textContent   = 'Тапни по карте, чтобы приблизить';
+                    if (title) title.textContent = 'Выберите город';
+                    if (sub)   sub.textContent   = 'Тапни по карте, чтобы приблизить и выбрать город';
                 } else {
                     const opt = this.spreadOptions.find(o => o.id === mode);
                     if (title) title.textContent = (opt ? opt.name : 'Новое заражение');
                     if (sub) {
-                        if (mode === 'land') sub.textContent = 'Тапни, чтобы приблизить — затем выбери регион';
-                        else                 sub.textContent = 'Тапни, чтобы приблизить и выбрать регион';
+                        if (mode === 'land') sub.textContent = 'Выбери город в соседнем регионе';
+                        else                 sub.textContent = 'Выбери город для заражения';
                     }
                 }
 
@@ -4724,19 +4761,19 @@
             }
 
             confirmContinent() {
-                if (!this.selectedContinent) return;
+                if (this.selectedCityIdx == null) return;
+                const city = this.cities[this.selectedCityIdx];
+                if (!city) return;
+                const cityName = city[0];
+                const cityIdx = this.selectedCityIdx;
+                const targetId = city[4];
 
                 const isTutorial = this.pickerMode === 'tutorial';
-                const targetId = this.selectedContinent;
                 const mode = this.pickerMode;
-                const zone = document.querySelector('.continent-zone.selected');
-                const continentName = zone ? zone.dataset.name : '';
 
-                // Clear the picker UI but keep the body in "selecting" so the
-                // nav stays hidden while the transport animation plays.
                 document.querySelector('.world-map-wrapper').classList.remove('selecting');
                 document.getElementById('confirmContinent').classList.remove('visible');
-                document.querySelectorAll('.continent-zone').forEach(c => c.classList.remove('selected'));
+                document.querySelectorAll('.city-group.selected').forEach(g => g.classList.remove('selected'));
 
                 const finish = () => {
                     setTimeout(() => {
@@ -4745,34 +4782,34 @@
                         document.querySelector('.bottom-nav').classList.remove('locked');
                         this.pickerMode = null;
                         this.selectedContinent = null;
+                        this.selectedCityIdx = null;
                         this.resetMapView();
+                        this.updateCityPickerAffordance();
                         if (isTutorial) {
                             this.resetHomeBubbles();
                             this.switchScreen('evolutionScreen');
                         }
-                        // Spread mode: stay on the map so the player can keep
-                        // infecting more regions.
                     }, 1100);
                 };
 
                 if (isTutorial) {
-                    this.infectContinent(targetId, 8);
+                    this.infectContinent(targetId, 8, cityIdx);
                     this.tutorialDone = true;
                     this.tutorialCompleting = false;
                     this.startingContinent = targetId;
+                    this.startingCityIdx = cityIdx;
                     this.saveState();
                     try { localStorage.setItem('tutorialDone', '1'); } catch (e) {}
                     this.afterTutorialSetup();
-                    this.showToast('Вирус размещён', continentName);
+                    this.showToast('Вирус размещён', cityName);
                     finish();
                     return;
                 }
 
-                // Spread mode — fly a vehicle from the nearest infected region
                 const sourceId = this.findNearestInfected(targetId);
                 const onArrive = () => {
-                    this.infectContinent(targetId, 5);
-                    this.showToast('Регион заражён', continentName);
+                    this.infectContinent(targetId, 5, cityIdx);
+                    this.showToast('Город заражён', cityName);
                     finish();
                 };
                 if (sourceId) {
@@ -4931,12 +4968,18 @@
                 this.renderSpreadList();
             }
 
-            infectContinent(id, level) {
+            infectContinent(id, level, cityIdx) {
                 if (!this.continents[id]) {
                     this.continents[id] = { name: id, infectionLevel: 0, population: 0 };
                 }
                 this.continents[id].infectionLevel =
                     Math.max(this.continents[id].infectionLevel, level);
+                if (cityIdx != null && cityIdx >= 0) {
+                    this.continents[id].infectionCityIdx = cityIdx;
+                } else if (this.continents[id].infectionCityIdx == null) {
+                    this.continents[id].infectionCityIdx =
+                        this.pickDefaultCityForContinent(id);
+                }
                 this.renderInfections();
                 this.updateMapStats();
                 this.renderSpreadList();
@@ -4959,27 +5002,139 @@
                 if (!layer || layer.dataset.rendered === '1') return;
                 const ns = 'http://www.w3.org/2000/svg';
                 const frag = document.createDocumentFragment();
-                this.cities.forEach(c => {
-                    const [name, lat, lon, capital] = c;
+                this.cities.forEach((c, idx) => {
+                    const [name, lat, lon, capital, continent, famous] = c;
                     const { x, y } = this.cityToXY(lat, lon);
+
+                    const g = document.createElementNS(ns, 'g');
+                    const classes = ['city-group'];
+                    if (famous)  classes.push('famous');
+                    if (capital) classes.push('capital');
+                    g.setAttribute('class', classes.join(' '));
+                    g.dataset.idx = idx;
+                    g.dataset.continent = continent;
+                    g.dataset.name = name;
+
+                    if (famous) {
+                        const pulse = document.createElementNS(ns, 'circle');
+                        pulse.setAttribute('cx', x);
+                        pulse.setAttribute('cy', y);
+                        pulse.setAttribute('r', famous ? 5.5 : 4);
+                        pulse.setAttribute('class', 'city-pulse');
+                        g.appendChild(pulse);
+                    }
+
                     const dot = document.createElementNS(ns, 'circle');
                     dot.setAttribute('cx', x);
                     dot.setAttribute('cy', y);
-                    dot.setAttribute('r', capital ? 2.3 : 1.6);
-                    dot.setAttribute('class', capital ? 'city-dot capital' : 'city-dot');
-                    frag.appendChild(dot);
+                    const r = famous ? 3.6 : (capital ? 2.9 : 2.2);
+                    dot.setAttribute('r', r);
+                    let dotCls = 'city-dot';
+                    if (capital) dotCls += ' capital';
+                    if (famous)  dotCls += ' famous';
+                    dot.setAttribute('class', dotCls);
+                    g.appendChild(dot);
 
-                    if (capital) {
-                        const t = document.createElementNS(ns, 'text');
-                        t.setAttribute('x', x + 3);
-                        t.setAttribute('y', y - 2);
-                        t.setAttribute('class', 'city-label');
-                        t.textContent = name;
-                        frag.appendChild(t);
-                    }
+                    // Place the label so it doesn't fall off the right edge.
+                    const label = document.createElementNS(ns, 'text');
+                    const anchor = x > 990 ? 'end' : 'start';
+                    const lx = anchor === 'end' ? x - 5 : x + 5;
+                    label.setAttribute('x', lx);
+                    label.setAttribute('y', y - 4);
+                    label.setAttribute('class', 'city-label');
+                    label.setAttribute('text-anchor', anchor);
+                    label.textContent = name;
+                    g.appendChild(label);
+
+                    g.addEventListener('click', () => this.handleCityTap(idx));
+                    g.addEventListener('touchend', (e) => {
+                        if (this._cityTapMoved) { this._cityTapMoved = false; return; }
+                        e.preventDefault();
+                        this.handleCityTap(idx);
+                    });
+
+                    frag.appendChild(g);
                 });
                 layer.appendChild(frag);
                 layer.dataset.rendered = '1';
+                this.updateCityPickerAffordance();
+            }
+
+            // Toggle city pointer-events based on picker mode + valid targets.
+            updateCityPickerAffordance() {
+                const groups = document.querySelectorAll('.city-group');
+                if (!groups.length) return;
+                const valid = this.pickerMode
+                    ? this.getValidTargets(this.pickerMode === 'tutorial' ? 'any' : this.pickerMode)
+                    : null;
+                groups.forEach(g => {
+                    const cont = g.dataset.continent;
+                    const isInfected = !!(this.continents[cont] && this.continents[cont].infectionLevel > 0);
+                    const tappable = !!this.pickerMode &&
+                        valid && valid.has(cont) && !isInfected;
+                    g.classList.toggle('tappable', tappable);
+                });
+            }
+
+            handleCityTap(idx) {
+                if (!this.pickerMode) return;
+                const c = this.cities[idx];
+                if (!c) return;
+                const continent = c[4];
+                const valid = this.getValidTargets(this.pickerMode === 'tutorial' ? 'any' : this.pickerMode);
+                if (!valid.has(continent)) return;
+                this.selectedCityIdx = idx;
+                this.selectedContinent = continent;
+                document.querySelectorAll('.city-group.selected')
+                    .forEach(g => g.classList.remove('selected'));
+                const groups = document.querySelectorAll('.city-group');
+                if (groups[idx]) groups[idx].classList.add('selected');
+                const confirm = document.getElementById('confirmContinent');
+                if (confirm) confirm.classList.add('visible');
+                const sub = document.getElementById('selectionSub');
+                if (sub) sub.textContent = c[0];
+            }
+
+            // ---- Infection rendering ------------------------------------
+
+            renderInfectionLayer() {
+                const layer = document.getElementById('infectionLayer');
+                if (!layer) return;
+                // Clear previous halos but keep <defs>
+                Array.from(layer.querySelectorAll('.infection-halo')).forEach(n => n.remove());
+                const ns = 'http://www.w3.org/2000/svg';
+                Object.entries(this.continents).forEach(([id, c]) => {
+                    if (c.infectionLevel <= 0) return;
+                    const cityIdx = (c.infectionCityIdx !== undefined && c.infectionCityIdx >= 0)
+                        ? c.infectionCityIdx
+                        : this.pickDefaultCityForContinent(id);
+                    if (cityIdx == null) return;
+                    const city = this.cities[cityIdx];
+                    if (!city) return;
+                    const { x, y } = this.cityToXY(city[1], city[2]);
+                    // Radius scales with infection level: ~22 at lvl 1, ~110 at lvl 100
+                    const r = 20 + c.infectionLevel * 0.9;
+                    const halo = document.createElementNS(ns, 'circle');
+                    halo.setAttribute('class', 'infection-halo');
+                    halo.setAttribute('cx', x);
+                    halo.setAttribute('cy', y);
+                    halo.setAttribute('r', r);
+                    halo.setAttribute('fill', 'url(#infectionGrad)');
+                    layer.appendChild(halo);
+                });
+            }
+
+            pickDefaultCityForContinent(continentId) {
+                // First famous city, then first capital, then any city.
+                let famous = -1, capital = -1, any = -1;
+                for (let i = 0; i < this.cities.length; i++) {
+                    const c = this.cities[i];
+                    if (c[4] !== continentId) continue;
+                    if (c[5] && famous < 0) famous = i;
+                    if (c[3] && capital < 0) capital = i;
+                    if (any < 0) any = i;
+                }
+                return famous >= 0 ? famous : (capital >= 0 ? capital : any);
             }
 
             applyMapTransform() {
@@ -4999,14 +5154,12 @@
                 screen.classList.toggle('show-zoom-ctrl', z > 1.02 && !this.pickerMode);
                 screen.classList.toggle('picker-zoomed', z > 1.02 && !!this.pickerMode);
 
-                if (this.pickerMode) {
+                if (this.pickerMode && this.selectedCityIdx == null) {
                     const sub = document.getElementById('selectionSub');
-                    if (sub) {
-                        if (z > 1.05) {
-                            sub.textContent = this.pickerMode === 'tutorial'
-                                ? 'Тапни на регион, чтобы разместить вирус'
-                                : 'Тапни на регион для заражения';
-                        }
+                    if (sub && z > 1.05) {
+                        sub.textContent = this.pickerMode === 'tutorial'
+                            ? 'Выбери город для размещения вируса'
+                            : 'Выбери город для заражения';
                     }
                 }
             }
@@ -5078,10 +5231,12 @@
                     clientY: (t1.clientY + t2.clientY) / 2
                 });
 
+                let tapOnCity = false;
                 wrap.addEventListener('touchstart', (e) => {
                     if (e.touches.length === 1) {
                         mode = 'pan';
                         moved = false;
+                        tapOnCity = !!(e.target.closest && e.target.closest('.city-group'));
                         const p = localPoint(e.touches[0].clientX, e.touches[0].clientY);
                         startX = e.touches[0].clientX;
                         startY = e.touches[0].clientY;
@@ -5130,15 +5285,15 @@
 
                 const end = () => {
                     pan.classList.remove('dragging');
-                    // Continent picker UX: a single tap zooms in on the tap
-                    // point when the map is still at base zoom. Subsequent
-                    // taps fall through to the continent-zone tap handlers.
+                    // Single tap on empty map area (not on a city) at base
+                    // zoom in picker mode → zoom in to that point.
                     if (mode === 'pan' && !moved && this.pickerMode &&
-                        this.mapView.zoom < 1.05 && pickerTapPoint) {
+                        this.mapView.zoom < 1.05 && pickerTapPoint && !tapOnCity) {
                         this.zoomMap(2.4, pickerTapPoint.x, pickerTapPoint.y);
                     }
                     mode = null;
                     pickerTapPoint = null;
+                    tapOnCity = false;
                 };
                 wrap.addEventListener('touchend', end, { passive: true });
                 wrap.addEventListener('touchcancel', end, { passive: true });
@@ -5280,19 +5435,11 @@
             }
 
             renderInfections() {
-                Object.entries(this.continents).forEach(([id, c]) => {
-                    const zone = document.querySelector(`.continent-zone[data-id="${id}"]`);
-                    if (!zone) return;
-                    if (c.infectionLevel > 0) {
-                        zone.classList.add('infected');
-                        zone.style.fill = this.getInfectionFill(c.infectionLevel);
-                        zone.style.stroke = this.getInfectionStroke(c.infectionLevel);
-                    } else {
-                        zone.classList.remove('infected');
-                        zone.style.fill = '';
-                        zone.style.stroke = '';
-                    }
-                });
+                // Infection is now drawn as a halo on the infection layer
+                // anchored at the player's chosen (or default) city for each
+                // continent. The continent polygons stay invisible.
+                this.renderInfectionLayer();
+                this.updateCityPickerAffordance();
             }
 
             growInfections() {
