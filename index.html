@@ -1153,6 +1153,15 @@
             -webkit-mask-image: none;
                     mask-image: none;
         }
+        /* In full-screen picker mode the image switches from cover to
+           contain so the whole map width is preserved (no off-screen
+           crop). The SVG layers get the matching .meet aspect mode via
+           JS in updateMapZoomedClass(). The wrapper's water-coloured
+           backdrop fills the remaining letterbox area above and below. */
+        .world-map-screen.picker-zoomed .world-map-image {
+            object-fit: contain;
+            object-position: center;
+        }
         .world-map-screen.picker-zoomed .selection-prompt {
             background: rgba(20, 30, 45, 0.85);
             border-color: rgba(168, 85, 247, 0.5);
@@ -5560,7 +5569,19 @@
                 screen.classList.toggle('zoomed', z > 1.02);
                 screen.classList.toggle('deep-zoom', z > 2.6);
                 screen.classList.toggle('show-zoom-ctrl', z > 1.02 && !this.pickerMode);
-                screen.classList.toggle('picker-zoomed', z > 1.02 && !!this.pickerMode);
+                const pickerFullscreen = z > 1.02 && !!this.pickerMode;
+                screen.classList.toggle('picker-zoomed', pickerFullscreen);
+                // Match the SVG aspect-ratio mode to the <img> object-fit:
+                // 'slice' (cover) for cropped layouts, 'meet' (contain) when
+                // the picker has gone full-screen so the player can see the
+                // edges of the map by panning.
+                const mode = pickerFullscreen ? 'xMidYMid meet' : 'xMidYMid slice';
+                ['continents-overlay','infection-layer','city-layer'].forEach(cls => {
+                    const svg = document.querySelector('.' + cls);
+                    if (svg && svg.getAttribute('preserveAspectRatio') !== mode) {
+                        svg.setAttribute('preserveAspectRatio', mode);
+                    }
+                });
                 // City visibility is driven per-dot now, but we still flag
                 // the deep-zoom thresholds because the raster map fades
                 // into a tactical-style backdrop at those levels.
