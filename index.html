@@ -2455,6 +2455,64 @@
             border: 1px solid rgba(248, 113, 113, 0.35);
         }
 
+        .news-time-left {
+            display: inline-block;
+            margin-left: 6px;
+            font-family: 'Space Mono', monospace;
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.55);
+            font-weight: 600;
+        }
+        .news-scope {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 5px;
+            font-family: 'Space Mono', monospace;
+            font-size: 9.5px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            margin-right: 6px;
+            text-transform: uppercase;
+        }
+        .news-scope.global { background: rgba(96, 165, 250, 0.18); color: #93c5fd; border: 1px solid rgba(96, 165, 250, 0.4); }
+        .news-scope.local  { background: rgba(168, 85, 247, 0.18); color: #d8b4fe; border: 1px solid rgba(168, 85, 247, 0.4); }
+        .news-next {
+            margin-top: 14px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 11px;
+            text-align: center;
+            font-family: 'Space Mono', monospace;
+        }
+
+        .dna-rate {
+            position: absolute;
+            top: 42px;
+            right: 14px;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(20, 28, 42, 0.78);
+            padding: 3px 8px;
+            border-radius: 9px;
+            border: 1px solid rgba(168, 85, 247, 0.28);
+            font-family: 'Space Mono', monospace;
+            font-size: 10px;
+            color: #c4b5fd;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+            opacity: 0;
+            transform: translateY(-4px);
+            pointer-events: none;
+            transition: opacity 0.25s, transform 0.25s;
+        }
+        .dna-rate.visible { opacity: 1; transform: translateY(0); }
+
         /* Bottom-nav unread badge */
         .nav-btn { position: relative; }
         .nav-badge {
@@ -3112,6 +3170,7 @@
             <div class="dna-icon">🧬</div>
             <div class="dna-count" id="dnaCount">0</div>
         </div>
+        <div class="dna-rate" id="dnaRate" aria-hidden="true">+0/ч</div>
         
         <!-- Start Screen -->
         <div class="screen start-screen active" id="startScreen">
@@ -3545,26 +3604,124 @@
                 this.inviteRef = this.getOrCreateInviteRef();
                 this.infectionGrowthTimer = null;
 
-                // News feed: events from infected regions that help or hurt the virus
-                this.newsItems = [];
-                this.unreadNews = 0;
-                this.newsLoopRunning = false;
-                this.newsTemplates = [
-                    // Positive — help the virus
-                    { type: 'positive', icon: '✈️', title: 'Открытие границ',     text: 'В {region} ослабили санитарный контроль на границах.',  effect: { region: 8 } },
-                    { type: 'positive', icon: '🎉', title: 'Массовое мероприятие', text: 'В {region} прошёл фестиваль на сто тысяч человек.',     effect: { region: 10 } },
-                    { type: 'positive', icon: '🌡️', title: 'Аномальная жара',     text: 'В {region} установилась рекордная температура.',         effect: { stats: 'infectivity', amount: 2 } },
-                    { type: 'positive', icon: '💀', title: 'Игнор угрозы',         text: 'Власти {region} отрицают пандемию.',                     effect: { dna: 35 } },
-                    { type: 'positive', icon: '🚇', title: 'Перегруз метро',       text: 'В {region} переполнен общественный транспорт.',         effect: { region: 6 } },
-                    { type: 'positive', icon: '🏥', title: 'Кризис здравоохранения', text: 'Больницы {region} переполнены — лечения нет.',          effect: { stats: 'lethality', amount: 2 } },
+                // Player's starting continent — set on first tutorial infection.
+                // Used to filter local news events.
+                this.startingContinent = null;
 
-                    // Negative — hurt the virus
-                    { type: 'negative', icon: '😷', title: 'Массовое ношение масок', text: 'Жители {region} массово начали носить маски.',           effect: { region: -6 } },
-                    { type: 'negative', icon: '🚪', title: 'Закрытие границ',       text: '{region} полностью закрыли границы.',                    effect: { region: -10 } },
-                    { type: 'negative', icon: '💉', title: 'Испытания вакцины',     text: 'В {region} начались клинические испытания вакцины.',     effect: { stats: 'lethality', amount: -2 } },
-                    { type: 'negative', icon: '📊', title: 'ВОЗ объявляет тревогу', text: 'ВОЗ присвоила вирусу высший уровень опасности.',         effect: { stats: 'infectivity', amount: -1, dna: -20 } },
-                    { type: 'negative', icon: '🧼', title: 'Кампания гигиены',      text: 'В {region} запустили кампанию по гигиене рук.',          effect: { stats: 'infectivity', amount: -1 } },
-                    { type: 'negative', icon: '🔬', title: 'Геном расшифрован',     text: 'Учёные {region} расшифровали ваш геном.',                effect: { dna: -25 } }
+                // Passive DNA income from levelled ability cards.
+                // Each card contributes `level * ceil(baseCost/6)` DNA per hour.
+                this.lastIncomeTick = Date.now();
+                this.dnaFraction = 0;
+                this.incomeTimer = null;
+
+                // News feed — exactly two events per UTC day, each granting a
+                // 24h timed buff. Buffs can be global or restricted to players
+                // whose starting region matches.
+                this.newsByDay = {};      // { 'YYYY-MM-DD': [item, item] }
+                this.activeBuffs = [];    // [{ id, source, scope, regionId, title, type, value, until }]
+                this.newsPool = [
+                    // ----- Global (apply to every player) -----
+                    { id: 'g_who_alarm',  scope: 'global', type: 'negative', icon: '🚨',
+                      title: 'ВОЗ объявляет тревогу',
+                      text: 'ВОЗ повышает уровень угрозы — мир ускоряет разработку вакцины.',
+                      buff: { type: 'spread_speed_mult', value: 0.8 } },
+                    { id: 'g_virology',   scope: 'global', type: 'positive', icon: '🧪',
+                      title: 'Прорыв в вирусологии',
+                      text: 'Утечка из лаборатории — вирус временно мутировал.',
+                      buff: { type: 'infectivity_mult',  value: 1.3 } },
+                    { id: 'g_panic',      scope: 'global', type: 'positive', icon: '😱',
+                      title: 'Мировая паника',
+                      text: 'СМИ раздувают истерию, люди скупают всё подряд и заражают друг друга.',
+                      buff: { type: 'spread_speed_mult', value: 1.25 } },
+                    { id: 'g_funding',    scope: 'global', type: 'positive', icon: '💰',
+                      title: 'Гранты на исследования',
+                      text: 'Биолаборатории мира открыли финансирование тёмных тем.',
+                      buff: { type: 'income_mult',       value: 1.4 } },
+                    { id: 'g_lab_leak',   scope: 'global', type: 'positive', icon: '☣️',
+                      title: 'Утечка в лаборатории',
+                      text: 'Новый штамм быстрее распространяется по континентам.',
+                      buff: { type: 'spread_speed_mult', value: 1.3 } },
+                    { id: 'g_quarantine', scope: 'global', type: 'negative', icon: '🚧',
+                      title: 'Глобальный карантин',
+                      text: 'Карантин по всему миру замедляет распространение.',
+                      buff: { type: 'spread_speed_mult', value: 0.75 } },
+                    { id: 'g_vaccine',    scope: 'global', type: 'negative', icon: '💉',
+                      title: 'Испытания вакцины',
+                      text: 'Идут массовые испытания — иммунитет растёт.',
+                      buff: { type: 'infectivity_mult',  value: 0.78 } },
+                    { id: 'g_hygiene',    scope: 'global', type: 'negative', icon: '🧼',
+                      title: 'Кампания гигиены',
+                      text: 'Кампании по гигиене по всему миру снижают заражение.',
+                      buff: { type: 'infectivity_mult',  value: 0.8 } },
+                    { id: 'g_economy',    scope: 'global', type: 'positive', icon: '📉',
+                      title: 'Глобальный кризис',
+                      text: 'Падение экономики — наука недополучает финансирования.',
+                      buff: { type: 'upgrade_cost_mult', value: 0.85 } },
+                    { id: 'g_strike',     scope: 'global', type: 'negative', icon: '🩺',
+                      title: 'Забастовка врачей',
+                      text: 'Медики устроили мировую забастовку, в итоге появились новые протоколы.',
+                      buff: { type: 'upgrade_cost_mult', value: 1.2 } },
+
+                    // ----- Local (apply only if player started in this region) -----
+                    // North America
+                    { id: 'l_na_airport', scope: 'local', regionIds: ['north-america'], type: 'positive', icon: '✈️',
+                      title: 'Хаб в Лос-Анджелесе расширен',
+                      text: 'Новый терминал LAX удваивает пассажиропоток.',
+                      buff: { type: 'spread_speed_mult', value: 1.3 } },
+                    { id: 'l_na_protest', scope: 'local', regionIds: ['north-america'], type: 'positive', icon: '📢',
+                      title: 'Массовые протесты в США',
+                      text: 'Толпы на улицах — вирусу раздолье.',
+                      buff: { type: 'infectivity_mult', value: 1.35 } },
+
+                    // South America
+                    { id: 'l_sa_sao_paulo', scope: 'local', regionIds: ['south-america'], type: 'positive', icon: '🤧',
+                      title: 'Вспышка гриппа в Сан-Паулу',
+                      text: 'Сезон гриппа — у вируса меньше конкурентов в иммунной системе.',
+                      buff: { type: 'infectivity_mult', value: 1.3 } },
+                    { id: 'l_sa_carnival',  scope: 'local', regionIds: ['south-america'], type: 'positive', icon: '🎉',
+                      title: 'Карнавал в Рио',
+                      text: 'Миллион человек танцуют без масок.',
+                      buff: { type: 'spread_speed_mult', value: 1.4 } },
+
+                    // Europe
+                    { id: 'l_eu_istanbul', scope: 'local', regionIds: ['europe'], type: 'positive', icon: '🛫',
+                      title: 'Новый аэропорт в Стамбуле',
+                      text: 'Транзитный узел Европы и Азии нарастил трафик.',
+                      buff: { type: 'spread_speed_mult', value: 1.3 } },
+                    { id: 'l_eu_lockdown', scope: 'local', regionIds: ['europe'], type: 'negative', icon: '🚪',
+                      title: 'Локдаун в Германии',
+                      text: 'ЕС вводит строгий локдаун.',
+                      buff: { type: 'spread_speed_mult', value: 0.7 } },
+
+                    // Africa
+                    { id: 'l_af_drought', scope: 'local', regionIds: ['africa'], type: 'positive', icon: '🌵',
+                      title: 'Засуха в Сахеле',
+                      text: 'Ослабленный организм лучше принимает вирус.',
+                      buff: { type: 'infectivity_mult', value: 1.35 } },
+                    { id: 'l_af_aid',     scope: 'local', regionIds: ['africa'], type: 'negative', icon: '🆘',
+                      title: 'Гуманитарная помощь',
+                      text: 'ВОЗ направила медикаменты в регион.',
+                      buff: { type: 'spread_speed_mult', value: 0.75 } },
+
+                    // Asia
+                    { id: 'l_as_tokyo', scope: 'local', regionIds: ['asia'], type: 'positive', icon: '🚇',
+                      title: 'Перегруз метро в Токио',
+                      text: 'Часы пик — идеальные условия для воздушного заражения.',
+                      buff: { type: 'infectivity_mult', value: 1.35 } },
+                    { id: 'l_as_market', scope: 'local', regionIds: ['asia'], type: 'positive', icon: '🐔',
+                      title: 'Вспышка на рынке в Гуанчжоу',
+                      text: 'Зооноз ускоряет мутации.',
+                      buff: { type: 'spread_speed_mult', value: 1.35 } },
+
+                    // Australia
+                    { id: 'l_au_isolation', scope: 'local', regionIds: ['australia'], type: 'negative', icon: '🏝️',
+                      title: 'Изоляция Австралии',
+                      text: 'Закрытие границ — вирусу некуда переходить.',
+                      buff: { type: 'spread_speed_mult', value: 0.6 } },
+                    { id: 'l_au_outback',   scope: 'local', regionIds: ['australia'], type: 'positive', icon: '☀️',
+                      title: 'Жара в Аутбэке',
+                      text: 'Экстремальные условия — больше доходов с глобуса.',
+                      buff: { type: 'income_mult', value: 1.3 } }
                 ];
 
                 // Land adjacency between continents (simplified geopolitics)
@@ -3581,11 +3738,13 @@
             }
             
             init() {
+                this.loadState();
                 this.bindEvents();
                 this.updateDNACounter();
                 this.cloneHelixToMap();
                 this.updateVirusArt();
                 this.renderVirusScreen();
+                this.startIncomeLoop();
                 if (!this.tutorialDone) {
                     document.body.classList.add('tutorial-active');
                     setTimeout(() => {
@@ -3603,7 +3762,8 @@
                 if (fixed) fixed.style.display = 'none';
                 const subtitle = document.querySelector('.start-screen .game-subtitle');
                 if (subtitle) subtitle.style.display = 'none';
-                this.startNewsLoop();
+                this.rollDailyNews();
+                this.renderNewsFeed();
                 if (this.spawnLoopActive) return;
                 this.spawnLoopActive = true;
                 this.runSpawnLoop();
@@ -3758,7 +3918,8 @@
 
             getCardCost(card) {
                 const level = this.abilityLevels[card.id] || 0;
-                return Math.floor(card.baseCost * Math.pow(1.5, level));
+                const base = card.baseCost * Math.pow(1.5, level);
+                return Math.max(1, Math.floor(base * this.buffMult('upgrade_cost_mult')));
             }
 
             getTotalAbilityLevels() {
@@ -4124,7 +4285,6 @@
                     if (!this.homeHintShown) this.showHomeHint();
                 }
                 if (id === 'newsScreen') {
-                    this.unreadNews = 0;
                     this.updateNewsBadge();
                     this.renderNewsFeed();
                 }
@@ -4234,6 +4394,8 @@
                     this.infectContinent(targetId, 8);
                     this.tutorialDone = true;
                     this.tutorialCompleting = false;
+                    this.startingContinent = targetId;
+                    this.saveState();
                     try { localStorage.setItem('tutorialDone', '1'); } catch (e) {}
                     this.afterTutorialSetup();
                     this.showToast('Вирус размещён', continentName);
@@ -4556,10 +4718,13 @@
             growInfections() {
                 let any = false;
                 const baseGrowth = 0.18;
-                const statBonus = (this.virusStats.infectivity / 100) * 0.7;
+                const infectivityEff = this.virusStats.infectivity * this.buffMult('infectivity_mult');
+                const statBonus = (infectivityEff / 100) * 0.7;
+                const speedMult = this.buffMult('spread_speed_mult');
+                const step = (baseGrowth + statBonus) * speedMult;
                 Object.values(this.continents).forEach(c => {
                     if (c.infectionLevel > 0 && c.infectionLevel < 100) {
-                        c.infectionLevel = Math.min(100, c.infectionLevel + baseGrowth + statBonus);
+                        c.infectionLevel = Math.min(100, c.infectionLevel + step);
                         any = true;
                     }
                 });
@@ -4574,133 +4739,243 @@
                 this.infectionGrowthTimer = setInterval(() => this.growInfections(), 1400);
             }
 
-            // ---- News feed -----------------------------------------------
+            // ---- Persistence ---------------------------------------------
 
-            startNewsLoop() {
-                if (this.newsLoopRunning) return;
-                this.newsLoopRunning = true;
-                const tick = () => {
-                    const next = 14000 + Math.random() * 14000; // 14–28s
-                    setTimeout(() => {
-                        this.generateNews();
-                        tick();
-                    }, next);
-                };
-                // First news after a short delay so the player isn't bombarded immediately
-                setTimeout(() => {
-                    this.generateNews();
-                    tick();
-                }, 6000);
+            saveState() {
+                try {
+                    const data = {
+                        startingContinent: this.startingContinent,
+                        newsByDay: this.newsByDay,
+                        activeBuffs: this.activeBuffs
+                    };
+                    localStorage.setItem('vg_state', JSON.stringify(data));
+                } catch (e) {}
             }
 
-            generateNews() {
-                const infected = Object.entries(this.continents)
-                    .filter(([id, c]) => c.infectionLevel > 0);
-                if (infected.length === 0) return;
-
-                const tpl = this.newsTemplates[Math.floor(Math.random() * this.newsTemplates.length)];
-                const [regionId, region] = infected[Math.floor(Math.random() * infected.length)];
-
-                const item = {
-                    id: Date.now() + '-' + Math.random().toString(36).slice(2, 6),
-                    ts: Date.now(),
-                    template: tpl,
-                    regionId,
-                    regionName: region.name
-                };
-
-                this.applyNewsEffect(item);
-                this.newsItems.unshift(item);
-                if (this.newsItems.length > 24) this.newsItems.pop();
-
-                if (!document.getElementById('newsScreen').classList.contains('active')) {
-                    this.unreadNews++;
-                }
-                this.updateNewsBadge();
-                this.renderNewsFeed();
-            }
-
-            applyNewsEffect(item) {
-                const eff = item.template.effect || {};
-                if (typeof eff.region === 'number') {
-                    const c = this.continents[item.regionId];
-                    if (c) {
-                        c.infectionLevel = Math.max(0, Math.min(100, c.infectionLevel + eff.region));
-                        this.renderInfections();
-                        this.updateMapStats();
+            loadState() {
+                try {
+                    const raw = localStorage.getItem('vg_state');
+                    if (!raw) return;
+                    const data = JSON.parse(raw);
+                    if (data.startingContinent) this.startingContinent = data.startingContinent;
+                    if (data.newsByDay) this.newsByDay = data.newsByDay;
+                    if (Array.isArray(data.activeBuffs)) {
+                        const now = Date.now();
+                        this.activeBuffs = data.activeBuffs.filter(b => b.until > now);
                     }
-                }
-                if (eff.stats) {
-                    this.virusStats[eff.stats] = Math.max(0, Math.min(100, (this.virusStats[eff.stats] || 0) + (eff.amount || 0)));
-                    this.renderVirusScreen();
-                }
-                if (typeof eff.dna === 'number') {
-                    this.dnaPoints = Math.max(0, this.dnaPoints + eff.dna);
-                    this.updateDNACounter();
-                }
+                } catch (e) {}
             }
 
-            formatNewsAgo(ms) {
-                if (ms < 60000)   return 'только что';
-                if (ms < 3600000) return Math.floor(ms / 60000) + ' мин назад';
-                return Math.floor(ms / 3600000) + ' ч назад';
+            // ---- News feed (daily, exactly two per UTC day) --------------
+
+            todayKey() {
+                return new Date().toISOString().slice(0, 10);
             }
 
-            statLabel(stat) {
-                return { infectivity: 'заразность', severity: 'тяжесть', lethality: 'летальность' }[stat] || stat;
+            rollDailyNews() {
+                const key = this.todayKey();
+                if (this.newsByDay[key] && this.newsByDay[key].length >= 2) {
+                    // Already rolled today — make sure buffs are loaded for any
+                    // entries that are still within their 24h window.
+                    this.newsByDay[key].forEach(item => {
+                        if (item.until > Date.now() && !this.activeBuffs.find(b => b.id === item.buffId)) {
+                            this.activateBuff(item);
+                        }
+                    });
+                    // Cleanup: drop news from days older than 7 to keep state small.
+                    Object.keys(this.newsByDay).forEach(k => {
+                        const ageDays = (new Date(key) - new Date(k)) / 86400000;
+                        if (ageDays > 7) delete this.newsByDay[k];
+                    });
+                    return;
+                }
+
+                // Pick exactly two news for today:
+                //  - one global, one local (matching startingContinent) if possible
+                //  - otherwise fall back to two distinct globals
+                const globals = this.newsPool.filter(n => n.scope === 'global');
+                const locals  = this.newsPool.filter(n =>
+                    n.scope === 'local' &&
+                    this.startingContinent &&
+                    (n.regionIds || []).includes(this.startingContinent)
+                );
+                const pickRandom = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+                const picks = [];
+                if (globals.length) picks.push(pickRandom(globals));
+                if (locals.length)  picks.push(pickRandom(locals));
+                while (picks.length < 2) {
+                    const candidates = this.newsPool.filter(n => !picks.find(p => p.id === n.id));
+                    if (!candidates.length) break;
+                    picks.push(pickRandom(candidates));
+                }
+
+                const ts = Date.now();
+                const until = ts + 24 * 60 * 60 * 1000;
+                this.newsByDay[key] = picks.map((tpl, i) => {
+                    const item = {
+                        id: key + '-' + i,
+                        buffId: key + '-' + tpl.id,
+                        ts, until,
+                        template: tpl
+                    };
+                    this.activateBuff(item);
+                    return item;
+                });
+                this.saveState();
             }
 
-            formatNewsEffect(eff) {
-                const parts = [];
-                if (typeof eff.region === 'number') {
-                    parts.push((eff.region > 0 ? '+' : '') + eff.region + '% к региону');
-                }
-                if (eff.stats) {
-                    parts.push((eff.amount > 0 ? '+' : '') + eff.amount + '% ' + this.statLabel(eff.stats));
-                }
-                if (typeof eff.dna === 'number') {
-                    parts.push((eff.dna > 0 ? '+' : '') + eff.dna + ' 🧬');
-                }
-                return parts.join(' · ');
+            activateBuff(item) {
+                const t = item.template;
+                this.activeBuffs.push({
+                    id: item.buffId,
+                    source: t.id,
+                    title: t.title,
+                    scope: t.scope,
+                    regionId: this.startingContinent,
+                    type: t.buff.type,
+                    value: t.buff.value,
+                    until: item.until
+                });
+            }
+
+            pruneExpiredBuffs() {
+                const now = Date.now();
+                const before = this.activeBuffs.length;
+                this.activeBuffs = this.activeBuffs.filter(b => b.until > now);
+                if (this.activeBuffs.length !== before) this.saveState();
+            }
+
+            // Aggregated multiplier for a buff type (product of all active values).
+            buffMult(type) {
+                this.pruneExpiredBuffs();
+                let m = 1;
+                for (const b of this.activeBuffs) if (b.type === type) m *= b.value;
+                return m;
+            }
+
+            buffLabel(buff) {
+                const pct = Math.round((buff.value - 1) * 100);
+                const sign = pct >= 0 ? '+' : '';
+                const labels = {
+                    infectivity_mult:  'заразность',
+                    lethality_mult:    'летальность',
+                    severity_mult:     'тяжесть',
+                    spread_speed_mult: 'скорость распр.',
+                    income_mult:       'доход ДНК',
+                    upgrade_cost_mult: 'стоимость улучш.'
+                };
+                return `${sign}${pct}% ${labels[buff.type] || buff.type}`;
+            }
+
+            formatTimeLeft(ms) {
+                if (ms <= 0) return 'истекло';
+                const h = Math.floor(ms / 3600000);
+                const m = Math.floor((ms % 3600000) / 60000);
+                if (h >= 1) return `осталось ${h} ч`;
+                return `осталось ${m} мин`;
             }
 
             renderNewsFeed() {
                 const feed = document.getElementById('newsFeed');
                 if (!feed) return;
-                if (this.newsItems.length === 0) {
-                    feed.innerHTML = '<div class="news-empty">Заразите хотя бы один регион, чтобы получать новости.</div>';
+                const items = this.newsByDay[this.todayKey()] || [];
+                if (items.length === 0) {
+                    feed.innerHTML = '<div class="news-empty">Сводки появятся после старта эпидемии.</div>';
                     return;
                 }
                 feed.innerHTML = '';
-                this.newsItems.forEach(item => {
+                items.forEach(item => {
+                    const t = item.template;
                     const card = document.createElement('div');
-                    card.className = 'news-card ' + item.template.type;
-                    const text = item.template.text.replace('{region}', `<span class="news-region">${item.regionName}</span>`);
-                    const ago = this.formatNewsAgo(Date.now() - item.ts);
-                    const effect = this.formatNewsEffect(item.template.effect);
+                    card.className = 'news-card ' + t.type;
+                    const scopeHtml = `<span class="news-scope ${t.scope}">${t.scope === 'global' ? 'Мир' : 'Регион'}</span>`;
+                    const regionName = t.scope === 'local' && this.startingContinent
+                        ? (this.continents[this.startingContinent] && this.continents[this.startingContinent].name) || ''
+                        : '';
+                    const timeLeft = this.formatTimeLeft(item.until - Date.now());
+                    const effectLabel = this.buffLabel({ type: t.buff.type, value: t.buff.value });
                     card.innerHTML =
                         '<div class="news-head">' +
-                            `<span class="news-icon">${item.template.icon}</span>` +
+                            `<span class="news-icon">${t.icon}</span>` +
                             '<div class="news-meta">' +
-                                `<div class="news-h">${item.template.title}</div>` +
-                                `<div class="news-time">${ago}</div>` +
+                                `<div class="news-h">${scopeHtml}${t.title}</div>` +
+                                `<div class="news-time">${timeLeft}</div>` +
                             '</div>' +
                         '</div>' +
-                        `<div class="news-text">${text}</div>` +
-                        `<div class="news-effect">${effect}</div>`;
+                        `<div class="news-text">${t.text}${regionName ? ` <span class="news-region">${regionName}</span>` : ''}</div>` +
+                        `<div class="news-effect">${effectLabel} · 24 ч</div>`;
                     feed.appendChild(card);
                 });
+
+                const next = new Date();
+                next.setUTCDate(next.getUTCDate() + 1);
+                next.setUTCHours(0, 0, 0, 0);
+                const hrs = Math.max(1, Math.ceil((next - Date.now()) / 3600000));
+                const tip = document.createElement('div');
+                tip.className = 'news-next';
+                tip.textContent = `Следующие сводки через ~${hrs} ч`;
+                feed.appendChild(tip);
             }
 
             updateNewsBadge() {
+                // Daily news no longer has an unread counter — keep the badge hidden.
                 const badge = document.querySelector('#navNews .nav-badge');
-                if (!badge) return;
-                if (this.unreadNews > 0) {
-                    badge.textContent = this.unreadNews > 9 ? '9+' : this.unreadNews;
-                    badge.hidden = false;
-                } else {
-                    badge.hidden = true;
+                if (badge) badge.hidden = true;
+            }
+
+            // ---- Passive DNA income --------------------------------------
+
+            getIncomePerHour() {
+                let perHour = 0;
+                Object.values(this.abilityCards).forEach(list => {
+                    list.forEach(card => {
+                        const level = this.abilityLevels[card.id] || 0;
+                        if (level <= 0) return;
+                        perHour += level * Math.ceil(card.baseCost / 6);
+                    });
+                });
+                return perHour * this.buffMult('income_mult');
+            }
+
+            tickPassiveIncome() {
+                const now = Date.now();
+                const dt = now - this.lastIncomeTick;
+                this.lastIncomeTick = now;
+                const perHour = this.getIncomePerHour();
+                if (perHour <= 0) {
+                    this.updateDNARate();
+                    return;
                 }
+                this.dnaFraction += (perHour * dt) / 3600000;
+                if (this.dnaFraction >= 1) {
+                    const whole = Math.floor(this.dnaFraction);
+                    this.dnaFraction -= whole;
+                    this.dnaPoints += whole;
+                    this.updateDNACounter();
+                    // Refresh ability grid affordability when on the virus screen
+                    if (document.getElementById('evolutionScreen').classList.contains('active')) {
+                        this.renderAbilityGrid();
+                    }
+                }
+                this.updateDNARate();
+            }
+
+            startIncomeLoop() {
+                if (this.incomeTimer) return;
+                this.incomeTimer = setInterval(() => this.tickPassiveIncome(), 1000);
+            }
+
+            updateDNARate() {
+                const el = document.getElementById('dnaRate');
+                if (!el) return;
+                const rate = Math.round(this.getIncomePerHour());
+                if (rate <= 0) {
+                    el.classList.remove('visible');
+                    return;
+                }
+                el.textContent = `+${rate}/ч`;
+                el.classList.add('visible');
             }
 
             showToast(title, sub) {
