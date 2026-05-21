@@ -1136,6 +1136,28 @@
             transform: translate(-50%, calc(-50% - 26dvh)) scale(0.62);
         }
 
+        /* Once the player zooms in, the map takes over the screen:
+           helix fades out, wrapper goes full-bleed, and the prompt sits
+           on top of the map. */
+        .world-map-screen.picker-zoomed .map-helix-slot {
+            opacity: 0 !important;
+            transform: translate(-50%, calc(-50% - 26dvh)) scale(0.4);
+        }
+        .world-map-screen.picker-zoomed .world-map-wrapper {
+            aspect-ratio: auto;
+            top: 0 !important;
+            bottom: 0;
+            height: 100%;
+            -webkit-mask-image: none;
+                    mask-image: none;
+        }
+        .world-map-screen.picker-zoomed .selection-prompt {
+            background: rgba(20, 30, 45, 0.85);
+            border-color: rgba(168, 85, 247, 0.5);
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.6),
+                        0 0 22px rgba(168, 85, 247, 0.18);
+        }
+
         /* Absolute-positioned map during the placement flow so the layout is even */
         .world-map-screen.intro .world-map-wrapper,
         .world-map-screen.selecting .world-map-wrapper {
@@ -1157,8 +1179,17 @@
                 transparent 0%, #000 6%, #000 94%, transparent 100%);
         }
 
-        /* Atmospheric water-coloured glow that bleeds above and below the
-           map so the dark navy ocean fades smoothly into the dark backdrop. */
+        /* Atmospheric water-coloured backdrop during the picker so the
+           map bleeds into the screen instead of meeting a hard edge. */
+        .world-map-screen.intro,
+        .world-map-screen.selecting {
+            background:
+                radial-gradient(ellipse 90% 70% at 50% 55%,
+                    rgba(28, 70, 110, 0.65) 0%,
+                    rgba(18, 44, 78, 0.85) 60%,
+                    rgba(12, 32, 58, 1) 100%),
+                #0c2038;
+        }
         .world-map-screen.intro::before,
         .world-map-screen.selecting::before {
             content: '';
@@ -1326,6 +1357,12 @@
             opacity: 0;
             transition: opacity 0.2s ease;
             pointer-events: none;
+        }
+        /* In picker mode the label is a click target alongside the dot,
+           so tapping the city name selects the city too. */
+        .city-group.tappable .city-label {
+            pointer-events: auto;
+            cursor: pointer;
         }
         /* Labels appear at the same time as their dot becomes visible. */
         .city-group.city-visible .city-label,
