@@ -1192,8 +1192,10 @@
             padding-bottom: 0;
         }
 
+        /* During picker mode the bottom nav is locked, so the button
+           keeps the default position right under the map. */
         body.selecting .confirm-button {
-            bottom: 20px;
+            bottom: 28px;
         }
 
         .world-map-image {
@@ -1484,31 +1486,58 @@
             pointer-events: none !important;
             transition: opacity 0.25s ease;
         }
-        }
 
-        /* Confirm button */
+        /* Confirm button — matches the casual-3D card style: layered
+           gradient body, double drop-shadow + green glow, inset highlight
+           and bevel so it reads like the rest of the UI rather than a
+           flat pill. */
         .confirm-button {
             position: absolute;
-            bottom: 80px;
+            bottom: 72px;
             left: 50%;
-            transform: translateX(-50%) translateY(16px);
-            background: linear-gradient(135deg, var(--accent-green), #00d97f);
+            transform: translateX(-50%) translateY(14px);
+            background:
+                linear-gradient(170deg, #00ffa7 0%, #00d97f 55%, #009b5b 100%);
             color: #042418;
-            font-family: inherit;
-            font-weight: 700;
+            font-family: 'Space Mono', monospace;
+            font-weight: 800;
             font-size: 13px;
-            letter-spacing: 1.2px;
+            letter-spacing: 1.6px;
             text-transform: uppercase;
-            padding: 14px 26px;
-            border-radius: 14px;
-            border: none;
+            padding: 13px 30px;
+            border-radius: 16px;
+            border: 1.5px solid rgba(187, 247, 208, 0.8);
             cursor: pointer;
-            box-shadow: 0 8px 24px rgba(0, 255, 159, 0.5);
+            box-shadow:
+                0 14px 28px rgba(0, 0, 0, 0.55),
+                0 0 26px rgba(0, 255, 159, 0.55),
+                inset 0 1px 0 rgba(255, 255, 255, 0.55),
+                inset 0 -2px 0 rgba(0, 0, 0, 0.22);
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
             z-index: 110;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.3s ease, transform 0.3s ease;
+            transition: opacity 0.3s ease,
+                        transform 0.25s cubic-bezier(0.18, 0.85, 0.3, 1.05),
+                        box-shadow 0.2s ease;
             -webkit-tap-highlight-color: transparent;
+        }
+        .confirm-button::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 16px;
+            background: radial-gradient(ellipse at 50% 0%,
+                rgba(255, 255, 255, 0.45), transparent 65%);
+            pointer-events: none;
+        }
+        .confirm-button:active {
+            transform: translateX(-50%) translateY(2px) scale(0.97);
+            box-shadow:
+                0 6px 14px rgba(0, 0, 0, 0.55),
+                0 0 18px rgba(0, 255, 159, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.35),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.25);
         }
 
         .confirm-button.visible {
@@ -1986,7 +2015,7 @@
         
         /* Evolution Screen */
         .evolution-screen {
-            padding: 70px 16px 96px;
+            padding: 56px 16px 96px;
             background:
                 radial-gradient(circle at 30% 20%, rgba(147, 51, 234, 0.15), transparent 60%),
                 radial-gradient(circle at 70% 80%, rgba(59, 130, 246, 0.1), transparent 50%),
@@ -1997,7 +2026,7 @@
 
         .virus-header {
             text-align: center;
-            margin-bottom: 16px;
+            margin-bottom: 10px;
         }
 
         .virus-level-badge {
