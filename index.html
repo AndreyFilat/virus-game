@@ -987,6 +987,8 @@
             width: 100%;
             aspect-ratio: 1 / 1;
             overflow: hidden;
+            background:
+                radial-gradient(ellipse 80% 60% at 50% 50%, #155a85 0%, #0d4674 60%, #073258 100%);
             transition: opacity 0.55s ease, transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
 
@@ -1167,16 +1169,6 @@
             right: 0;
             margin: 0 auto;
             top: 38%;
-        }
-
-        /* Feather the top/bottom edges of the map so it bleeds into the
-           screen background without a hard rectangular seam. */
-        .world-map-screen.intro .world-map-wrapper,
-        .world-map-screen.selecting .world-map-wrapper {
-            -webkit-mask-image: linear-gradient(180deg,
-                transparent 0%, #000 6%, #000 94%, transparent 100%);
-                    mask-image: linear-gradient(180deg,
-                transparent 0%, #000 6%, #000 94%, transparent 100%);
         }
 
         /* Picker backdrop — sampled directly from the map's ocean
@@ -5179,28 +5171,44 @@
 
             // Project (lat, lon) onto the 1050×700 viewBox. The illustrated
             // world map isn't strictly equirectangular, so each continent
-            // gets its own affine fit anchored on ~10 cities measured off
-            // the image. Residual error is < 10 vbox units (< 1% of width)
-            // for every continent except Oceania (4 anchors, ~15 units).
+            // gets its own bilinear (lat·lon cross-term) fit anchored on
+            // 10–18 cities measured off the source PNG.
             cityToXY(lat, lon, continent) {
                 if (!this._mapProj) this._mapProj = {
-                    'north-america': { x: [3.61642, -0.48078, 561.2435], y: [-0.08021, -6.56873, 486.8179] },
-                    'south-america': { x: [3.15811, 0.33368, 513.8164], y: [-0.45013, -4.31268, 396.8727] },
-                    'europe':        { x: [4.77735, -0.40152, 499.2607], y: [0.11935, -6.04194, 477.0250] },
-                    'africa':        { x: [4.05979, 0.06335, 487.3714], y: [0.26421, -4.44869, 425.2827] },
-                    'asia':          { x: [3.10481, -0.29555, 548.7762], y: [-0.27783, -4.97160, 448.6502] },
-                    'australia':     { x: [2.77895, 0.28121, 550.2615], y: [-0.17767, -3.99478, 434.1035] }
+                    'north-america': {
+                        x: [3.722658, -0.782548, -0.0037284, 569.2791],
+                        y: [-1.051569, -3.935279,  0.0241073, 383.2015]
+                    },
+                    'south-america': {
+                        x: [3.988811,  0.504193,  0.0031038, 575.8916],
+                        y: [-0.256516, -3.685055, 0.0107481, 407.5985]
+                    },
+                    'europe': {
+                        x: [4.895014,  0.347551, -0.0128600, 470.7669],
+                        y: [1.136176, -5.686936, -0.0187165, 457.5361]
+                    },
+                    'africa': {
+                        x: [3.837819, -0.098684,  0.0062833, 493.5478],
+                        y: [0.004656, -4.597177,  0.0050167, 430.4356]
+                    },
+                    'asia': {
+                        x: [2.954183, -1.129204,  0.0065943, 566.7853],
+                        y: [-0.092272, -4.580212, -0.0044320, 436.0499]
+                    },
+                    'australia': {
+                        x: [6.811700, -18.249371, 0.1188532, -75.1048],
+                        y: [-2.415857, 6.245720, -0.0661932, 778.7215]
+                    }
                 };
-                // Fall back to a generic equirectangular blend if continent
-                // is unknown (e.g. internal callers that don't pass it).
                 const p = this._mapProj[continent];
                 if (!p) {
                     return { x: ((lon + 180) / 360) * 1050,
                              y: ((90 - lat) / 180) * 700 };
                 }
+                const cross = lat * lon;
                 return {
-                    x: p.x[0] * lon + p.x[1] * lat + p.x[2],
-                    y: p.y[0] * lon + p.y[1] * lat + p.y[2]
+                    x: p.x[0] * lon + p.x[1] * lat + p.x[2] * cross + p.x[3],
+                    y: p.y[0] * lon + p.y[1] * lat + p.y[2] * cross + p.y[3]
                 };
             }
 
@@ -5499,12 +5507,18 @@
                 const rect = this.getMapBounds();
                 if (!rect) return;
                 const z = this.mapView.zoom;
-                // Pan keeps the scaled content inside the wrapper.
-                const minX = rect.width  * (1 - z);
-                const minY = rect.height * (1 - z);
-                if (this.mapView.tx > 0) this.mapView.tx = 0;
-                if (this.mapView.ty > 0) this.mapView.ty = 0;
+                // Allow ~35% of the viewport of "overscan" past each map
+                // edge so the player can pan all the way to corners and
+                // still see them; the wrapper's water-coloured background
+                // shows through where the map no longer covers.
+                const slack = 0.35;
+                const maxX = rect.width  * slack;
+                const minX = rect.width  * (1 - z) - rect.width  * slack;
+                const maxY = rect.height * slack;
+                const minY = rect.height * (1 - z) - rect.height * slack;
+                if (this.mapView.tx > maxX) this.mapView.tx = maxX;
                 if (this.mapView.tx < minX) this.mapView.tx = minX;
+                if (this.mapView.ty > maxY) this.mapView.ty = maxY;
                 if (this.mapView.ty < minY) this.mapView.ty = minY;
             }
 
