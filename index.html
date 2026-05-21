@@ -1179,42 +1179,31 @@
                 transparent 0%, #000 6%, #000 94%, transparent 100%);
         }
 
-        /* Atmospheric water-coloured backdrop during the picker so the
-           map bleeds into the screen instead of meeting a hard edge. */
+        /* Picker backdrop — sampled directly from the map's ocean
+           pixels (mean #01446f, lighter ~#01507f, darker ~#003360) so the
+           band above and below the map looks like the same body of water. */
         .world-map-screen.intro,
         .world-map-screen.selecting {
             background:
-                radial-gradient(ellipse 90% 70% at 50% 55%,
-                    rgba(28, 70, 110, 0.65) 0%,
-                    rgba(18, 44, 78, 0.85) 60%,
-                    rgba(12, 32, 58, 1) 100%),
-                #0c2038;
-        }
-        .world-map-screen.intro::before,
-        .world-map-screen.selecting::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            right: 0;
-            top: 14%;
-            bottom: 6%;
-            pointer-events: none;
-            z-index: 0;
-            background:
-                radial-gradient(ellipse 90% 70% at 50% 55%,
-                    rgba(20, 52, 96, 0.55) 0%,
-                    rgba(15, 36, 70, 0.35) 45%,
-                    rgba(13, 20, 33, 0) 80%);
+                radial-gradient(ellipse 95% 90% at 50% 50%,
+                    #1b5482 0%,
+                    #0e436d 50%,
+                    #073258 100%);
         }
         .world-map-screen.intro .world-map-wrapper,
-        .world-map-screen.selecting .world-map-wrapper,
+        .world-map-screen.selecting .world-map-wrapper {
+            z-index: 1;
+        }
         .world-map-screen.intro .map-helix-slot,
-        .world-map-screen.selecting .map-helix-slot,
+        .world-map-screen.selecting .map-helix-slot {
+            z-index: 80;
+        }
+        /* Prompt + confirm always paint on top of the wrapper. */
         .world-map-screen.intro .selection-prompt,
         .world-map-screen.selecting .selection-prompt,
         .world-map-screen.intro #confirmContinent,
         .world-map-screen.selecting #confirmContinent {
-            z-index: 1;
+            z-index: 120;
         }
 
         .world-map-screen.intro,
@@ -5622,10 +5611,11 @@
                 const end = () => {
                     pan.classList.remove('dragging');
                     // Single tap on empty map area (not on a city) at base
-                    // zoom in picker mode → zoom in to that point.
+                    // zoom in picker mode → bump the zoom just enough to
+                    // trigger the full-screen picker view (zoom > 1.02).
                     if (mode === 'pan' && !moved && this.pickerMode &&
                         this.mapView.zoom < 1.05 && pickerTapPoint && !tapOnCity) {
-                        this.zoomMap(2.4, pickerTapPoint.x, pickerTapPoint.y);
+                        this.zoomMap(1.35, pickerTapPoint.x, pickerTapPoint.y);
                     }
                     mode = null;
                     pickerTapPoint = null;
