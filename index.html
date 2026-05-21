@@ -1200,16 +1200,20 @@
             top: 44%;
         }
 
-        /* Picker backdrop — sampled directly from the map's ocean
-           pixels (mean #01446f, lighter ~#01507f, darker ~#003360) so the
-           band above and below the map looks like the same body of water. */
+        /* Picker backdrop — deep space tone for the 3D globe. */
         .world-map-screen.intro,
         .world-map-screen.selecting {
             background:
-                radial-gradient(ellipse 95% 90% at 50% 50%,
-                    #1b5482 0%,
-                    #0e436d 50%,
-                    #073258 100%);
+                radial-gradient(ellipse 100% 100% at 50% 45%,
+                    #0a1530 0%,
+                    #050a1a 55%,
+                    #02050d 100%);
+        }
+        /* Wrapper bleeds the same dark space behind the canvas so the
+           globe sits inside a continuous void. */
+        .world-map-screen.intro .world-map-wrapper,
+        .world-map-screen.selecting .world-map-wrapper {
+            background: transparent;
         }
         .world-map-screen.intro .world-map-wrapper,
         .world-map-screen.selecting .world-map-wrapper {
@@ -3916,13 +3920,17 @@
 
                 this.scene = new THREE.Scene();
                 this.camera = new THREE.PerspectiveCamera(32, 1, 0.1, 50);
-                this.camera.position.set(0, 0, 3.4);
+                // Closer camera = bigger globe at start.
+                this.camera.position.set(0, 0, 2.6);
 
                 this.renderer = new THREE.WebGLRenderer({
                     canvas, antialias: true, alpha: true
                 });
                 this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
                 this.renderer.setClearColor(0x000000, 0);
+
+                // Sparse starfield backdrop drawn behind the globe.
+                this._addStarfield();
 
                 // Earth sphere — radius 1, equirectangular UV mapping.
                 const tex = new THREE.TextureLoader().load(textureUrl);
@@ -3931,11 +3939,17 @@
                 const earthGeom = new THREE.SphereGeometry(1, 128, 96);
                 const earthMat = new THREE.MeshBasicMaterial({ map: tex });
                 this.earth = new THREE.Mesh(earthGeom, earthMat);
-                // Default Three.js sphere UVs put u=0 at +x and u=0.5 at -x.
-                // Our equirectangular texture wants longitude 0 at +z (front
-                // of camera). Rotate the earth so that's true.
+                // Three.js SphereGeometry default UVs put u=0.5 at +x. Rotate
+                // the earth -π/2 around y so the texture's central column
+                // (lon ≈ 0 for our map, i.e. Africa/Europe) faces the camera
+                // at start.
                 this.earth.rotation.y = -Math.PI / 2;
                 this.scene.add(this.earth);
+
+                // Polar ice caps — small white disks on either pole. They
+                // sit just above the surface so they hide the texture
+                // pinching at v=0 and v=1.
+                this._addPolarCaps();
 
                 // Soft atmospheric halo behind the globe.
                 const haloGeom = new THREE.SphereGeometry(1.06, 64, 48);
@@ -3979,31 +3993,88 @@
                 this._tick();
             }
 
-            _latLonToVec3(latDeg, lonDeg, r) {
-                const phi = latDeg * Math.PI / 180;
-                const theta = lonDeg * Math.PI / 180;
-                // After earth.rotation.y = -π/2, longitude 0 sits at +z.
+            // Convert a vbox (X, Y) — i.e. a position on the source texture —
+            // into a 3D point on the earth sphere using Three.js's default
+            // SphereGeometry UV convention:
+            //   - u=0 / u=1 → -x (texture seam)
+            //   - u=0.5    → +x
+            //   - u=0.25   → -z
+            //   - u=0.75   → +z
+            //   - v=0      → +y (north pole)
+            //   - v=1      → -y (south pole)
+            // The earth then gets a -π/2 y-rotation so u=0.5 (Greenwich) ends
+            // up facing the camera at +z.
+            _vboxToVec3(vx, vy, r) {
+                const u = vx / 1050;
+                const v = vy / 700;
+                const phi = u * 2 * Math.PI;
+                const theta = v * Math.PI;
                 return new THREE.Vector3(
-                    r * Math.cos(phi) * Math.sin(theta),
-                    r * Math.sin(phi),
-                    r * Math.cos(phi) * Math.cos(theta)
+                    -r * Math.cos(phi) * Math.sin(theta),
+                     r * Math.cos(theta),
+                     r * Math.sin(phi) * Math.sin(theta)
                 );
+            }
+
+            _addStarfield() {
+                const N = 280;
+                const positions = new Float32Array(N * 3);
+                for (let i = 0; i < N; i++) {
+                    // Distribute stars on a far sphere shell
+                    const u = Math.random();
+                    const v = Math.random();
+                    const theta = u * 2 * Math.PI;
+                    const phi = Math.acos(2 * v - 1);
+                    const r = 18 + Math.random() * 6;
+                    positions[i*3]   = r * Math.sin(phi) * Math.cos(theta);
+                    positions[i*3+1] = r * Math.cos(phi);
+                    positions[i*3+2] = r * Math.sin(phi) * Math.sin(theta);
+                }
+                const geom = new THREE.BufferGeometry();
+                geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                const mat = new THREE.PointsMaterial({
+                    color: 0xffffff,
+                    size: 0.08,
+                    transparent: true,
+                    opacity: 0.9,
+                    sizeAttenuation: true,
+                    depthWrite: false
+                });
+                this.stars = new THREE.Points(geom, mat);
+                this.scene.add(this.stars);
+            }
+
+            _addPolarCaps() {
+                // Slight inset caps so they hide the equirectangular pole
+                // pinching of the painted map.
+                const capMat = new THREE.MeshBasicMaterial({
+                    color: 0xf5fbff, transparent: true, opacity: 0.94
+                });
+                const phiSegments = 32;
+                // North cap — covers ~lat > 73° (theta from 0 to ~17°)
+                const northGeom = new THREE.SphereGeometry(
+                    1.001, phiSegments, 16, 0, Math.PI * 2, 0, Math.PI * 17 / 180
+                );
+                this.northCap = new THREE.Mesh(northGeom, capMat);
+                this.earth.add(this.northCap);
+                // South cap — covers ~lat < -75° (theta from ~165° to 180°)
+                const southGeom = new THREE.SphereGeometry(
+                    1.001, phiSegments, 16, 0, Math.PI * 2,
+                    Math.PI - Math.PI * 15 / 180, Math.PI * 15 / 180
+                );
+                this.southCap = new THREE.Mesh(southGeom, capMat);
+                this.earth.add(this.southCap);
             }
 
             _addCity(c, idx) {
                 const [name, lat, lon, capital, continent, famous] = c;
-                // We use the same vbox positions the 2D map uses (overrides
-                // for famous cities + per-continent affine for the rest),
-                // then convert vbox→lat/lon by reading them as if the source
-                // texture were equirectangular. That way dots line up with
-                // the painted cities even though the artwork isn't a strict
-                // projection.
+                // The painted texture isn't a strict equirectangular projection,
+                // so we don't use the real lat/lon. We use the *painted*
+                // position (vbox) — same data the 2D map uses — and convert
+                // it as if the texture were equirectangular. That way the dot
+                // sits right over the city as drawn on the illustration.
                 const vb = this.vboxForCity(c);
-                const u = vb.x / 1050;
-                const v = vb.y / 700;
-                const drawnLon = u * 360 - 180;
-                const drawnLat = 90 - v * 180;
-                const pos = this._latLonToVec3(drawnLat, drawnLon, 1.005);
+                const pos = this._vboxToVec3(vb.x, vb.y, 1.005);
 
                 const size = famous ? 0.024 : (capital ? 0.017 : 0.012);
                 const color = famous ? 0xfde68a : (capital ? 0xfca5a5 : 0xfde68a);
@@ -4013,7 +4084,6 @@
                 mesh.position.copy(pos);
                 mesh.userData = { idx, name, continent, baseColor: color, baseSize: size };
                 if (famous) {
-                    // Faint outer halo for famous cities
                     const haloGeom = new THREE.SphereGeometry(size * 2.2, 12, 10);
                     const haloMat = new THREE.MeshBasicMaterial({
                         color, transparent: true, opacity: 0.25, depthWrite: false
@@ -4045,7 +4115,7 @@
                 let tapStartX = 0, tapStartY = 0;
                 let pinchStart = 0;
                 let pinchZ = 0;
-                let mode = null;  // 'drag' | 'pinch'
+                let mode = null;
 
                 const onStart = (x, y) => {
                     dragging = true;
@@ -4059,9 +4129,7 @@
                     const dx = x - lastX;
                     const dy = y - lastY;
                     if (Math.hypot(x - tapStartX, y - tapStartY) > 4) moved = true;
-                    // Rotation magnitude scales with current zoom so the
-                    // feel is consistent at different camera distances.
-                    const k = 0.005 * (this.camera.position.z / 3.4);
+                    const k = 0.005 * (this.camera.position.z / 2.6);
                     this.earth.rotation.y += dx * k;
                     this.earth.rotation.x = Math.max(
                         -1.35,
@@ -4075,7 +4143,6 @@
                     mode = null;
                 };
 
-                // Touch
                 this.canvas.addEventListener('touchstart', (e) => {
                     if (e.touches.length === 1) {
                         onStart(e.touches[0].clientX, e.touches[0].clientY);
@@ -4096,7 +4163,7 @@
                         const d = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
                         if (d > 0 && pinchStart > 0) {
                             this.camera.position.z = Math.max(
-                                1.4, Math.min(6, pinchZ * pinchStart / d)
+                                1.3, Math.min(5, pinchZ * pinchStart / d)
                             );
                         }
                         if (e.cancelable) e.preventDefault();
@@ -4107,17 +4174,15 @@
                     dragging = false; mode = null;
                 }, { passive: true });
 
-                // Mouse
                 this.canvas.addEventListener('mousedown', (e) => onStart(e.clientX, e.clientY));
                 this.canvas.addEventListener('mousemove', (e) => onMove(e.clientX, e.clientY));
                 this.canvas.addEventListener('mouseup', onEnd);
                 this.canvas.addEventListener('mouseleave', () => { dragging = false; mode = null; });
 
-                // Wheel zoom
                 this.canvas.addEventListener('wheel', (e) => {
                     e.preventDefault();
                     const factor = e.deltaY < 0 ? 0.92 : 1.08;
-                    this.camera.position.z = Math.max(1.4, Math.min(6, this.camera.position.z * factor));
+                    this.camera.position.z = Math.max(1.3, Math.min(5, this.camera.position.z * factor));
                 }, { passive: false });
             }
 
@@ -4129,8 +4194,6 @@
                 );
                 const raycaster = new THREE.Raycaster();
                 raycaster.setFromCamera(mouse, this.camera);
-                // Pick a city dot if one is under the cursor; fall back to
-                // earth-surface for empty-area taps.
                 const hits = raycaster.intersectObjects(this.cityMeshes, false);
                 if (hits.length && this.onCityTap) {
                     this.onCityTap(hits[0].object.userData.idx);
@@ -4150,7 +4213,7 @@
 
             resetView() {
                 this.earth.rotation.set(0, -Math.PI / 2, 0);
-                this.camera.position.z = 3.4;
+                this.camera.position.z = 2.6;
             }
 
             destroy() {
@@ -4161,6 +4224,8 @@
 
             _tick() {
                 this._raf = requestAnimationFrame(this._tick);
+                // Subtle starfield drift for life
+                if (this.stars) this.stars.rotation.y += 0.0003;
                 this.renderer.render(this.scene, this.camera);
             }
         }
