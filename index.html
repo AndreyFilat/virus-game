@@ -57,10 +57,17 @@
         }
         
         /* DNA Counter */
-        .dna-counter {
+        .dna-bar {
             position: absolute;
             top: 10px;
             right: 12px;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .dna-counter {
+            position: static;
             z-index: 100;
             display: flex;
             align-items: center;
@@ -2489,29 +2496,94 @@
         }
 
         .dna-rate {
-            position: absolute;
-            top: 42px;
-            right: 14px;
-            z-index: 100;
             display: flex;
             align-items: center;
-            gap: 4px;
-            background: rgba(20, 28, 42, 0.78);
-            padding: 3px 8px;
-            border-radius: 9px;
-            border: 1px solid rgba(168, 85, 247, 0.28);
+            gap: 6px;
+            padding: 5px 10px 5px 6px;
+            border-radius: 14px;
+            background: linear-gradient(170deg, rgba(34, 64, 50, 0.95), rgba(14, 32, 22, 0.95));
+            backdrop-filter: blur(12px);
+            border: 1.5px solid rgba(74, 222, 128, 0.45);
+            box-shadow:
+                0 6px 16px rgba(0, 0, 0, 0.45),
+                0 0 18px rgba(74, 222, 128, 0.22),
+                inset 0 1px 0 rgba(255, 255, 255, 0.12),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.35);
+            font-size: 12px;
+            opacity: 0;
+            transform: translateX(8px) scale(0.92);
+            pointer-events: none;
+            transition: opacity 0.3s, transform 0.3s cubic-bezier(0.18, 0.9, 0.3, 1);
+        }
+        .dna-rate.visible {
+            opacity: 1;
+            transform: translateX(0) scale(1);
+        }
+        .dna-rate-icon {
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background:
+                radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.5), transparent 55%),
+                linear-gradient(135deg, #86efac, #16a34a);
+            box-shadow:
+                0 0 12px rgba(74, 222, 128, 0.7),
+                inset 0 1px 0 rgba(255, 255, 255, 0.45),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.25);
+            color: #0a1f12;
+            font-size: 11px;
+            font-weight: 900;
+            line-height: 1;
+            animation: dna-rate-pulse 2s infinite;
+        }
+        @keyframes dna-rate-pulse {
+            0%, 100% { box-shadow: 0 0 12px rgba(74,222,128,0.7), inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -1px 0 rgba(0,0,0,0.25); }
+            50%      { box-shadow: 0 0 18px rgba(74,222,128,0.95), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -1px 0 rgba(0,0,0,0.25); }
+        }
+        .dna-rate-num {
+            font-weight: 700;
+            font-size: 13px;
+            color: #bbf7d0;
+            font-family: 'Space Mono', monospace;
+            letter-spacing: 0.3px;
+            text-shadow: 0 1px 0 rgba(0,0,0,0.45), 0 0 10px rgba(74,222,128,0.5);
+        }
+        .dna-rate-unit {
             font-family: 'Space Mono', monospace;
             font-size: 10px;
-            color: #c4b5fd;
-            font-weight: 700;
-            letter-spacing: 0.3px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
-            opacity: 0;
-            transform: translateY(-4px);
-            pointer-events: none;
-            transition: opacity 0.25s, transform 0.25s;
+            color: rgba(187, 247, 208, 0.75);
+            font-weight: 600;
+            letter-spacing: 0.4px;
         }
-        .dna-rate.visible { opacity: 1; transform: translateY(0); }
+        @keyframes dna-rate-bump {
+            0%   { transform: scale(1); }
+            45%  { transform: scale(1.18); }
+            100% { transform: scale(1); }
+        }
+        .dna-rate.bump .dna-rate-num { animation: dna-rate-bump 0.5s cubic-bezier(0.18, 0.9, 0.3, 1); }
+
+        /* Per-card income display */
+        .card-income {
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            font-family: 'Space Mono', monospace;
+            font-size: 10px;
+            font-weight: 700;
+            color: #86efac;
+            letter-spacing: 0.3px;
+            min-height: 14px;
+        }
+        .card-income .ci-now    { color: #d1fae5; }
+        .card-income .ci-arrow  { color: rgba(255,255,255,0.35); font-size: 9px; }
+        .card-income .ci-next   { color: #4ade80; text-shadow: 0 0 6px rgba(74,222,128,0.45); }
+        .card-income .ci-zero   { color: rgba(255,255,255,0.4); }
+        .ability-card.maxed .card-income .ci-now { color: #00ff9f; text-shadow: 0 0 6px rgba(0,255,159,0.5); }
 
         /* Bottom-nav unread badge */
         .nav-btn { position: relative; }
@@ -3166,11 +3238,17 @@
 <body>
     <div class="game-container">
         <!-- DNA Counter (always visible) -->
-        <div class="dna-counter">
-            <div class="dna-icon">🧬</div>
-            <div class="dna-count" id="dnaCount">0</div>
+        <div class="dna-bar">
+            <div class="dna-rate" id="dnaRate" aria-hidden="true">
+                <div class="dna-rate-icon">↑</div>
+                <span class="dna-rate-num" id="dnaRateNum">+0</span>
+                <span class="dna-rate-unit">/ч</span>
+            </div>
+            <div class="dna-counter">
+                <div class="dna-icon">🧬</div>
+                <div class="dna-count" id="dnaCount">0</div>
+            </div>
         </div>
-        <div class="dna-rate" id="dnaRate" aria-hidden="true">+0/ч</div>
         
         <!-- Start Screen -->
         <div class="screen start-screen active" id="startScreen">
@@ -3744,6 +3822,7 @@
                 this.cloneHelixToMap();
                 this.updateVirusArt();
                 this.renderVirusScreen();
+                this.updateDNARate();
                 this.startIncomeLoop();
                 if (!this.tutorialDone) {
                     document.body.classList.add('tutorial-active');
@@ -3963,6 +4042,7 @@
                 });
                 this.updateDNACounter();
                 this.renderVirusScreen();
+                this.updateDNARate();
                 const newCard = document.querySelector(`.ability-card[data-id="${cardData.id}"]`);
                 if (newCard) this.playCardUpgradeFX(newCard);
                 if (this.virusLevel > oldVirusLevel) {
@@ -4076,6 +4156,17 @@
                         ? '<span class="card-cost-overlay maxed">MAX</span>'
                         : `<span class="card-cost-overlay">🧬 ${cost}</span>`;
 
+                    const incNow  = this.getCardIncome(card, level);
+                    const incNext = this.getCardIncome(card, Math.min(card.max, level + 1));
+                    let incomeHTML;
+                    if (maxed) {
+                        incomeHTML = `<div class="card-income"><span class="ci-now">+${incNow}/ч</span></div>`;
+                    } else if (level === 0) {
+                        incomeHTML = `<div class="card-income"><span class="ci-zero">—</span><span class="ci-arrow">→</span><span class="ci-next">+${incNext}/ч</span></div>`;
+                    } else {
+                        incomeHTML = `<div class="card-income"><span class="ci-now">+${incNow}/ч</span><span class="ci-arrow">→</span><span class="ci-next">+${incNext}/ч</span></div>`;
+                    }
+
                     el.innerHTML =
                         '<div class="card-image">' +
                             costBadge +
@@ -4085,6 +4176,7 @@
                             `<div class="card-name">${card.name}</div>` +
                             `<div class="card-level">Ур. ${level}</div>` +
                             `<div class="card-bar"><div class="card-fill" style="width: ${pct}%"></div></div>` +
+                            incomeHTML +
                         '</div>';
                     grid.appendChild(el);
                     if (!maxed) this.tap(el, () => this.upgradeCard(card));
@@ -4926,13 +5018,17 @@
 
             // ---- Passive DNA income --------------------------------------
 
+            getCardIncome(card, level) {
+                if (level <= 0) return 0;
+                return level * Math.ceil(card.baseCost / 6);
+            }
+
             getIncomePerHour() {
                 let perHour = 0;
                 Object.values(this.abilityCards).forEach(list => {
                     list.forEach(card => {
                         const level = this.abilityLevels[card.id] || 0;
-                        if (level <= 0) return;
-                        perHour += level * Math.ceil(card.baseCost / 6);
+                        perHour += this.getCardIncome(card, level);
                     });
                 });
                 return perHour * this.buffMult('income_mult');
@@ -4968,13 +5064,21 @@
 
             updateDNARate() {
                 const el = document.getElementById('dnaRate');
-                if (!el) return;
+                const num = document.getElementById('dnaRateNum');
+                if (!el || !num) return;
                 const rate = Math.round(this.getIncomePerHour());
                 if (rate <= 0) {
                     el.classList.remove('visible');
                     return;
                 }
-                el.textContent = `+${rate}/ч`;
+                const prev = parseInt(num.dataset.value || '0', 10);
+                if (rate !== prev) {
+                    num.dataset.value = String(rate);
+                    num.textContent = `+${rate}`;
+                    el.classList.remove('bump');
+                    void el.offsetWidth;
+                    el.classList.add('bump');
+                }
                 el.classList.add('visible');
             }
 
