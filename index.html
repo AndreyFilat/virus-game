@@ -1528,22 +1528,23 @@
 
         .map-zoom-controls {
             position: absolute;
-            right: 10px;
-            bottom: 10px;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
             z-index: 60;
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 8px;
             opacity: 0;
-            transform: translateY(6px);
-            transition: opacity 0.25s, transform 0.25s;
+            transition: opacity 0.25s;
             pointer-events: none;
         }
-        .world-map-screen.show-zoom-ctrl .map-zoom-controls {
+        .world-map-screen.active .map-zoom-controls {
             opacity: 1;
-            transform: translateY(0);
             pointer-events: auto;
         }
+        /* The home/reset button is hidden — only + and - are exposed. */
+        .map-zoom-reset { display: none; }
         .map-zoom-btn {
             width: 36px;
             height: 36px;
@@ -4839,6 +4840,16 @@
                 this.camera.position.z = this._baseZ;
             }
 
+            // Zoom button helper. factor < 1 zooms in (closer), > 1 zooms
+            // out (further). Clamped to the same range as pinch/wheel.
+            zoomBy(factor) {
+                const baseZ = this._baseZ || 2.6;
+                this.camera.position.z = Math.max(
+                    baseZ * 0.4,
+                    Math.min(baseZ * 1.6, this.camera.position.z * factor)
+                );
+            }
+
             destroy() {
                 cancelAnimationFrame(this._raf);
                 this._ro && this._ro.disconnect();
@@ -5936,8 +5947,16 @@
                 const zIn = document.getElementById('mapZoomIn');
                 const zOut = document.getElementById('mapZoomOut');
                 const zReset = document.getElementById('mapZoomReset');
-                if (zIn)    this.tap(zIn,    () => this.zoomMap(1.6));
-                if (zOut)   this.tap(zOut,   () => this.zoomMap(1 / 1.6));
+                // Zoom buttons drive the 3D globe (and the legacy 2D map
+                // zoom for any picker layer that still uses it).
+                if (zIn)    this.tap(zIn,    () => {
+                    if (this.globe) this.globe.zoomBy(0.8);
+                    else this.zoomMap(1.6);
+                });
+                if (zOut)   this.tap(zOut,   () => {
+                    if (this.globe) this.globe.zoomBy(1.25);
+                    else this.zoomMap(1 / 1.6);
+                });
                 if (zReset) this.tap(zReset, () => this.resetMapView());
             }
 
@@ -6018,14 +6037,11 @@
                 const sub = document.getElementById('selectionSub');
                 if (mode === 'tutorial') {
                     if (title) title.textContent = 'Выберите город';
-                    if (sub)   sub.textContent   = 'Тапни по карте, чтобы приблизить и выбрать город';
+                    if (sub)   sub.textContent   = '';
                 } else {
                     const opt = this.spreadOptions.find(o => o.id === mode);
                     if (title) title.textContent = (opt ? opt.name : 'Новое заражение');
-                    if (sub) {
-                        if (mode === 'land') sub.textContent = 'Выбери город в соседнем регионе';
-                        else                 sub.textContent = 'Выбери город для заражения';
-                    }
+                    if (sub)   sub.textContent   = '';
                 }
 
                 this.switchScreen('worldMapScreen');
