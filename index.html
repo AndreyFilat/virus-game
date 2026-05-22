@@ -1543,8 +1543,6 @@
             opacity: 1;
             pointer-events: auto;
         }
-        /* The home/reset button is hidden — only + and - are exposed. */
-        .map-zoom-reset { display: none; }
         .map-zoom-btn {
             width: 36px;
             height: 36px;
@@ -3937,7 +3935,6 @@
                 <div class="map-zoom-controls" id="mapZoomControls">
                     <button class="map-zoom-btn" id="mapZoomIn" aria-label="Приблизить">+</button>
                     <button class="map-zoom-btn" id="mapZoomOut" aria-label="Отдалить">−</button>
-                    <button class="map-zoom-btn map-zoom-reset" id="mapZoomReset" aria-label="Сбросить">⌂</button>
                 </div>
             </div>
 
@@ -4283,6 +4280,10 @@
                 const earthGeom = new THREE.SphereGeometry(1, 128, 96);
                 const earthMat = new THREE.MeshBasicMaterial({ map: fallback });
                 this.earth = new THREE.Mesh(earthGeom, earthMat);
+                // YXZ rotation order so y (longitude) is applied before x
+                // (latitude tilt) — matches how we steer the globe to a
+                // given lat/lon view.
+                this.earth.rotation.order = 'YXZ';
                 this.earth.rotation.y = -Math.PI / 2;
                 this.scene.add(this.earth);
                 // Async-swap the real equirectangular texture as soon as it
@@ -4938,6 +4939,13 @@
                     baseZ * 0.4,
                     Math.min(baseZ * 1.6, this.camera.position.z * factor)
                 );
+            }
+
+            // Rotate the earth so the given lat/lon faces the camera.
+            centerOnLatLon(lat, lon) {
+                this.earth.rotation.order = 'YXZ';
+                this.earth.rotation.y = -Math.PI / 2 - lon * Math.PI / 180;
+                this.earth.rotation.x = lat * Math.PI / 180;
             }
 
             destroy() {
@@ -6099,20 +6107,16 @@
 
                 // Map zoom controls + gestures
                 this.bindMapGestures();
-                const zIn = document.getElementById('mapZoomIn');
+                const zIn  = document.getElementById('mapZoomIn');
                 const zOut = document.getElementById('mapZoomOut');
-                const zReset = document.getElementById('mapZoomReset');
-                // Zoom buttons drive the 3D globe (and the legacy 2D map
-                // zoom for any picker layer that still uses it).
-                if (zIn)    this.tap(zIn,    () => {
+                if (zIn)  this.tap(zIn,  () => {
                     if (this.globe) this.globe.zoomBy(0.8);
                     else this.zoomMap(1.6);
                 });
-                if (zOut)   this.tap(zOut,   () => {
+                if (zOut) this.tap(zOut, () => {
                     if (this.globe) this.globe.zoomBy(1.25);
                     else this.zoomMap(1 / 1.6);
                 });
-                if (zReset) this.tap(zReset, () => this.resetMapView());
             }
 
             switchScreen(id) {
@@ -6140,14 +6144,36 @@
                 if (id === 'worldMapScreen') {
                     this.renderCities();
                     this.updateMapZoomedClass();
-                    // Globe is the primary visual — make sure it's
-                    // initialised even if the player jumps straight to
-                    // the map without going through the picker first.
                     this.ensureGlobe();
                     if (this.globe) {
-                        // Reset zoom so the whole planet is visible on each
-                        // entry, regardless of where the picker left it.
-                        if (!this.pickerMode) this.globe.resetView();
+                        // Reset zoom + rotate so existing infected cities
+                        // are centred on the viewport. Falls back to the
+                        // default front-of-globe view if no infections yet.
+                        if (!this.pickerMode) {
+                            this.globe.resetView();
+                            const infCities = [];
+                            Object.values(this.continents).forEach(c => {
+                                if (c.infectionLevel > 0 && c.infectionCityIdx != null) {
+                                    const city = this.cities[c.infectionCityIdx];
+                                    if (city) infCities.push(city);
+                                }
+                            });
+                            if (infCities.length) {
+                                // Latitude: simple average. Longitude: average
+                                // of unit vectors so we handle the ±180°
+                                // wraparound correctly.
+                                let xs = 0, ys = 0, lat = 0;
+                                infCities.forEach(c => {
+                                    lat += c[1];
+                                    const r = c[2] * Math.PI / 180;
+                                    xs += Math.cos(r);
+                                    ys += Math.sin(r);
+                                });
+                                lat /= infCities.length;
+                                const lon = Math.atan2(ys, xs) * 180 / Math.PI;
+                                this.globe.centerOnLatLon(lat, lon);
+                            }
+                        }
                         this.globe.updateInfections(this.continents, this.cities);
                     }
                     const ws = document.getElementById('worldMapScreen');
