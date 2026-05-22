@@ -4809,15 +4809,13 @@
                     const dx = x - lastX;
                     const dy = y - lastY;
                     if (Math.hypot(x - tapStartX, y - tapStartY) > 4) moved = true;
-                    // Rotation speed scales with current zoom so it feels
-                    // similar at any distance.
                     const baseZ = this._baseZ || 2.6;
                     const k = 0.005 * (this.camera.position.z / baseZ);
+                    // Free trackball — no clamp on rotation.x so the
+                    // player can spin the globe past the poles and view
+                    // any region.
                     this.earth.rotation.y += dx * k;
-                    this.earth.rotation.x = Math.max(
-                        -1.35,
-                        Math.min(1.35, this.earth.rotation.x + dy * k)
-                    );
+                    this.earth.rotation.x += dy * k;
                     lastX = x; lastY = y;
                 };
                 const onEnd = () => {
