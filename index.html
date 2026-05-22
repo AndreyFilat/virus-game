@@ -956,6 +956,51 @@
         .world-map-screen {
             padding: 0;
             overflow: hidden;
+            background:
+                radial-gradient(ellipse 80% 60% at 50% 50%, #060818 0%, #02030a 60%, #000000 100%);
+        }
+        /* Procedural starfield drawn as multiple radial-gradient dots.
+           Three layers at different sizes/positions give parallax-ish
+           depth without any image asset. */
+        .world-map-screen::before,
+        .world-map-screen::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .world-map-screen::before {
+            background-image:
+                radial-gradient(1.2px 1.2px at 12% 18%, rgba(255,255,255,0.85), transparent 60%),
+                radial-gradient(1px 1px   at 27% 72%, rgba(255,255,255,0.7), transparent 60%),
+                radial-gradient(1.5px 1.5px at 41% 32%, rgba(255,255,255,0.95), transparent 60%),
+                radial-gradient(0.8px 0.8px at 56% 88%, rgba(200,220,255,0.7), transparent 60%),
+                radial-gradient(1.1px 1.1px at 68% 12%, rgba(255,255,255,0.85), transparent 60%),
+                radial-gradient(0.9px 0.9px at 82% 64%, rgba(220,235,255,0.75), transparent 60%),
+                radial-gradient(1.4px 1.4px at 91% 24%, rgba(255,255,255,0.95), transparent 60%),
+                radial-gradient(1px 1px   at  6% 84%, rgba(255,255,255,0.7), transparent 60%),
+                radial-gradient(0.7px 0.7px at 33% 8%,  rgba(255,255,255,0.6), transparent 60%),
+                radial-gradient(1px 1px   at 76% 92%, rgba(255,255,255,0.7), transparent 60%);
+            background-size: 100% 100%;
+        }
+        .world-map-screen::after {
+            background-image:
+                radial-gradient(0.6px 0.6px at 18% 48%, rgba(200,220,255,0.6), transparent 60%),
+                radial-gradient(0.8px 0.8px at 38% 78%, rgba(255,240,220,0.65), transparent 60%),
+                radial-gradient(0.7px 0.7px at 52% 22%, rgba(255,255,255,0.7), transparent 60%),
+                radial-gradient(0.5px 0.5px at 63% 56%, rgba(180,210,255,0.5), transparent 60%),
+                radial-gradient(0.6px 0.6px at 71% 38%, rgba(255,255,255,0.55), transparent 60%),
+                radial-gradient(0.9px 0.9px at 88% 80%, rgba(255,250,230,0.7), transparent 60%),
+                radial-gradient(0.5px 0.5px at  9% 36%, rgba(200,220,255,0.5), transparent 60%),
+                radial-gradient(0.8px 0.8px at 46% 64%, rgba(255,255,255,0.6), transparent 60%);
+            background-size: 100% 100%;
+            opacity: 0.85;
+            animation: stars-twinkle 6.5s ease-in-out infinite;
+        }
+        @keyframes stars-twinkle {
+            0%, 100% { opacity: 0.85; }
+            50%      { opacity: 0.55; }
         }
         /* Default state for the map view (outside the picker): wrapper
            fills the entire screen so the globe is the primary visual.
@@ -1050,8 +1095,7 @@
             width: 100%;
             aspect-ratio: 1 / 1;
             overflow: hidden;
-            background:
-                radial-gradient(ellipse 80% 60% at 50% 50%, #155a85 0%, #0d4674 60%, #073258 100%);
+            background: transparent;
             transition: opacity 0.55s ease, transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
 
@@ -3814,8 +3858,8 @@
                     <div class="map-stat-label">Заражено</div>
                 </div>
                 <div class="map-stat">
-                    <div class="map-stat-value" id="statRegions">0/6</div>
-                    <div class="map-stat-label">Регионов</div>
+                    <div class="map-stat-value" id="statRegions">0</div>
+                    <div class="map-stat-label">Городов</div>
                 </div>
                 <div class="map-stat">
                     <div class="map-stat-value" id="statWorld">0%</div>
@@ -6716,14 +6760,14 @@
                 const totalPop = cont.reduce((a, c) => a + (c.population || 0), 0);
                 const infectedPop = cont.reduce((a, c) =>
                     a + (c.population || 0) * (c.infectionLevel || 0) / 100, 0);
-                const infectedRegions = cont.filter(c => c.infectionLevel > 0).length;
+                const infectedCities = cont.filter(c => c.infectionLevel > 0).length;
                 const worldPct = totalPop > 0 ? (infectedPop / totalPop * 100) : 0;
 
                 const elI = document.getElementById('statInfected');
                 const elR = document.getElementById('statRegions');
                 const elW = document.getElementById('statWorld');
                 if (elI) elI.textContent = this.formatBigNumber(infectedPop);
-                if (elR) elR.textContent = infectedRegions + '/' + cont.length;
+                if (elR) elR.textContent = String(infectedCities);
                 if (elW) elW.textContent = worldPct.toFixed(worldPct < 10 ? 2 : 1) + '%';
             }
 
