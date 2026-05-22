@@ -5922,21 +5922,18 @@
                 if (!c) return;
                 this.mapSelectedCityIdx = idx;
                 if (this.globe) this.globe.setSelectedCity(idx);
-                // Hide the spread button on the red anchor city and on any
-                // city that has no transmission method that could even
-                // reach it (e.g. an already-infected continent). The modal
-                // still treats individual methods independently if the
-                // button is shown.
+                // Hide the spread button only on the red anchor city. Every
+                // other city offers the "Распространить" button — the
+                // modal then greys out methods that can't physically reach
+                // this city, so the player understands the constraint
+                // rather than just seeing a missing button.
                 const continent = this.continents[c[4]];
                 const isAnchor = continent
                     && continent.infectionLevel > 0
                     && continent.infectionCityIdx === idx;
-                const reachable = this.spreadOptions.some(o =>
-                    this.getValidTargets(o.id).has(c[4]));
-                const canSpread = !isAnchor && reachable;
                 this.showCityPlate(idx, c[0],
-                    canSpread ? 'Распространить' : null,
-                    canSpread ? () => this.showSpreadModal() : null
+                    isAnchor ? null : 'Распространить',
+                    isAnchor ? null : () => this.showSpreadModal()
                 );
             }
 
