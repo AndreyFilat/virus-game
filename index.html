@@ -3163,7 +3163,10 @@
             text-align: left;
         }
         .spread-method-btn:active { transform: scale(0.97); }
-        .spread-method-btn.locked { opacity: 0.7; }
+        /* Invite-locked methods are still actionable (they open the invite
+           share modal), so we leave them at full opacity — only true
+           "can't use right now" disabled methods get dimmed. */
+        .spread-method-btn.locked { opacity: 1; }
         .spread-method-btn.disabled { opacity: 0.45; }
         .spread-method-btn .method-icon {
             font-size: 22px;
