@@ -1529,8 +1529,7 @@
         .map-zoom-controls {
             position: absolute;
             right: 12px;
-            top: 50%;
-            transform: translateY(-50%);
+            bottom: 96px;
             z-index: 60;
             display: flex;
             flex-direction: column;
@@ -4910,11 +4909,10 @@
                 const fovV = this.camera.fov * Math.PI / 180;
                 const tan = Math.tan(fovV / 2);
                 const minAspect = Math.min(this.camera.aspect, 1);
-                // Sphere body diameter = 2. We want it to fill ~70% of the
-                // shorter screen dimension at default zoom so the whole
-                // planet is visible with room for stats above and spread
-                // cards below without overlapping the sphere.
-                const target = 2.0 / 0.70;
+                // Sphere body diameter = 2. Fill ~85% of the shorter screen
+                // dimension at default zoom so the globe is a proper focal
+                // element on map entry.
+                const target = 2.0 / 0.85;
                 return target / (2 * tan * minAspect);
             }
 
