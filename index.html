@@ -4281,11 +4281,11 @@
                 const earthGeom = new THREE.SphereGeometry(1, 128, 96);
                 const earthMat = new THREE.MeshBasicMaterial({ map: fallback });
                 this.earth = new THREE.Mesh(earthGeom, earthMat);
-                // YXZ rotation order so y (longitude) is applied before x
-                // (latitude tilt) — matches how we steer the globe to a
-                // given lat/lon view.
-                this.earth.rotation.order = 'YXZ';
-                this.earth.rotation.y = -Math.PI / 2;
+                // Default orientation: Greenwich meridian facing camera.
+                // Rotation is driven through .quaternion (world-space
+                // accumulation for the trackball controls).
+                this.earth.quaternion.setFromAxisAngle(
+                    new THREE.Vector3(0, 1, 0), -Math.PI / 2);
                 this.scene.add(this.earth);
                 // Async-swap the real equirectangular texture as soon as it
                 // arrives. Pipe it through a Canvas first so we can brighten
@@ -4571,13 +4571,23 @@
                     this.earth.add(this._infectionGroup);
                     this._infectionMeshes = new Map();
                 }
+                // Halos go on each continent's anchor city (primary spread
+                // zone). Red dot colouring covers every city the player has
+                // explicitly infected within an infected continent.
                 const infected = new Map();
+                const infectedSet = new Set();
                 for (const c of Object.values(continents)) {
-                    if (c.infectionLevel > 0 && c.infectionCityIdx != null) {
+                    if (c.infectionLevel <= 0) continue;
+                    if (c.infectionCityIdx != null) {
                         infected.set(c.infectionCityIdx, c.infectionLevel);
                     }
+                    if (c.infectedCities) {
+                        c.infectedCities.forEach(idx => infectedSet.add(idx));
+                    } else if (c.infectionCityIdx != null) {
+                        infectedSet.add(c.infectionCityIdx);
+                    }
                 }
-                // Drop stale entries
+                // Drop stale halos
                 for (const [idx, group] of this._infectionMeshes) {
                     if (!infected.has(idx)) {
                         this._infectionGroup.remove(group);
@@ -4588,12 +4598,12 @@
                         this._infectionMeshes.delete(idx);
                     }
                 }
-                // Tint city dots: infected anchor cities glow red, others
+                // Tint city dots: every infected city glows red, others
                 // fall back to their default mint-tinted fill.
                 const INFECTED_COLOR = 0xff3a2a;
                 for (let i = 0; i < this.cityMeshes.length; i++) {
                     const m = this.cityMeshes[i];
-                    const isInf = infected.has(m.userData.idx);
+                    const isInf = infectedSet.has(m.userData.idx);
                     m.userData.infected = isInf;
                     m.material.color.set(isInf ? INFECTED_COLOR : m.userData.baseColor);
                 }
@@ -4811,11 +4821,15 @@
                     if (Math.hypot(x - tapStartX, y - tapStartY) > 4) moved = true;
                     const baseZ = this._baseZ || 2.6;
                     const k = 0.005 * (this.camera.position.z / baseZ);
-                    // Free trackball — no clamp on rotation.x so the
-                    // player can spin the globe past the poles and view
-                    // any region.
-                    this.earth.rotation.y += dx * k;
-                    this.earth.rotation.x += dy * k;
+                    // Free trackball — rotations are world-space via
+                    // quaternion premultiply, so horizontal drag always
+                    // spins around world Y and vertical drag always tilts
+                    // around world X, regardless of the current orientation.
+                    const qy = new THREE.Quaternion().setFromAxisAngle(
+                        new THREE.Vector3(0, 1, 0), dx * k);
+                    const qx = new THREE.Quaternion().setFromAxisAngle(
+                        new THREE.Vector3(1, 0, 0), dy * k);
+                    this.earth.quaternion.premultiply(qy).premultiply(qx);
                     lastX = x; lastY = y;
                 };
                 const onEnd = () => {
@@ -4925,7 +4939,9 @@
             }
 
             resetView() {
-                this.earth.rotation.set(0, -Math.PI / 2, 0);
+                // Default: Greenwich meridian / equator facing camera.
+                this.earth.quaternion.setFromAxisAngle(
+                    new THREE.Vector3(0, 1, 0), -Math.PI / 2);
                 this._baseZ = this._fitDistance();
                 this.camera.position.z = this._baseZ;
             }
@@ -4940,11 +4956,21 @@
                 );
             }
 
-            // Rotate the earth so the given lat/lon faces the camera.
+            // Rotate the earth so the given lat/lon faces the camera. Uses
+            // a quaternion that maps the city's natural sphere position to
+            // +z (camera direction).
             centerOnLatLon(lat, lon) {
-                this.earth.rotation.order = 'YXZ';
-                this.earth.rotation.y = -Math.PI / 2 - lon * Math.PI / 180;
-                this.earth.rotation.x = lat * Math.PI / 180;
+                const u = (lon + 180) / 360;
+                const v = (90 - lat) / 180;
+                const phi = u * 2 * Math.PI;
+                const theta = v * Math.PI;
+                const target = new THREE.Vector3(
+                    -Math.cos(phi) * Math.sin(theta),
+                     Math.cos(theta),
+                     Math.sin(phi) * Math.sin(theta)
+                ).normalize();
+                const desired = new THREE.Vector3(0, 0, 1);
+                this.earth.quaternion.setFromUnitVectors(target, desired);
             }
 
             destroy() {
@@ -5820,6 +5846,13 @@
                 const selCity = this.mapSelectedCityIdx != null
                     ? this.cities[this.mapSelectedCityIdx] : null;
                 const selCont = selCity ? selCity[4] : null;
+                // Spreading to a city inside an already-infected continent
+                // is always allowed (it just extends infection to that
+                // city). For un-infected continents we still need the
+                // method's getValidTargets to include it.
+                const targetContInfected = selCont
+                    && this.continents[selCont]
+                    && this.continents[selCont].infectionLevel > 0;
                 this.spreadOptions.forEach(o => {
                     const btn = document.createElement('button');
                     btn.className = 'spread-method-btn';
@@ -5827,7 +5860,8 @@
                     const valid = this.getValidTargets(o.id);
                     const cost = this.getSpreadCost(o.id);
                     let costHTML, locked = false, disabled = false;
-                    const cityOutOfReach = selCont && !valid.has(selCont);
+                    const cityOutOfReach = selCont && !valid.has(selCont)
+                                            && !targetContInfected;
                     if (o.requiresInvite) {
                         const uses = this.unlockedSpreads[o.id] || 0;
                         if (uses <= 0) {
@@ -5835,12 +5869,16 @@
                             btn.classList.add('locked');
                             costHTML = '<div class="method-cost invite" aria-label="Пригласить друга">👥</div>';
                         } else {
-                            disabled = valid.size === 0 || cityOutOfReach;
+                            // Has uses → reachable as long as the selected
+                            // city itself is reachable. (No selected city
+                            // → require at least one valid continent.)
+                            disabled = cityOutOfReach || (!selCont && valid.size === 0);
                             costHTML = `<div class="method-cost">🚀 ×${uses}</div>`;
                         }
                     } else {
-                        const affordable = this.dnaPoints >= cost && valid.size > 0;
-                        disabled = !affordable || cityOutOfReach;
+                        const noTargets = !selCont && valid.size === 0;
+                        const affordable = this.dnaPoints >= cost;
+                        disabled = !affordable || cityOutOfReach || noTargets;
                         costHTML = `<div class="method-cost">🧬 ${cost}</div>`;
                     }
                     if (disabled) btn.classList.add('disabled');
@@ -5886,7 +5924,12 @@
                 if (!city) return false;
                 const targetId = city[4];
                 const valid = this.getValidTargets(methodId);
-                if (!valid.has(targetId)) return false;
+                const targetContInfected = this.continents[targetId]
+                    && this.continents[targetId].infectionLevel > 0;
+                // Allow within-continent spread (city in an already-infected
+                // continent) OR cross-continent if method's valid targets
+                // include the destination.
+                if (!valid.has(targetId) && !targetContInfected) return false;
 
                 if (opt.requiresInvite) {
                     if ((this.unlockedSpreads[methodId] || 0) <= 0) {
@@ -6510,16 +6553,23 @@
             }
 
             infectContinent(id, level, cityIdx) {
-                if (!this.continents[id]) {
-                    this.continents[id] = { name: id, infectionLevel: 0, population: 0 };
-                }
-                this.continents[id].infectionLevel =
-                    Math.max(this.continents[id].infectionLevel, level);
+                const cont = this.continents[id] || (this.continents[id] = {
+                    name: id, infectionLevel: 0, population: 0
+                });
+                cont.infectionLevel = Math.max(cont.infectionLevel, level);
+                if (!cont.infectedCities) cont.infectedCities = new Set();
                 if (cityIdx != null && cityIdx >= 0) {
-                    this.continents[id].infectionCityIdx = cityIdx;
-                } else if (this.continents[id].infectionCityIdx == null) {
-                    this.continents[id].infectionCityIdx =
-                        this.pickDefaultCityForContinent(id);
+                    // First infected city in this continent becomes the
+                    // anchor (used for the halo / arc source); every
+                    // subsequent within-continent spread just adds another
+                    // red dot to the set.
+                    if (cont.infectionCityIdx == null) cont.infectionCityIdx = cityIdx;
+                    cont.infectedCities.add(cityIdx);
+                } else if (cont.infectionCityIdx == null) {
+                    cont.infectionCityIdx = this.pickDefaultCityForContinent(id);
+                    if (cont.infectionCityIdx != null) {
+                        cont.infectedCities.add(cont.infectionCityIdx);
+                    }
                 }
                 this.renderInfections();
                 this.updateMapStats();
@@ -6881,7 +6931,13 @@
                     cities: this.cities,
                     vboxForCity: (c) => this.cityToXY(c[1], c[2], c[4], c[0]),
                     onCityTap: (idx) => this.handleCityTap(idx),
-                    onEmptyTap: () => {}
+                    onEmptyTap: () => {
+                        // Tapping empty water / space on the map deselects
+                        // the currently highlighted city.
+                        if (!this.pickerMode && this.mapSelectedCityIdx != null) {
+                            this.clearMapSelection();
+                        }
+                    }
                 });
             }
 
@@ -7139,6 +7195,12 @@
             }
 
             findNearestInfected(toId) {
+                // If the target continent itself is infected, the spread
+                // is within-continent → source is that same continent's
+                // anchor.
+                if (this.continents[toId] && this.continents[toId].infectionLevel > 0) {
+                    return toId;
+                }
                 const t = this.getContinentCentroid(toId);
                 let best = null, bestDist = Infinity;
                 Object.entries(this.continents).forEach(([id, c]) => {
@@ -7197,7 +7259,11 @@
                 const totalPop = cont.reduce((a, c) => a + (c.population || 0), 0);
                 const infectedPop = cont.reduce((a, c) =>
                     a + (c.population || 0) * (c.infectionLevel || 0) / 100, 0);
-                const infectedCities = cont.filter(c => c.infectionLevel > 0).length;
+                const infectedCities = cont.reduce((n, c) => {
+                    if (c.infectionLevel <= 0) return n;
+                    return n + (c.infectedCities ? c.infectedCities.size
+                        : (c.infectionCityIdx != null ? 1 : 0));
+                }, 0);
                 const worldPct = totalPop > 0 ? (infectedPop / totalPop * 100) : 0;
 
                 const elI = document.getElementById('statInfected');
