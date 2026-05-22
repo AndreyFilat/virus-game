@@ -985,6 +985,49 @@
             margin-top: 0;
             pointer-events: none;
         }
+        /* On the map screen, spread cards live as a compact horizontal
+           row so they don't visually cover the globe at default zoom. */
+        .world-map-screen .spread-section .upgrades-list {
+            flex-direction: row;
+            gap: 8px;
+            justify-content: center;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .world-map-screen .spread-section .upgrades-list::-webkit-scrollbar { display: none; }
+        .world-map-screen .spread-section .spread-card {
+            flex: 0 0 auto;
+            min-width: 0;
+            width: 92px;
+            padding: 7px 8px 8px;
+            border-radius: 12px;
+            flex-direction: column;
+            gap: 4px;
+            align-items: center;
+            text-align: center;
+        }
+        .world-map-screen .spread-section .spread-card::before { border-radius: 12px; }
+        .world-map-screen .spread-section .spread-icon {
+            font-size: 18px;
+            width: auto;
+            line-height: 1;
+        }
+        .world-map-screen .spread-section .spread-info {
+            text-align: center;
+            flex: 0 0 auto;
+        }
+        .world-map-screen .spread-section .spread-name {
+            font-size: 10px;
+            letter-spacing: 0.2px;
+            margin-bottom: 0;
+        }
+        .world-map-screen .spread-section .spread-desc { display: none; }
+        .world-map-screen .spread-section .spread-cost {
+            font-size: 10px;
+            padding: 2px 6px;
+            margin-top: 2px;
+            border-radius: 8px;
+        }
         .world-map-screen .spread-section > * { pointer-events: none; }
         .world-map-screen.active .spread-section > * { pointer-events: auto; }
         body.selecting .world-map-screen .spread-section { display: none; }
@@ -4470,10 +4513,11 @@
                 const fovV = this.camera.fov * Math.PI / 180;
                 const tan = Math.tan(fovV / 2);
                 const minAspect = Math.min(this.camera.aspect, 1);
-                // Want the sphere body (radius 1) to fill ~0.95 of the
-                // shorter screen dimension. The halo extends a bit beyond
-                // but it's translucent so it can clip the edges safely.
-                const target = 2.0 / 0.95;
+                // Sphere body diameter = 2. We want it to fill ~70% of the
+                // shorter screen dimension at default zoom so the whole
+                // planet is visible with room for stats above and spread
+                // cards below without overlapping the sphere.
+                const target = 2.0 / 0.70;
                 return target / (2 * tan * minAspect);
             }
 
