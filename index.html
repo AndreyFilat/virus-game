@@ -1007,19 +1007,16 @@
             touch-action: none;
             transition: opacity 0.65s cubic-bezier(0.4, 0, 0.6, 1);
         }
-        /* Globe stays invisible while the helix intro plays, then fades
-           in as the picker becomes interactive. */
-        .world-map-screen.selecting .globe-canvas,
-        .world-map-screen.picker-zoomed .globe-canvas {
+        /* Globe is the primary visual for the entire map screen — picker,
+           regular map view, post-tutorial. The only state that hides it
+           is the helix intro animation. */
+        .world-map-screen:not(.intro) .globe-canvas {
             opacity: 1;
             pointer-events: auto;
         }
-        /* Hide the flat map during every picker phase — including the
-           intro animation — so the player never gets a flash of the 2D
-           texture before the globe takes over. */
-        .world-map-screen.intro .world-map-pan,
-        .world-map-screen.selecting .world-map-pan,
-        .world-map-screen.picker-zoomed .world-map-pan { display: none; }
+        /* The flat-map layer never shows on the map screen any more — the
+           globe handles all map visualisation. */
+        .world-map-screen .world-map-pan { display: none; }
 
         /* DNA helix slot on the map screen.
            Anchored at top: 50% always; movement is done purely via
@@ -4232,6 +4229,80 @@
                 this.cityMeshes.push(mesh);
             }
 
+            // Render infection halos at each infected continent's anchor
+            // city. Called from VirusGame.renderInfectionLayer() whenever
+            // infection state changes. Pulse animation runs in _tick.
+            updateInfections(continents, cities) {
+                if (!this._infectionGroup) {
+                    this._infectionGroup = new THREE.Group();
+                    this.earth.add(this._infectionGroup);
+                    this._infectionMeshes = new Map();
+                }
+                const infected = new Map();
+                for (const c of Object.values(continents)) {
+                    if (c.infectionLevel > 0 && c.infectionCityIdx != null) {
+                        infected.set(c.infectionCityIdx, c.infectionLevel);
+                    }
+                }
+                // Drop stale entries
+                for (const [idx, group] of this._infectionMeshes) {
+                    if (!infected.has(idx)) {
+                        this._infectionGroup.remove(group);
+                        group.userData.halo.geometry.dispose();
+                        group.userData.halo.material.dispose();
+                        group.userData.core.geometry.dispose();
+                        group.userData.core.material.dispose();
+                        this._infectionMeshes.delete(idx);
+                    }
+                }
+                // Create/update active ones
+                for (const [idx, level] of infected) {
+                    let group = this._infectionMeshes.get(idx);
+                    if (!group) {
+                        const city = cities[idx];
+                        if (!city) continue;
+                        const [, lat, lon] = city;
+                        const u = (lon + 180) / 360;
+                        const v = (90 - lat) / 180;
+                        const phi = u * 2 * Math.PI;
+                        const theta = v * Math.PI;
+                        const dir = new THREE.Vector3(
+                            -Math.cos(phi) * Math.sin(theta),
+                             Math.cos(theta),
+                             Math.sin(phi) * Math.sin(theta)
+                        );
+                        group = new THREE.Group();
+                        // Outer "spread zone" — translucent orange-red,
+                        // scaled with infection level.
+                        const halo = new THREE.Mesh(
+                            new THREE.SphereGeometry(0.05, 18, 14),
+                            new THREE.MeshBasicMaterial({
+                                color: 0xff6a3a, transparent: true,
+                                opacity: 0.35, depthWrite: false
+                            })
+                        );
+                        // Bright epicentre — small intense red dot pulsing
+                        // brighter as level rises.
+                        const core = new THREE.Mesh(
+                            new THREE.SphereGeometry(0.015, 16, 12),
+                            new THREE.MeshBasicMaterial({
+                                color: 0xff3a1f, transparent: true,
+                                opacity: 0.95, depthWrite: false
+                            })
+                        );
+                        group.add(halo);
+                        group.add(core);
+                        group.userData = { dir, idx, halo, core, level: 0 };
+                        this._infectionGroup.add(group);
+                        this._infectionMeshes.set(idx, group);
+                    }
+                    const dir = group.userData.dir;
+                    const r = 1.008;
+                    group.position.set(dir.x * r, dir.y * r, dir.z * r);
+                    group.userData.level = level;
+                }
+            }
+
             setSelectedCity(idx) {
                 this.cityMeshes.forEach((m, i) => {
                     const ud = m.userData;
@@ -4395,9 +4466,6 @@
             _tick() {
                 this._raf = requestAnimationFrame(this._tick);
                 if (this.stars) this.stars.rotation.y += 0.0003;
-                // Level-of-detail visibility based on current camera zoom:
-                // the further the camera is (larger z), the fewer cities
-                // we let through so the globe stays readable.
                 const factor = this.camera.position.z / (this._baseZ || 2.6);
                 for (let i = 0; i < this.cityMeshes.length; i++) {
                     const m = this.cityMeshes[i];
@@ -4405,6 +4473,20 @@
                     if (m.visible !== v) m.visible = v;
                     if (m.userData.ring && m.userData.ring.visible !== v) {
                         m.userData.ring.visible = v;
+                    }
+                }
+                // Animate infection halos — slow breath + bright epicentre.
+                if (this._infectionMeshes && this._infectionMeshes.size) {
+                    const t = performance.now() * 0.0017;
+                    for (const g of this._infectionMeshes.values()) {
+                        const level = g.userData.level || 0;
+                        const base = 1 + (level / 100) * 5;     // 1× → 6× at 100
+                        const pulse = 1 + Math.sin(t) * 0.07;
+                        g.userData.halo.scale.setScalar(base * pulse);
+                        g.userData.halo.material.opacity = 0.28 + 0.10 * Math.sin(t * 1.4);
+                        const corePulse = 1 + Math.sin(t * 2.3) * 0.18;
+                        g.userData.core.scale.setScalar(corePulse);
+                        g.userData.core.material.opacity = 0.85 + 0.12 * Math.sin(t * 2.3);
                     }
                 }
                 this.renderer.render(this.scene, this.camera);
@@ -5390,8 +5472,11 @@
                 if (id === 'worldMapScreen') {
                     this.renderCities();
                     this.updateMapZoomedClass();
-                    // Always show zoom controls on the map screen unless a
-                    // picker is active.
+                    // Globe is the primary visual — make sure it's
+                    // initialised even if the player jumps straight to
+                    // the map without going through the picker first.
+                    this.ensureGlobe();
+                    if (this.globe) this.globe.updateInfections(this.continents, this.cities);
                     const ws = document.getElementById('worldMapScreen');
                     if (ws && !this.pickerMode) ws.classList.add('show-zoom-ctrl');
                 }
@@ -6081,30 +6166,18 @@
             // ---- Infection rendering ------------------------------------
 
             renderInfectionLayer() {
-                const layer = document.getElementById('infectionLayer');
-                if (!layer) return;
-                // Clear previous halos but keep <defs>
-                Array.from(layer.querySelectorAll('.infection-halo')).forEach(n => n.remove());
-                const ns = 'http://www.w3.org/2000/svg';
+                // Ensure each continent that has an infection knows which
+                // city its halo should anchor to (legacy continents may
+                // not have infectionCityIdx set).
                 Object.entries(this.continents).forEach(([id, c]) => {
                     if (c.infectionLevel <= 0) return;
-                    const cityIdx = (c.infectionCityIdx !== undefined && c.infectionCityIdx >= 0)
-                        ? c.infectionCityIdx
-                        : this.pickDefaultCityForContinent(id);
-                    if (cityIdx == null) return;
-                    const city = this.cities[cityIdx];
-                    if (!city) return;
-                    const { x, y } = this.cityToXY(city[1], city[2], city[4], city[0]);
-                    // Radius scales with infection level: ~22 at lvl 1, ~110 at lvl 100
-                    const r = 20 + c.infectionLevel * 0.9;
-                    const halo = document.createElementNS(ns, 'circle');
-                    halo.setAttribute('class', 'infection-halo');
-                    halo.setAttribute('cx', x);
-                    halo.setAttribute('cy', y);
-                    halo.setAttribute('r', r);
-                    halo.setAttribute('fill', 'url(#infectionGrad)');
-                    layer.appendChild(halo);
+                    if (c.infectionCityIdx == null || c.infectionCityIdx < 0) {
+                        c.infectionCityIdx = this.pickDefaultCityForContinent(id);
+                    }
                 });
+                // The 2D map is gone — push infection state to the globe.
+                this.ensureGlobe();
+                if (this.globe) this.globe.updateInfections(this.continents, this.cities);
             }
 
             pickDefaultCityForContinent(continentId) {
