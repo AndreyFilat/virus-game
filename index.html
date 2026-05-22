@@ -5814,13 +5814,22 @@
                 const list = document.getElementById('spreadMethodsList');
                 if (!list) return;
                 list.innerHTML = '';
+                // If the player has a city pre-selected, methods are
+                // graded against that city's continent. Methods that can't
+                // physically reach it (e.g. land into a sea-bound region)
+                // are disabled in the modal so the player can't pick one
+                // that just falls through.
+                const selCity = this.mapSelectedCityIdx != null
+                    ? this.cities[this.mapSelectedCityIdx] : null;
+                const selCont = selCity ? selCity[4] : null;
                 this.spreadOptions.forEach(o => {
                     const btn = document.createElement('button');
                     btn.className = 'spread-method-btn';
                     btn.dataset.id = o.id;
-                    const validCount = this.getValidTargets(o.id).size;
+                    const valid = this.getValidTargets(o.id);
                     const cost = this.getSpreadCost(o.id);
                     let costHTML, locked = false, disabled = false;
+                    const cityOutOfReach = selCont && !valid.has(selCont);
                     if (o.requiresInvite) {
                         const uses = this.unlockedSpreads[o.id] || 0;
                         if (uses <= 0) {
@@ -5828,12 +5837,12 @@
                             btn.classList.add('locked');
                             costHTML = '<div class="method-cost invite" aria-label="Пригласить друга">👥</div>';
                         } else {
-                            disabled = validCount === 0;
+                            disabled = valid.size === 0 || cityOutOfReach;
                             costHTML = `<div class="method-cost">🚀 ×${uses}</div>`;
                         }
                     } else {
-                        const affordable = this.dnaPoints >= cost && validCount > 0;
-                        disabled = !affordable;
+                        const affordable = this.dnaPoints >= cost && valid.size > 0;
+                        disabled = !affordable || cityOutOfReach;
                         costHTML = `<div class="method-cost">🧬 ${cost}</div>`;
                     }
                     if (disabled) btn.classList.add('disabled');
@@ -5846,13 +5855,13 @@
                         this.closeSpreadModal();
                         if (locked) { this.showInviteModal(o.id); return; }
                         if (disabled) return;
-                        // If a city is already highlighted on the map, draw
-                        // the arc straight to it instead of re-opening a
-                        // picker. Falls back to the picker flow if the
-                        // method can't actually hit that city's continent.
+                        // City already selected → always go through the
+                        // direct-spread arc, never re-open the continent
+                        // picker. (Disabled state above already filters
+                        // unreachable combinations.)
                         if (this.mapSelectedCityIdx != null) {
-                            const ok = this.tryDirectSpread(o.id, this.mapSelectedCityIdx);
-                            if (ok) return;
+                            this.tryDirectSpread(o.id, this.mapSelectedCityIdx);
+                            return;
                         }
                         this.purchaseSpread(o.id);
                     });
@@ -5915,17 +5924,21 @@
                 if (!c) return;
                 this.mapSelectedCityIdx = idx;
                 if (this.globe) this.globe.setSelectedCity(idx);
-                // The "infected" marker is per-city — the red anchor city
-                // is the only one we treat as fully infected. Every other
-                // city (including cities inside an already-infected
-                // continent) gets the spread action button.
+                // Hide the spread button on the red anchor city and on any
+                // city that has no transmission method that could even
+                // reach it (e.g. an already-infected continent). The modal
+                // still treats individual methods independently if the
+                // button is shown.
                 const continent = this.continents[c[4]];
                 const isAnchor = continent
                     && continent.infectionLevel > 0
                     && continent.infectionCityIdx === idx;
+                const reachable = this.spreadOptions.some(o =>
+                    this.getValidTargets(o.id).has(c[4]));
+                const canSpread = !isAnchor && reachable;
                 this.showCityPlate(idx, c[0],
-                    isAnchor ? null : 'Распространить',
-                    isAnchor ? null : () => this.showSpreadModal()
+                    canSpread ? 'Распространить' : null,
+                    canSpread ? () => this.showSpreadModal() : null
                 );
             }
 
