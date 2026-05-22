@@ -985,7 +985,8 @@
             margin-top: 0;
             pointer-events: none;
         }
-        .world-map-screen .spread-section > * { pointer-events: auto; }
+        .world-map-screen .spread-section > * { pointer-events: none; }
+        .world-map-screen.active .spread-section > * { pointer-events: auto; }
         body.selecting .world-map-screen .spread-section { display: none; }
 
         .world-map-title { display: none; }
@@ -1027,9 +1028,10 @@
             transition: opacity 0.65s cubic-bezier(0.4, 0, 0.6, 1);
         }
         /* Globe is the primary visual for the entire map screen — picker,
-           regular map view, post-tutorial. The only state that hides it
-           is the helix intro animation. */
-        .world-map-screen:not(.intro) .globe-canvas {
+           regular map view, post-tutorial. The only states that hide it
+           are screens where the world-map isn't active, and the helix
+           intro animation. */
+        .world-map-screen.active:not(.intro) .globe-canvas {
             opacity: 1;
             pointer-events: auto;
         }
@@ -2087,7 +2089,8 @@
             width: auto;
             pointer-events: none;
         }
-        .world-map-stats > * { pointer-events: auto; }
+        .world-map-stats > * { pointer-events: none; }
+        .world-map-screen.active .world-map-stats > * { pointer-events: auto; }
         body.selecting .world-map-stats { display: none; }
 
         .map-stat {
