@@ -955,8 +955,6 @@
         /* World Map Screen with embedded image */
         .world-map-screen {
             padding: 0;
-            display: block;
-            position: relative;
             overflow: hidden;
         }
         /* Default state for the map view (outside the picker): wrapper
@@ -972,7 +970,9 @@
         }
 
         /* Spread upgrade cards float across the bottom of the map screen,
-           above the bottom-nav. Translucent so the globe shows through. */
+           above the bottom-nav. Translucent so the globe shows through.
+           Container is pointer-events:none so taps between cards still
+           reach the globe; the cards themselves opt back in. */
         .world-map-screen .spread-section {
             position: absolute;
             left: 0;
@@ -983,7 +983,9 @@
             max-width: 100%;
             padding: 0 12px;
             margin-top: 0;
+            pointer-events: none;
         }
+        .world-map-screen .spread-section > * { pointer-events: auto; }
         body.selecting .world-map-screen .spread-section { display: none; }
 
         .world-map-title { display: none; }
@@ -2068,7 +2070,10 @@
         
         /* Stats below map */
         /* Stats strip floats below the DNA counter, across the top of the
-           map screen. Compact, translucent so the globe shows through. */
+           map screen. Compact, translucent so the globe shows through.
+           Container is transparent to pointer events — only the tiles
+           themselves swallow touches, so taps in the gaps still reach
+           the globe for rotation. */
         .world-map-stats {
             position: absolute;
             top: 68px;
@@ -2080,7 +2085,9 @@
             gap: 6px;
             margin-top: 0;
             width: auto;
+            pointer-events: none;
         }
+        .world-map-stats > * { pointer-events: auto; }
         body.selecting .world-map-stats { display: none; }
 
         .map-stat {
