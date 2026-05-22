@@ -4734,7 +4734,7 @@
                 const initialZ = this.camera.position.z;
                 const initialQuat = this.earth.quaternion.clone();
                 const baseZ = this._baseZ || 2.6;
-                const targetZ = Math.max(baseZ * 0.4, initialZ * 0.88);
+                const targetZ = Math.max(baseZ * 0.4, initialZ * 0.7);
                 const PAN = omega > Math.PI / 4;
                 const endQuat = PAN
                     ? this._quaternionAligningToZ(
