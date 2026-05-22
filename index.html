@@ -954,20 +954,37 @@
         
         /* World Map Screen with embedded image */
         .world-map-screen {
-            padding: 28px 0 76px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            overflow-y: auto;
+            padding: 0;
+            display: block;
+            position: relative;
+            overflow: hidden;
+        }
+        /* Default state for the map view (outside the picker): wrapper
+           fills the entire screen so the globe is the primary visual.
+           Picker-mode rules below take over for selecting/picker-zoomed
+           etc. — same full-bleed layout, but with their own classes. */
+        .world-map-screen .world-map-wrapper {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            aspect-ratio: auto;
         }
 
+        /* Spread upgrade cards float across the bottom of the map screen,
+           above the bottom-nav. Translucent so the globe shows through. */
         .world-map-screen .spread-section {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 80px;
+            z-index: 50;
             width: 100%;
-            max-width: 420px;
+            max-width: 100%;
             padding: 0 12px;
-            margin-top: 10px;
+            margin-top: 0;
         }
+        body.selecting .world-map-screen .spread-section { display: none; }
 
         .world-map-title { display: none; }
 
@@ -2050,55 +2067,60 @@
         .ip-3 { top: 60%; left: 75%; animation-delay: 1.4s; }    /* Asia */
         
         /* Stats below map */
+        /* Stats strip floats below the DNA counter, across the top of the
+           map screen. Compact, translucent so the globe shows through. */
         .world-map-stats {
-            width: calc(100% - 12px);
-            flex: 0 0 auto;
+            position: absolute;
+            top: 68px;
+            left: 12px;
+            right: 12px;
+            z-index: 50;
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            margin-top: 10px;
+            gap: 6px;
+            margin-top: 0;
+            width: auto;
         }
+        body.selecting .world-map-stats { display: none; }
 
         .map-stat {
             position: relative;
             background:
-                linear-gradient(170deg, rgba(40, 55, 75, 0.85), rgba(20, 28, 42, 0.95));
+                linear-gradient(170deg, rgba(40, 55, 75, 0.78), rgba(20, 28, 42, 0.85));
             backdrop-filter: blur(10px);
             border: 1.5px solid rgba(74, 222, 128, 0.25);
-            border-radius: 14px;
-            padding: 9px 6px;
+            border-radius: 12px;
+            padding: 6px 4px;
             text-align: center;
             box-shadow:
-                0 6px 18px rgba(0, 0, 0, 0.45),
-                0 0 18px rgba(74, 222, 128, 0.12),
+                0 6px 14px rgba(0, 0, 0, 0.40),
+                0 0 14px rgba(74, 222, 128, 0.10),
                 inset 0 1px 0 rgba(255, 255, 255, 0.08),
-                inset 0 -2px 0 rgba(0, 0, 0, 0.35);
+                inset 0 -2px 0 rgba(0, 0, 0, 0.30);
         }
         .map-stat::before {
             content: '';
             position: absolute;
             inset: 0;
-            border-radius: 14px;
+            border-radius: 12px;
             background: radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, 0.08), transparent 55%);
             pointer-events: none;
         }
-
         .map-stat-value {
             font-family: 'Space Mono', monospace;
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 700;
             color: #86efac;
-            margin-bottom: 2px;
+            margin-bottom: 1px;
             text-shadow: 0 0 8px rgba(74, 222, 128, 0.6);
             position: relative;
         }
-
         .map-stat-label {
-            font-size: 9px;
+            font-size: 8.5px;
             color: #9ca3af;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.8px;
             position: relative;
         }
         
@@ -4255,6 +4277,15 @@
                         this._infectionMeshes.delete(idx);
                     }
                 }
+                // Tint city dots: infected anchor cities glow red, others
+                // fall back to their default mint-tinted fill.
+                const INFECTED_COLOR = 0xff3a2a;
+                for (let i = 0; i < this.cityMeshes.length; i++) {
+                    const m = this.cityMeshes[i];
+                    const isInf = infected.has(m.userData.idx);
+                    m.userData.infected = isInf;
+                    m.material.color.set(isInf ? INFECTED_COLOR : m.userData.baseColor);
+                }
                 // Create/update active ones
                 for (const [idx, level] of infected) {
                     let group = this._infectionMeshes.get(idx);
@@ -4311,7 +4342,9 @@
                         m.scale.setScalar(1.6);
                         if (ud.ring) ud.ring.scale.setScalar(1.6);
                     } else {
-                        m.material.color.set(ud.baseColor);
+                        // Restore: red for infected anchor cities, default
+                        // fill otherwise.
+                        m.material.color.set(ud.infected ? 0xff3a2a : ud.baseColor);
                         m.scale.setScalar(1);
                         if (ud.ring) ud.ring.scale.setScalar(1);
                     }
