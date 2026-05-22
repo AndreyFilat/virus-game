@@ -4236,7 +4236,11 @@
                     };
                     for (let i = 0; i < d.length; i += 4) {
                         const r = d[i], g = d[i+1], b = d[i+2];
-                        const isOcean = (b > r + 18) && (b > g - 5) && (r < 95);
+                        // Tighter ocean detection so haze / cloud edges over
+                        // land (which can read mildly blue) don't get painted
+                        // as bright sea. Genuine ocean pixels are strongly
+                        // blue-dominant over BOTH red AND green.
+                        const isOcean = (b > r + 28) && (b > g + 18) && (r < 75);
                         if (!isOcean) {
                             d[i]   = Math.min(255, Math.round(r * 1.10));
                             d[i+1] = Math.min(255, Math.round(g * 1.10));
