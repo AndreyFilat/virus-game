@@ -3227,10 +3227,91 @@
         .open-spread-btn:active { transform: scale(0.97); }
         .open-spread-btn .open-spread-icon { font-size: 18px; line-height: 1; }
 
-        /* When the player taps a city on the map screen, the existing
-           selection prompt is re-used to show the city name with the same
-           gold-gradient styling as the initial city picker. */
-        .world-map-screen.city-picked .selection-prompt { opacity: 1; }
+        /* Floating name plate that hovers above the selected city dot.
+           Position is set via inline left/top in JS each frame. */
+        .city-plate {
+            position: fixed;
+            z-index: 200;
+            transform: translate(-50%, calc(-100% - 16px));
+            min-width: 120px;
+            padding: 9px 16px 10px;
+            border-radius: 14px;
+            background: linear-gradient(170deg, rgba(36, 49, 66, 0.96), rgba(18, 26, 40, 0.96));
+            backdrop-filter: blur(14px);
+            border: 1.5px solid rgba(168, 85, 247, 0.55);
+            text-align: center;
+            box-shadow:
+                0 10px 24px rgba(0, 0, 0, 0.55),
+                0 0 22px rgba(168, 85, 247, 0.25),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            pointer-events: none;
+        }
+        .city-plate.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .city-plate.behind { opacity: 0; pointer-events: none; }
+        .city-plate .plate-name {
+            font-family: 'Space Mono', monospace;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            background: linear-gradient(135deg, #fffbe6 0%, #fde68a 40%, #f59e0b 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+            text-shadow: 0 0 14px rgba(253, 224, 71, 0.4);
+            filter: drop-shadow(0 0 6px rgba(253, 224, 71, 0.45));
+            white-space: nowrap;
+        }
+        .city-plate .plate-action {
+            margin-top: 8px;
+            background: linear-gradient(170deg, #00ffa7 0%, #00d97f 55%, #009b5b 100%);
+            color: #042418;
+            border: 1.5px solid rgba(187, 247, 208, 0.85);
+            font-family: 'Space Mono', monospace;
+            font-weight: 800;
+            font-size: 11px;
+            letter-spacing: 1.4px;
+            text-transform: uppercase;
+            padding: 7px 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+            box-shadow:
+                0 6px 14px rgba(0, 0, 0, 0.45),
+                0 0 16px rgba(0, 255, 159, 0.35),
+                inset 0 1px 0 rgba(255, 255, 255, 0.45);
+            transition: transform 0.12s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .city-plate .plate-action:active { transform: scale(0.96); }
+        .city-plate .plate-action[hidden] { display: none; }
+        /* Little tail/arrow pointing to the city dot below. */
+        .city-plate .plate-tail {
+            position: absolute;
+            bottom: -7px;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 8px solid rgba(168, 85, 247, 0.55);
+            transform: translateX(-50%);
+            filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.45));
+        }
+
+        /* The map-screen "Распространить" pill and the picker bottom
+           "Подтвердить" button disappear while the plate is showing —
+           the plate carries the action itself. */
+        body.plate-open .open-spread-btn,
+        body.plate-open .confirm-button { display: none; }
         .modal-link {
             background: rgba(0, 0, 0, 0.45);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -3861,6 +3942,15 @@
             </div>
 
             <button class="confirm-button" id="confirmContinent">Подтвердить выбор</button>
+
+            <!-- Floating name plate that hovers above the currently selected
+                 city dot on the globe. Position is updated each frame in JS. -->
+            <div class="city-plate" id="cityPlate" hidden>
+                <div class="plate-name" id="plateName"></div>
+                <button class="plate-action" id="plateAction" hidden>Распространить</button>
+                <div class="plate-tail"></div>
+            </div>
+
             <div class="world-map-stats">
                 <div class="map-stat">
                     <div class="map-stat-value" id="statInfected">0</div>
@@ -5811,32 +5901,97 @@
                 const c = this.cities[idx];
                 if (!c) return;
                 this.mapSelectedCityIdx = idx;
-                // Highlight the dot on the globe
                 if (this.globe) this.globe.setSelectedCity(idx);
-                // Re-use the picker prompt's "Выбран — <city>" presentation
-                // so the name reads identically to the initial city pick.
-                const screen = document.getElementById('worldMapScreen');
-                const prompt = document.getElementById('selectionPrompt');
-                const title = prompt && prompt.querySelector('.selection-title');
-                const sub = document.getElementById('selectionSub');
-                if (screen) screen.classList.add('city-picked');
-                if (prompt) prompt.classList.add('city-chosen');
-                if (title) title.textContent = 'Выбран';
-                if (sub) {
-                    sub.textContent = c[0];
-                    sub.style.animation = 'none';
-                    void sub.offsetWidth;
-                    sub.style.animation = '';
-                }
+                const cont = c[4];
+                const infected = !!(this.continents[cont] && this.continents[cont].infectionLevel > 0);
+                this.showCityPlate(idx, c[0],
+                    infected ? null : 'Распространить',
+                    infected ? null : () => this.showSpreadModal()
+                );
             }
 
             clearMapSelection() {
                 this.mapSelectedCityIdx = null;
                 if (this.globe) this.globe.setSelectedCity(-1);
-                const screen = document.getElementById('worldMapScreen');
-                const prompt = document.getElementById('selectionPrompt');
-                if (screen) screen.classList.remove('city-picked');
-                if (prompt) prompt.classList.remove('city-chosen');
+                this.hideCityPlate();
+            }
+
+            // City name plate floating above the selected dot. We update its
+            // screen position each frame via projection.
+            showCityPlate(cityIdx, name, actionLabel, onAction) {
+                const plate = document.getElementById('cityPlate');
+                const nameEl = document.getElementById('plateName');
+                const actionEl = document.getElementById('plateAction');
+                if (!plate || !nameEl || !actionEl) return;
+                this._plateCityIdx = cityIdx;
+                nameEl.textContent = name;
+                if (actionLabel) {
+                    actionEl.textContent = actionLabel;
+                    actionEl.hidden = false;
+                    actionEl.onclick = (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (onAction) onAction();
+                    };
+                } else {
+                    actionEl.hidden = true;
+                    actionEl.onclick = null;
+                }
+                plate.hidden = false;
+                requestAnimationFrame(() => plate.classList.add('visible'));
+                document.body.classList.add('plate-open');
+                this._updatePlatePos();
+                if (!this._plateTrackerActive) {
+                    this._plateTrackerActive = true;
+                    const tick = () => {
+                        if (!this._plateTrackerActive) return;
+                        this._updatePlatePos();
+                        this._plateRAF = requestAnimationFrame(tick);
+                    };
+                    this._plateRAF = requestAnimationFrame(tick);
+                }
+            }
+
+            hideCityPlate() {
+                this._plateCityIdx = null;
+                this._plateTrackerActive = false;
+                if (this._plateRAF) cancelAnimationFrame(this._plateRAF);
+                this._plateRAF = null;
+                const plate = document.getElementById('cityPlate');
+                if (plate) {
+                    plate.classList.remove('visible');
+                    setTimeout(() => { plate.hidden = true; }, 220);
+                }
+                document.body.classList.remove('plate-open');
+            }
+
+            _updatePlatePos() {
+                if (this._plateCityIdx == null || !this.globe) return;
+                const mesh = this.globe.cityMeshes[this._plateCityIdx];
+                if (!mesh) return;
+                const plate = document.getElementById('cityPlate');
+                if (!plate) return;
+                const worldPos = new THREE.Vector3();
+                mesh.getWorldPosition(worldPos);
+                const cam = this.globe.camera;
+                const camPos = new THREE.Vector3();
+                cam.getWorldPosition(camPos);
+                // Visible if the city is on the camera-facing hemisphere.
+                const cityDir = worldPos.clone().normalize();
+                const camDir = camPos.clone().normalize();
+                const visible = cityDir.dot(camDir) > 0.08;
+                if (!visible) {
+                    plate.classList.add('behind');
+                    return;
+                }
+                plate.classList.remove('behind');
+                const proj = worldPos.clone().project(cam);
+                const canvas = this.globe.canvas;
+                const rect = canvas.getBoundingClientRect();
+                const x = rect.left + (proj.x * 0.5 + 0.5) * rect.width;
+                const y = rect.top  + (-proj.y * 0.5 + 0.5) * rect.height;
+                plate.style.left = x + 'px';
+                plate.style.top  = y + 'px';
             }
 
             cloneHelixToMap() {
@@ -5968,6 +6123,10 @@
                 document.querySelectorAll('.nav-btn').forEach(b => {
                     b.classList.toggle('active', b.dataset.screen === id);
                 });
+
+                // Leaving the map screen → drop any plate; entering it →
+                // the player has to tap a city to bring it back.
+                if (id !== 'worldMapScreen') this.hideCityPlate();
 
                 if (id === 'evolutionScreen') this.renderVirusScreen();
                 if (id === 'startScreen' && this.tutorialDone) {
@@ -6116,6 +6275,7 @@
                         document.querySelector('.bottom-nav').classList.remove('locked');
                         const prompt = document.getElementById('selectionPrompt');
                         if (prompt) prompt.classList.remove('city-chosen');
+                        this.hideCityPlate();
                         this.pickerMode = null;
                         this.selectedContinent = null;
                         this.selectedCityIdx = null;
@@ -6641,35 +6801,27 @@
             }
 
             handleCityTap(idx) {
+                const c = this.cities[idx];
+                if (!c) return;
                 if (!this.pickerMode) {
                     this.setMapSelectedCity(idx);
                     return;
                 }
-                const c = this.cities[idx];
-                if (!c) return;
                 const continent = c[4];
                 const valid = this.getValidTargets(this.pickerMode === 'tutorial' ? 'any' : this.pickerMode);
-                if (!valid.has(continent)) return;
-                this.selectedCityIdx = idx;
-                this.selectedContinent = continent;
-                document.querySelectorAll('.city-group.selected')
-                    .forEach(g => g.classList.remove('selected'));
-                const groups = document.querySelectorAll('.city-group');
-                if (groups[idx]) groups[idx].classList.add('selected');
-                if (this.globe) this.globe.setSelectedCity(idx);
-                const confirm = document.getElementById('confirmContinent');
-                if (confirm) confirm.classList.add('visible');
-                const prompt = document.getElementById('selectionPrompt');
-                const title = prompt && prompt.querySelector('.selection-title');
-                const sub = document.getElementById('selectionSub');
-                if (prompt) prompt.classList.add('city-chosen');
-                if (title) title.textContent = 'Выбран';
-                if (sub) {
-                    // Restart the pop animation by toggling content + reflow.
-                    sub.textContent = c[0];
-                    sub.style.animation = 'none';
-                    void sub.offsetWidth;
-                    sub.style.animation = '';
+                const isValid = valid.has(continent);
+                if (isValid) {
+                    this.selectedCityIdx = idx;
+                    this.selectedContinent = continent;
+                    if (this.globe) this.globe.setSelectedCity(idx);
+                    const label = this.pickerMode === 'tutorial' ? 'Разместить' : 'Заразить';
+                    this.showCityPlate(idx, c[0], label, () => this.confirmContinent());
+                } else {
+                    // Invalid target — surface the name so the player sees
+                    // they did tap something, but offer no action.
+                    if (this.globe) this.globe.setSelectedCity(-1);
+                    this.selectedCityIdx = null;
+                    this.showCityPlate(idx, c[0], null, null);
                 }
             }
 
