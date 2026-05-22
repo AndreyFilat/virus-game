@@ -3244,13 +3244,13 @@
                 inset 0 1px 0 rgba(255, 255, 255, 0.1);
             opacity: 0;
             transition: opacity 0.2s ease;
+            /* Pointer events are off on the plate so the player can keep
+               rotating / pinching the globe over it. Only the action
+               button below opts back in to catch its own tap. */
             pointer-events: none;
         }
-        .city-plate.visible {
-            opacity: 1;
-            pointer-events: auto;
-        }
-        .city-plate.behind { opacity: 0; pointer-events: none; }
+        .city-plate.visible { opacity: 1; }
+        .city-plate.behind { opacity: 0; }
         .city-plate .plate-name {
             font-family: 'Space Mono', monospace;
             font-size: 18px;
@@ -3289,6 +3289,7 @@
             align-items: center;
             gap: 6px;
         }
+        .city-plate.visible .plate-action:not([hidden]) { pointer-events: auto; }
         .city-plate .plate-action:active { transform: scale(0.96); }
         .city-plate .plate-action[hidden] { display: none; }
         /* Little tail/arrow pointing to the city dot below. */
@@ -5369,12 +5370,16 @@
                 ];
 
                 // Land adjacency between continents (simplified geopolitics)
+                // Geographic land bridges only. Europe and Africa are
+                // separated by the Mediterranean (no real land border) —
+                // Africa connects to the rest of the world via the Sinai
+                // isthmus into Asia only.
                 this.landNeighbors = {
                     'north-america': ['south-america'],
                     'south-america': ['north-america'],
-                    'europe':        ['asia', 'africa'],
+                    'europe':        ['asia'],
                     'asia':          ['europe', 'africa'],
-                    'africa':        ['europe', 'asia'],
+                    'africa':        ['asia'],
                     'australia':     [] // isolated by sea
                 };
 
@@ -5898,7 +5903,7 @@
                     this.clearMapSelection();
                 };
                 if (sourceId) {
-                    this.animateInfection(methodId, sourceId, targetId, arrive);
+                    this.animateInfection(methodId, sourceId, targetId, arrive, cityIdx);
                 } else {
                     arrive();
                 }
@@ -5910,11 +5915,17 @@
                 if (!c) return;
                 this.mapSelectedCityIdx = idx;
                 if (this.globe) this.globe.setSelectedCity(idx);
-                const cont = c[4];
-                const infected = !!(this.continents[cont] && this.continents[cont].infectionLevel > 0);
+                // The "infected" marker is per-city — the red anchor city
+                // is the only one we treat as fully infected. Every other
+                // city (including cities inside an already-infected
+                // continent) gets the spread action button.
+                const continent = this.continents[c[4]];
+                const isAnchor = continent
+                    && continent.infectionLevel > 0
+                    && continent.infectionCityIdx === idx;
                 this.showCityPlate(idx, c[0],
-                    infected ? null : 'Распространить',
-                    infected ? null : () => this.showSpreadModal()
+                    isAnchor ? null : 'Распространить',
+                    isAnchor ? null : () => this.showSpreadModal()
                 );
             }
 
@@ -7146,13 +7157,14 @@
                 return { x: offX + pt.x * scale, y: offY + pt.y * scale };
             }
 
-            animateInfection(mode, fromId, toId, onArrive) {
+            animateInfection(mode, fromId, toId, onArrive, targetCityIdx) {
                 // 3D globe: draw a red great-circle arc from the source
                 // infection anchor city to the target city the player just
-                // picked. Falls through to the callback if the globe isn't
-                // ready yet.
+                // picked. Target city can be supplied explicitly (direct
+                // spread flow) or fall back to selectedCityIdx (picker).
                 if (!this.globe) { onArrive && onArrive(); return; }
-                const targetCity = this.cities[this.selectedCityIdx];
+                const tIdx = (targetCityIdx != null) ? targetCityIdx : this.selectedCityIdx;
+                const targetCity = this.cities[tIdx];
                 if (!targetCity) { onArrive && onArrive(); return; }
                 const fromCont = this.continents[fromId];
                 const fromIdx = fromCont && fromCont.infectionCityIdx;
