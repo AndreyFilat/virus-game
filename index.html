@@ -3226,40 +3226,10 @@
         .open-spread-btn:active { transform: scale(0.97); }
         .open-spread-btn .open-spread-icon { font-size: 18px; line-height: 1; }
 
-        /* Floating chip that surfaces a city name when the player taps it
-           on the globe outside picker mode. Auto-dismisses after ~1.8s. */
-        .city-hint {
-            position: absolute;
-            top: 132px;
-            left: 50%;
-            transform: translateX(-50%) translateY(-8px);
-            z-index: 80;
-            background: rgba(20, 30, 45, 0.92);
-            backdrop-filter: blur(12px);
-            border: 1.5px solid rgba(168, 85, 247, 0.5);
-            color: #fff;
-            font-family: 'Space Mono', monospace;
-            font-size: 15px;
-            font-weight: 700;
-            letter-spacing: 1.2px;
-            padding: 8px 18px;
-            border-radius: 12px;
-            box-shadow:
-                0 6px 18px rgba(0, 0, 0, 0.55),
-                0 0 18px rgba(168, 85, 247, 0.22),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.25s ease, transform 0.3s cubic-bezier(0.18, 0.85, 0.3, 1.1);
-        }
-        .city-hint.visible {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
-        }
-        .city-hint.fade-out {
-            opacity: 0;
-            transform: translateX(-50%) translateY(-6px);
-        }
+        /* When the player taps a city on the map screen, the existing
+           selection prompt is re-used to show the city name with the same
+           gold-gradient styling as the initial city picker. */
+        .world-map-screen.city-picked .selection-prompt { opacity: 1; }
         .modal-link {
             background: rgba(0, 0, 0, 0.45);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -4583,8 +4553,9 @@
             }
 
             // Draw an animated red arc on the sphere from one lat/lon to
-            // another. Used by the spread infection flow instead of the
-            // old 2D vehicle animation.
+            // another. Two stacked tubes (additive-blended outer glow +
+            // bright cream core) plus a glowing "head" particle that
+            // travels along the arc as it draws in.
             animateInfectionArc(fromLat, fromLon, toLat, toLon, onArrive) {
                 const r = 1.012;
                 const toVec = (lat, lon) => {
@@ -4602,7 +4573,7 @@
                 const b = toVec(toLat, toLon);
                 const dot = Math.min(1, Math.max(-1, a.dot(b)));
                 const omega = Math.acos(dot);
-                const SEG = 64;
+                const SEG = 90;
                 const pts = [];
                 for (let i = 0; i <= SEG; i++) {
                     const t = i / SEG;
@@ -4614,19 +4585,49 @@
                         v = a.clone().multiplyScalar(Math.sin((1 - t) * omega) / s)
                               .add(b.clone().multiplyScalar(Math.sin(t * omega) / s));
                     }
-                    // Lift the midpoint so the arc bows above the surface.
-                    const lift = 1 + Math.sin(t * Math.PI) * 0.18;
+                    const lift = 1 + Math.sin(t * Math.PI) * 0.22;
                     v.normalize().multiplyScalar(r * lift);
                     pts.push(v);
                 }
-                const geom = new THREE.BufferGeometry().setFromPoints(pts);
-                const mat = new THREE.LineBasicMaterial({
-                    color: 0xff3a2a, transparent: true, opacity: 1,
+                const curve = new THREE.CatmullRomCurve3(pts, false, 'centripetal', 0.5);
+                const SAMPLES = 96, RADIAL = 14;
+
+                // Outer additive glow tube — soft red bloom
+                const outerGeom = new THREE.TubeGeometry(curve, SAMPLES, 0.018, RADIAL, false);
+                const outerMat = new THREE.MeshBasicMaterial({
+                    color: 0xff4a30, transparent: true, opacity: 0.75,
+                    depthWrite: false, blending: THREE.AdditiveBlending
+                });
+                const outer = new THREE.Mesh(outerGeom, outerMat);
+                outer.renderOrder = 999;
+
+                // Bright cream-white core
+                const innerGeom = new THREE.TubeGeometry(curve, SAMPLES, 0.0065, RADIAL, false);
+                const innerMat = new THREE.MeshBasicMaterial({
+                    color: 0xfff0c8, transparent: true, opacity: 1,
                     depthWrite: false
                 });
-                const line = new THREE.Line(geom, mat);
-                geom.setDrawRange(0, 0);
-                this.earth.add(line);
+                const inner = new THREE.Mesh(innerGeom, innerMat);
+                inner.renderOrder = 1000;
+
+                this.earth.add(outer);
+                this.earth.add(inner);
+
+                // Travelling head particle — bright glow that leads the
+                // drawing front along the curve.
+                const headMat = new THREE.MeshBasicMaterial({
+                    color: 0xfff0c8, transparent: true, opacity: 1,
+                    depthWrite: false, blending: THREE.AdditiveBlending
+                });
+                const head = new THREE.Mesh(new THREE.SphereGeometry(0.032, 14, 12), headMat);
+                head.renderOrder = 1001;
+                this.earth.add(head);
+
+                const outerIdx = outerGeom.index ? outerGeom.index.count : 0;
+                const innerIdx = innerGeom.index ? innerGeom.index.count : 0;
+                outerGeom.setDrawRange(0, 0);
+                innerGeom.setDrawRange(0, 0);
+                head.position.copy(curve.getPointAt(0));
 
                 const DRAW_MS = 1100;
                 const HOLD_MS = 320;
@@ -4637,22 +4638,37 @@
                     const t = performance.now() - start;
                     if (t < DRAW_MS) {
                         const f = t / DRAW_MS;
-                        geom.setDrawRange(0, Math.ceil(f * (SEG + 1)));
+                        outerGeom.setDrawRange(0, Math.ceil(f * outerIdx));
+                        innerGeom.setDrawRange(0, Math.ceil(f * innerIdx));
+                        head.position.copy(curve.getPointAt(f));
+                        // Pulse the head for life
+                        const pulse = 1 + Math.sin(f * Math.PI * 6) * 0.18;
+                        head.scale.setScalar(pulse);
                         requestAnimationFrame(tick);
                     } else if (!arrived) {
-                        geom.setDrawRange(0, SEG + 1);
+                        outerGeom.setDrawRange(0, outerIdx);
+                        innerGeom.setDrawRange(0, innerIdx);
+                        head.position.copy(curve.getPointAt(1));
+                        head.scale.setScalar(1.4);
                         arrived = true;
                         onArrive && onArrive();
                         setTimeout(() => {
                             const fadeStart = performance.now();
                             const fade = () => {
                                 const ft = performance.now() - fadeStart;
-                                mat.opacity = Math.max(0, 1 - ft / FADE_MS);
+                                const k = Math.max(0, 1 - ft / FADE_MS);
+                                outerMat.opacity = 0.75 * k;
+                                innerMat.opacity = 1 * k;
+                                headMat.opacity  = 1 * k;
+                                head.scale.setScalar(1.4 + (1 - k) * 0.8);
                                 if (ft < FADE_MS) requestAnimationFrame(fade);
                                 else {
-                                    this.earth.remove(line);
-                                    geom.dispose();
-                                    mat.dispose();
+                                    this.earth.remove(outer);
+                                    this.earth.remove(inner);
+                                    this.earth.remove(head);
+                                    outerGeom.dispose(); outerMat.dispose();
+                                    innerGeom.dispose(); innerMat.dispose();
+                                    head.geometry.dispose(); headMat.dispose();
                                 }
                             };
                             fade();
@@ -5714,8 +5730,17 @@
                         `</span>` + costHTML;
                     this.tap(btn, () => {
                         this.closeSpreadModal();
-                        if (locked) this.showInviteModal(o.id);
-                        else this.purchaseSpread(o.id);
+                        if (locked) { this.showInviteModal(o.id); return; }
+                        if (disabled) return;
+                        // If a city is already highlighted on the map, draw
+                        // the arc straight to it instead of re-opening a
+                        // picker. Falls back to the picker flow if the
+                        // method can't actually hit that city's continent.
+                        if (this.mapSelectedCityIdx != null) {
+                            const ok = this.tryDirectSpread(o.id, this.mapSelectedCityIdx);
+                            if (ok) return;
+                        }
+                        this.purchaseSpread(o.id);
                     });
                     list.appendChild(btn);
                 });
@@ -5730,22 +5755,77 @@
                 setTimeout(() => { modal.hidden = true; }, 250);
             }
 
-            showCityHint(name) {
-                let chip = document.getElementById('cityHint');
-                if (!chip) {
-                    chip = document.createElement('div');
-                    chip.id = 'cityHint';
-                    chip.className = 'city-hint';
-                    document.querySelector('.game-container').appendChild(chip);
+            // Spread directly to the player's currently-selected city without
+            // re-opening the continent picker. Returns true if the spread
+            // was committed; false if the method can't target this city.
+            tryDirectSpread(methodId, cityIdx) {
+                const opt = this.spreadOptions.find(o => o.id === methodId);
+                if (!opt) return false;
+                const city = this.cities[cityIdx];
+                if (!city) return false;
+                const targetId = city[4];
+                const valid = this.getValidTargets(methodId);
+                if (!valid.has(targetId)) return false;
+
+                if (opt.requiresInvite) {
+                    if ((this.unlockedSpreads[methodId] || 0) <= 0) {
+                        this.showInviteModal(methodId);
+                        return true;
+                    }
+                    this.unlockedSpreads[methodId] -= 1;
+                } else {
+                    const cost = this.getSpreadCost(methodId);
+                    if (this.dnaPoints < cost) return false;
+                    this.dnaPoints -= cost;
+                    this.updateDNACounter();
                 }
-                chip.textContent = name;
-                chip.classList.remove('fade-out');
-                chip.classList.add('visible');
-                clearTimeout(this._cityHintTimer);
-                this._cityHintTimer = setTimeout(() => {
-                    chip.classList.remove('visible');
-                    chip.classList.add('fade-out');
-                }, 1800);
+                this.spreadCounts[methodId] = (this.spreadCounts[methodId] || 0) + 1;
+
+                const sourceId = this.findNearestInfected(targetId);
+                const cityName = city[0];
+                const arrive = () => {
+                    this.infectContinent(targetId, 5, cityIdx);
+                    this.showToast('Город заражён', cityName, 'above-map');
+                    this.clearMapSelection();
+                };
+                if (sourceId) {
+                    this.animateInfection(methodId, sourceId, targetId, arrive);
+                } else {
+                    arrive();
+                }
+                return true;
+            }
+
+            setMapSelectedCity(idx) {
+                const c = this.cities[idx];
+                if (!c) return;
+                this.mapSelectedCityIdx = idx;
+                // Highlight the dot on the globe
+                if (this.globe) this.globe.setSelectedCity(idx);
+                // Re-use the picker prompt's "Выбран — <city>" presentation
+                // so the name reads identically to the initial city pick.
+                const screen = document.getElementById('worldMapScreen');
+                const prompt = document.getElementById('selectionPrompt');
+                const title = prompt && prompt.querySelector('.selection-title');
+                const sub = document.getElementById('selectionSub');
+                if (screen) screen.classList.add('city-picked');
+                if (prompt) prompt.classList.add('city-chosen');
+                if (title) title.textContent = 'Выбран';
+                if (sub) {
+                    sub.textContent = c[0];
+                    sub.style.animation = 'none';
+                    void sub.offsetWidth;
+                    sub.style.animation = '';
+                }
+            }
+
+            clearMapSelection() {
+                this.mapSelectedCityIdx = null;
+                if (this.globe) this.globe.setSelectedCity(-1);
+                const screen = document.getElementById('worldMapScreen');
+                const prompt = document.getElementById('selectionPrompt');
+                if (screen) screen.classList.remove('city-picked');
+                if (prompt) prompt.classList.remove('city-chosen');
             }
 
             cloneHelixToMap() {
@@ -5905,6 +5985,7 @@
                 this.pickerMode = mode;
                 this.selectedContinent = null;
                 this.selectedCityIdx = null;
+                this.clearMapSelection();
                 this.resetMapView();
                 this.renderCities();
                 this.updateCityPickerAffordance();
@@ -6544,12 +6625,8 @@
             }
 
             handleCityTap(idx) {
-                // Outside picker mode (i.e. the normal map screen) a city
-                // tap just surfaces its name. Spread is initiated via the
-                // bottom "Распространить" button.
                 if (!this.pickerMode) {
-                    const c = this.cities[idx];
-                    if (c) this.showCityHint(c[0]);
+                    this.setMapSelectedCity(idx);
                     return;
                 }
                 const c = this.cities[idx];
