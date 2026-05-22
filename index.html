@@ -6253,6 +6253,9 @@
                 this.ensureGlobe();
                 if (this.globe) {
                     this.globe.resetView();
+                    if (mode === 'tutorial') {
+                        this.globe.centerOnLatLon(20, 30);
+                    }
                     this.globe.setSelectedCity(-1);
                 }
                 document.querySelectorAll('.city-group.selected').forEach(g => g.classList.remove('selected'));
