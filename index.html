@@ -3142,9 +3142,12 @@
             flex-shrink: 0;
         }
         .spread-method-btn .method-cost.invite {
-            background: linear-gradient(135deg, rgba(0, 255, 159, 0.18), rgba(0, 255, 159, 0.06));
+            background: linear-gradient(135deg, rgba(0, 255, 159, 0.22), rgba(0, 255, 159, 0.08));
             color: #00ff9f;
-            border-color: rgba(0, 255, 159, 0.5);
+            border-color: rgba(0, 255, 159, 0.55);
+            font-size: 18px;
+            padding: 4px 10px;
+            line-height: 1;
         }
 
         /* Single "Распространить" trigger button on the map screen. */
@@ -3153,24 +3156,25 @@
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            padding: 10px 18px;
+            padding: 11px 22px;
             border-radius: 14px;
-            background: linear-gradient(170deg, rgba(0, 255, 159, 0.20), rgba(0, 255, 159, 0.06));
-            border: 1.5px solid rgba(0, 255, 159, 0.55);
-            color: #00ff9f;
+            background: linear-gradient(170deg, #00ffa7 0%, #00d97f 55%, #009b5b 100%);
+            border: 1.5px solid rgba(187, 247, 208, 0.8);
+            color: #042418;
             font-family: 'Space Mono', monospace;
-            font-weight: 700;
+            font-weight: 800;
             font-size: 12px;
-            letter-spacing: 1.2px;
+            letter-spacing: 1.4px;
             text-transform: uppercase;
             cursor: pointer;
             -webkit-tap-highlight-color: transparent;
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
             box-shadow:
-                0 8px 20px rgba(0, 0, 0, 0.45),
-                0 0 18px rgba(0, 255, 159, 0.25),
-                inset 0 1px 0 rgba(255, 255, 255, 0.12),
-                inset 0 -2px 0 rgba(0, 0, 0, 0.3);
-            transition: transform 0.15s ease;
+                0 10px 22px rgba(0, 0, 0, 0.5),
+                0 0 22px rgba(0, 255, 159, 0.45),
+                inset 0 1px 0 rgba(255, 255, 255, 0.55),
+                inset 0 -2px 0 rgba(0, 0, 0, 0.25);
+            transition: transform 0.15s ease, box-shadow 0.2s;
         }
         .open-spread-btn:active { transform: scale(0.97); }
         .open-spread-btn .open-spread-icon { font-size: 18px; line-height: 1; }
@@ -3820,7 +3824,6 @@
             </div>
 
             <div class="upgrades-section spread-section" id="mapSpreadSection">
-                <div class="section-title">Распространение</div>
                 <div class="upgrades-list" id="spreadList"></div>
             </div>
 
@@ -3957,7 +3960,6 @@
             <div class="modal" role="dialog">
                 <div class="modal-icon">🦠</div>
                 <div class="modal-title">Распространение</div>
-                <div class="modal-text">Выбери способ передачи вируса</div>
                 <div class="spread-methods" id="spreadMethodsList"></div>
                 <button class="modal-btn ghost" id="spreadModalCloseBtn">Отмена</button>
             </div>
@@ -5511,7 +5513,7 @@
                         if (uses <= 0) {
                             locked = true;
                             btn.classList.add('locked');
-                            costHTML = '<div class="method-cost invite">Пригласить</div>';
+                            costHTML = '<div class="method-cost invite" aria-label="Пригласить друга">👥</div>';
                         } else {
                             disabled = validCount === 0;
                             costHTML = `<div class="method-cost">🚀 ×${uses}</div>`;
@@ -5526,7 +5528,6 @@
                         `<span class="method-icon">${o.icon}</span>` +
                         `<span class="method-body">` +
                             `<span class="method-name">${o.name}</span>` +
-                            `<span class="method-desc">${o.description}</span>` +
                         `</span>` + costHTML;
                     this.tap(btn, () => {
                         this.closeSpreadModal();
