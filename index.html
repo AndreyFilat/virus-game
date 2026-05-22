@@ -3092,6 +3092,88 @@
             line-height: 1.5;
             margin-bottom: 14px;
         }
+        .spread-methods {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .spread-method-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            border-radius: 14px;
+            background: linear-gradient(170deg, rgba(45, 58, 80, 0.95), rgba(20, 28, 42, 0.95));
+            border: 1.5px solid rgba(168, 85, 247, 0.4);
+            color: #fff;
+            font: 700 13px/1.2 inherit;
+            letter-spacing: 0.3px;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            box-shadow:
+                0 8px 20px rgba(0, 0, 0, 0.45),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                inset 0 -2px 0 rgba(0, 0, 0, 0.3);
+            transition: transform 0.15s ease, opacity 0.2s, box-shadow 0.2s;
+            text-align: left;
+        }
+        .spread-method-btn:active { transform: scale(0.97); }
+        .spread-method-btn.locked { opacity: 0.7; }
+        .spread-method-btn.disabled { opacity: 0.45; }
+        .spread-method-btn .method-icon {
+            font-size: 22px;
+            width: 28px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        .spread-method-btn .method-body { flex: 1; min-width: 0; }
+        .spread-method-btn .method-name { font-size: 13px; font-weight: 700; }
+        .spread-method-btn .method-desc { font-size: 10.5px; color: var(--text-secondary); margin-top: 2px; }
+        .spread-method-btn .method-cost {
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 8px;
+            border-radius: 8px;
+            color: #fff;
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.9), rgba(124, 58, 237, 0.95));
+            border: 1px solid rgba(168, 85, 247, 0.55);
+            flex-shrink: 0;
+        }
+        .spread-method-btn .method-cost.invite {
+            background: linear-gradient(135deg, rgba(0, 255, 159, 0.18), rgba(0, 255, 159, 0.06));
+            color: #00ff9f;
+            border-color: rgba(0, 255, 159, 0.5);
+        }
+
+        /* Single "Распространить" trigger button on the map screen. */
+        .open-spread-btn {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            border-radius: 14px;
+            background: linear-gradient(170deg, rgba(0, 255, 159, 0.20), rgba(0, 255, 159, 0.06));
+            border: 1.5px solid rgba(0, 255, 159, 0.55);
+            color: #00ff9f;
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            font-size: 12px;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            box-shadow:
+                0 8px 20px rgba(0, 0, 0, 0.45),
+                0 0 18px rgba(0, 255, 159, 0.25),
+                inset 0 1px 0 rgba(255, 255, 255, 0.12),
+                inset 0 -2px 0 rgba(0, 0, 0, 0.3);
+            transition: transform 0.15s ease;
+        }
+        .open-spread-btn:active { transform: scale(0.97); }
+        .open-spread-btn .open-spread-icon { font-size: 18px; line-height: 1; }
         .modal-link {
             background: rgba(0, 0, 0, 0.45);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -3866,6 +3948,18 @@
                 <div class="modal-link" id="inviteLink">…</div>
                 <button class="modal-btn primary" id="modalShareBtn">Поделиться ссылкой</button>
                 <button class="modal-btn ghost"   id="modalCloseBtn">Закрыть</button>
+            </div>
+        </div>
+
+        <!-- Spread-methods modal — opened by the bottom button or by
+             tapping any city on the globe. -->
+        <div class="modal-backdrop" id="spreadModal" hidden>
+            <div class="modal" role="dialog">
+                <div class="modal-icon">🦠</div>
+                <div class="modal-title">Распространение</div>
+                <div class="modal-text">Выбери способ передачи вируса</div>
+                <div class="spread-methods" id="spreadMethodsList"></div>
+                <button class="modal-btn ghost" id="spreadModalCloseBtn">Отмена</button>
             </div>
         </div>
 
@@ -5389,46 +5483,67 @@
                 const list = document.getElementById('spreadList');
                 if (!list) return;
                 list.innerHTML = '';
-                this.spreadOptions.forEach(o => {
-                    const card = document.createElement('div');
-                    card.className = 'spread-card';
-                    card.dataset.id = o.id;
+                // One "Распространить" entry point. The full menu of methods
+                // lives in the spread modal so it doesn't clutter the map.
+                const btn = document.createElement('button');
+                btn.className = 'open-spread-btn';
+                btn.innerHTML = '<span class="open-spread-icon">🦠</span>' +
+                                '<span>Распространить</span>';
+                this.tap(btn, () => this.showSpreadModal());
+                list.appendChild(btn);
+            }
 
+            showSpreadModal() {
+                const modal = document.getElementById('spreadModal');
+                if (!modal) return;
+                const list = document.getElementById('spreadMethodsList');
+                if (!list) return;
+                list.innerHTML = '';
+                this.spreadOptions.forEach(o => {
+                    const btn = document.createElement('button');
+                    btn.className = 'spread-method-btn';
+                    btn.dataset.id = o.id;
                     const validCount = this.getValidTargets(o.id).size;
                     const cost = this.getSpreadCost(o.id);
-                    let costHTML;
-                    let locked = false;
-
+                    let costHTML, locked = false, disabled = false;
                     if (o.requiresInvite) {
                         const uses = this.unlockedSpreads[o.id] || 0;
                         if (uses <= 0) {
                             locked = true;
-                            card.classList.add('locked');
-                            costHTML = '<div class="spread-cost invite-cost">Распространить</div>';
+                            btn.classList.add('locked');
+                            costHTML = '<div class="method-cost invite">Пригласить</div>';
                         } else {
-                            const disabled = validCount === 0;
-                            if (disabled) card.classList.add('disabled');
-                            costHTML = `<div class="spread-cost ready-cost">🚀 ×${uses}</div>`;
+                            disabled = validCount === 0;
+                            costHTML = `<div class="method-cost">🚀 ×${uses}</div>`;
                         }
                     } else {
                         const affordable = this.dnaPoints >= cost && validCount > 0;
-                        if (!affordable) card.classList.add('disabled');
-                        costHTML = `<div class="spread-cost">🧬 ${cost}</div>`;
+                        disabled = !affordable;
+                        costHTML = `<div class="method-cost">🧬 ${cost}</div>`;
                     }
-
-                    card.innerHTML =
-                        `<div class="spread-icon">${o.icon}</div>` +
-                        `<div class="spread-info">` +
-                            `<div class="spread-name">${o.name}</div>` +
-                            `<div class="spread-desc">${o.description}</div>` +
-                        `</div>` +
-                        costHTML;
-                    list.appendChild(card);
-                    this.tap(card, () => {
+                    if (disabled) btn.classList.add('disabled');
+                    btn.innerHTML =
+                        `<span class="method-icon">${o.icon}</span>` +
+                        `<span class="method-body">` +
+                            `<span class="method-name">${o.name}</span>` +
+                            `<span class="method-desc">${o.description}</span>` +
+                        `</span>` + costHTML;
+                    this.tap(btn, () => {
+                        this.closeSpreadModal();
                         if (locked) this.showInviteModal(o.id);
                         else this.purchaseSpread(o.id);
                     });
+                    list.appendChild(btn);
                 });
+                modal.hidden = false;
+                requestAnimationFrame(() => modal.classList.add('open'));
+            }
+
+            closeSpreadModal() {
+                const modal = document.getElementById('spreadModal');
+                if (!modal) return;
+                modal.classList.remove('open');
+                setTimeout(() => { modal.hidden = true; }, 250);
             }
 
             cloneHelixToMap() {
@@ -5527,6 +5642,12 @@
                 if (inviteBackdrop) inviteBackdrop.addEventListener('click', (e) => {
                     if (e.target === inviteBackdrop) this.closeInviteModal();
                 });
+                const spreadClose = document.getElementById('spreadModalCloseBtn');
+                if (spreadClose) this.tap(spreadClose, () => this.closeSpreadModal());
+                const spreadBackdrop = document.getElementById('spreadModal');
+                if (spreadBackdrop) spreadBackdrop.addEventListener('click', (e) => {
+                    if (e.target === spreadBackdrop) this.closeSpreadModal();
+                });
 
                 // Map zoom controls + gestures
                 this.bindMapGestures();
@@ -5563,7 +5684,12 @@
                     // initialised even if the player jumps straight to
                     // the map without going through the picker first.
                     this.ensureGlobe();
-                    if (this.globe) this.globe.updateInfections(this.continents, this.cities);
+                    if (this.globe) {
+                        // Reset zoom so the whole planet is visible on each
+                        // entry, regardless of where the picker left it.
+                        if (!this.pickerMode) this.globe.resetView();
+                        this.globe.updateInfections(this.continents, this.cities);
+                    }
                     const ws = document.getElementById('worldMapScreen');
                     if (ws && !this.pickerMode) ws.classList.add('show-zoom-ctrl');
                 }
@@ -6206,7 +6332,13 @@
             }
 
             handleCityTap(idx) {
-                if (!this.pickerMode) return;
+                // Outside picker mode (i.e. the normal map screen) a city
+                // tap opens the spread modal so the player can pick a
+                // transmission method.
+                if (!this.pickerMode) {
+                    this.showSpreadModal();
+                    return;
+                }
                 const c = this.cities[idx];
                 if (!c) return;
                 const continent = c[4];
