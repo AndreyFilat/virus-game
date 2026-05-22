@@ -4571,22 +4571,19 @@
                     this.earth.add(this._infectionGroup);
                     this._infectionMeshes = new Map();
                 }
-                // Halos go on each continent's anchor city (primary spread
-                // zone). Red dot colouring covers every city the player has
-                // explicitly infected within an infected continent.
+                // Every infected city gets the full anchor treatment —
+                // halo + bright epicentre — so the original first-pick
+                // city and every later spread target look identical.
                 const infected = new Map();
-                const infectedSet = new Set();
                 for (const c of Object.values(continents)) {
                     if (c.infectionLevel <= 0) continue;
-                    if (c.infectionCityIdx != null) {
+                    if (c.infectedCities && c.infectedCities.size) {
+                        c.infectedCities.forEach(idx => infected.set(idx, c.infectionLevel));
+                    } else if (c.infectionCityIdx != null) {
                         infected.set(c.infectionCityIdx, c.infectionLevel);
                     }
-                    if (c.infectedCities) {
-                        c.infectedCities.forEach(idx => infectedSet.add(idx));
-                    } else if (c.infectionCityIdx != null) {
-                        infectedSet.add(c.infectionCityIdx);
-                    }
                 }
+                const infectedSet = new Set(infected.keys());
                 // Drop stale halos
                 for (const [idx, group] of this._infectionMeshes) {
                     if (!infected.has(idx)) {
@@ -5854,14 +5851,22 @@
                     && this.continents[selCont]
                     && this.continents[selCont].infectionLevel > 0;
                 this.spreadOptions.forEach(o => {
+                    const valid = this.getValidTargets(o.id);
+                    const cityOutOfReach = selCont && !valid.has(selCont)
+                                            && !targetContInfected;
+                    // If a city is selected and this method can't reach it,
+                    // hide the method entirely rather than rendering it
+                    // disabled — only physically possible options stay in
+                    // the list. (Methods with no targets at all are also
+                    // hidden when no city is selected.)
+                    if (cityOutOfReach) return;
+                    if (!selCont && valid.size === 0 && !o.requiresInvite) return;
+
                     const btn = document.createElement('button');
                     btn.className = 'spread-method-btn';
                     btn.dataset.id = o.id;
-                    const valid = this.getValidTargets(o.id);
                     const cost = this.getSpreadCost(o.id);
                     let costHTML, locked = false, disabled = false;
-                    const cityOutOfReach = selCont && !valid.has(selCont)
-                                            && !targetContInfected;
                     if (o.requiresInvite) {
                         const uses = this.unlockedSpreads[o.id] || 0;
                         if (uses <= 0) {
@@ -5869,16 +5874,11 @@
                             btn.classList.add('locked');
                             costHTML = '<div class="method-cost invite" aria-label="Пригласить друга">👥</div>';
                         } else {
-                            // Has uses → reachable as long as the selected
-                            // city itself is reachable. (No selected city
-                            // → require at least one valid continent.)
-                            disabled = cityOutOfReach || (!selCont && valid.size === 0);
                             costHTML = `<div class="method-cost">🚀 ×${uses}</div>`;
                         }
                     } else {
-                        const noTargets = !selCont && valid.size === 0;
                         const affordable = this.dnaPoints >= cost;
-                        disabled = !affordable || cityOutOfReach || noTargets;
+                        disabled = !affordable;
                         costHTML = `<div class="method-cost">🧬 ${cost}</div>`;
                     }
                     if (disabled) btn.classList.add('disabled');
@@ -5965,18 +5965,15 @@
                 if (!c) return;
                 this.mapSelectedCityIdx = idx;
                 if (this.globe) this.globe.setSelectedCity(idx);
-                // Hide the spread button only on the red anchor city. Every
-                // other city offers the "Распространить" button — the
-                // modal then greys out methods that can't physically reach
-                // this city, so the player understands the constraint
-                // rather than just seeing a missing button.
+                // Any city the player has already infected (the original
+                // anchor or any city added via within-continent spread) is
+                // treated identically — no spread button.
                 const continent = this.continents[c[4]];
-                const isAnchor = continent
-                    && continent.infectionLevel > 0
-                    && continent.infectionCityIdx === idx;
+                const isInfected = continent && continent.infectedCities
+                                   && continent.infectedCities.has(idx);
                 this.showCityPlate(idx, c[0],
-                    isAnchor ? null : 'Распространить',
-                    isAnchor ? null : () => this.showSpreadModal()
+                    isInfected ? null : 'Распространить',
+                    isInfected ? null : () => this.showSpreadModal()
                 );
             }
 
