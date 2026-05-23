@@ -4543,6 +4543,7 @@
                     });
                     const halo = new THREE.Mesh(haloGeom, haloMat);
                     mesh.add(halo);
+                    mesh.userData.famousHalo = halo;
                 }
                 this.cityGroup.add(mesh);
                 this.cityMeshes.push(mesh);
@@ -4602,6 +4603,11 @@
                     const isInf = infectedSet.has(m.userData.idx);
                     m.userData.infected = isInf;
                     m.material.color.set(isInf ? INFECTED_COLOR : m.userData.baseColor);
+                    // Hide the mint-tinted famous-city halo for infected
+                    // cities so only the red infection halo is visible.
+                    if (m.userData.famousHalo) {
+                        m.userData.famousHalo.visible = !isInf;
+                    }
                 }
                 // Create/update active ones
                 for (const [idx, level] of infected) {
@@ -7355,10 +7361,75 @@
                         any = true;
                     }
                 });
-                if (any) {
+                const cityChanged = this.autoSpreadCities(infectivityEff, speedMult);
+                if (any || cityChanged) {
                     this.renderInfections();
                     this.updateMapStats();
                 }
+            }
+
+            greatCircleKm(lat1, lon1, lat2, lon2) {
+                const R = 6371;
+                const p1 = lat1 * Math.PI / 180;
+                const p2 = lat2 * Math.PI / 180;
+                const dp = (lat2 - lat1) * Math.PI / 180;
+                const dl = (lon2 - lon1) * Math.PI / 180;
+                const a = Math.sin(dp / 2) ** 2
+                    + Math.cos(p1) * Math.cos(p2) * Math.sin(dl / 2) ** 2;
+                return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            }
+
+            // Each tick, try to infect one new city per infected continent.
+            // Probability per non-infected city falls off with great-circle
+            // distance to the nearest already-infected city in the same
+            // continent and scales with the player's infectivity stat.
+            autoSpreadCities(infectivityEff, speedMult) {
+                if (infectivityEff == null) {
+                    infectivityEff = this.virusStats.infectivity
+                        * this.buffMult('infectivity_mult');
+                }
+                if (speedMult == null) speedMult = this.buffMult('spread_speed_mult');
+                // Spread rate per tick: low at base stat, ramps up with upgrades.
+                const SPREAD_BASE = 0.12;
+                const SPREAD_GAIN = 0.45;
+                const probScale = (SPREAD_BASE + (infectivityEff / 100) * SPREAD_GAIN)
+                    * speedMult;
+                const FALLOFF_KM = 4500;
+                let changed = false;
+
+                Object.entries(this.continents).forEach(([id, cont]) => {
+                    if (!cont.infectedCities || cont.infectedCities.size === 0) return;
+                    if (cont.infectionLevel <= 0) return;
+                    const infectedIdxs = Array.from(cont.infectedCities);
+                    const candidates = [];
+                    for (let i = 0; i < this.cities.length; i++) {
+                        const c = this.cities[i];
+                        if (c[4] !== id) continue;
+                        if (cont.infectedCities.has(i)) continue;
+                        let minD = Infinity;
+                        for (const j of infectedIdxs) {
+                            const ic = this.cities[j];
+                            if (!ic) continue;
+                            const d = this.greatCircleKm(c[1], c[2], ic[1], ic[2]);
+                            if (d < minD) minD = d;
+                        }
+                        const falloff = Math.max(0, 1 - minD / FALLOFF_KM);
+                        if (falloff <= 0) continue;
+                        candidates.push({ idx: i, prob: probScale * falloff * falloff });
+                    }
+                    if (candidates.length === 0) return;
+                    // One spread attempt per continent per tick — pick the
+                    // closest few and roll for each.
+                    candidates.sort((a, b) => b.prob - a.prob);
+                    for (let k = 0; k < Math.min(3, candidates.length); k++) {
+                        if (Math.random() < candidates[k].prob) {
+                            cont.infectedCities.add(candidates[k].idx);
+                            changed = true;
+                            break;
+                        }
+                    }
+                });
+                return changed;
             }
 
             startInfectionGrowth() {
