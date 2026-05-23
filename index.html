@@ -319,7 +319,26 @@
             margin-bottom: 60px;
             letter-spacing: 1px;
         }
-        
+
+        /* Debug reset — hidden later. */
+        .debug-reset {
+            position: fixed;
+            top: 12px;
+            right: 12px;
+            z-index: 9999;
+            padding: 6px 10px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: #fca5a5;
+            background: rgba(127, 29, 29, 0.55);
+            border: 1px solid rgba(252, 165, 165, 0.6);
+            border-radius: 6px;
+            cursor: pointer;
+            opacity: 0.7;
+        }
+        .debug-reset:hover, .debug-reset:active { opacity: 1; }
+
         /* DNA Bubbles */
         .dna-bubbles {
             display: grid;
@@ -3866,6 +3885,7 @@
         
         <!-- Start Screen -->
         <div class="screen start-screen active" id="startScreen">
+            <button id="debugResetBtn" class="debug-reset" title="Сбросить прогресс">⟲ DEBUG</button>
             <div class="cell-bg" aria-hidden="true">
                 <span class="organelle o1"></span>
                 <span class="organelle o2"></span>
@@ -5677,6 +5697,7 @@
                 if (this.virusLevel > oldVirusLevel) {
                     this.showLevelUpAnimation(oldVirusLevel, this.virusLevel);
                 }
+                this.saveState();
             }
 
             playCardUpgradeFX(card) {
@@ -6149,6 +6170,15 @@
 
 
             bindEvents() {
+                // Debug: reset progress (will be hidden later).
+                const debugReset = document.getElementById('debugResetBtn');
+                if (debugReset) {
+                    debugReset.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        if (confirm('Сбросить весь прогресс?')) this.resetProgress();
+                    });
+                }
+
                 // Home: DNA bubbles (regenerating)
                 document.querySelectorAll('#startScreen .dna-bubble').forEach(bubble => {
                     this.tap(bubble, () => this.collectDNA(bubble));
@@ -6612,6 +6642,7 @@
                 this.updateMapStats();
                 this.renderSpreadList();
                 this.startInfectionGrowth();
+                this.saveState();
             }
 
             // ---- Map pan / zoom -----------------------------------------
@@ -7378,6 +7409,7 @@
                 if (any || cityChanged) {
                     this.renderInfections();
                     this.updateMapStats();
+                    this.saveState();
                 }
             }
 
@@ -7454,8 +7486,28 @@
 
             saveState() {
                 try {
+                    const continentsData = {};
+                    Object.entries(this.continents).forEach(([id, c]) => {
+                        continentsData[id] = {
+                            infectionLevel: c.infectionLevel || 0,
+                            population: c.population || 0,
+                            infectionCityIdx: c.infectionCityIdx != null
+                                ? c.infectionCityIdx : null,
+                            infectedCities: c.infectedCities
+                                ? Array.from(c.infectedCities) : [],
+                            deaths: c.deaths || 0
+                        };
+                    });
                     const data = {
+                        dnaPoints: this.dnaPoints,
+                        virusLevel: this.virusLevel,
+                        virusStats: this.virusStats,
+                        abilityLevels: this.abilityLevels,
+                        tutorialDone: this.tutorialDone,
+                        homeHintShown: this.homeHintShown,
                         startingContinent: this.startingContinent,
+                        gameStartTime: this.gameStartTime,
+                        continents: continentsData,
                         newsByDay: this.newsByDay,
                         activeBuffs: this.activeBuffs
                     };
@@ -7468,13 +7520,47 @@
                     const raw = localStorage.getItem('vg_state');
                     if (!raw) return;
                     const data = JSON.parse(raw);
+                    if (typeof data.dnaPoints === 'number') this.dnaPoints = data.dnaPoints;
+                    if (typeof data.virusLevel === 'number') this.virusLevel = data.virusLevel;
+                    if (data.virusStats) {
+                        this.virusStats = Object.assign({}, this.virusStats, data.virusStats);
+                    }
+                    if (data.abilityLevels) this.abilityLevels = data.abilityLevels;
+                    if (typeof data.tutorialDone === 'boolean') this.tutorialDone = data.tutorialDone;
+                    if (typeof data.homeHintShown === 'boolean') this.homeHintShown = data.homeHintShown;
                     if (data.startingContinent) this.startingContinent = data.startingContinent;
+                    if (typeof data.gameStartTime === 'number') this.gameStartTime = data.gameStartTime;
+                    if (data.continents) {
+                        Object.entries(data.continents).forEach(([id, saved]) => {
+                            const c = this.continents[id];
+                            if (!c) return;
+                            if (typeof saved.infectionLevel === 'number') c.infectionLevel = saved.infectionLevel;
+                            if (typeof saved.population === 'number') c.population = saved.population;
+                            if (saved.infectionCityIdx != null) c.infectionCityIdx = saved.infectionCityIdx;
+                            if (Array.isArray(saved.infectedCities) && saved.infectedCities.length) {
+                                c.infectedCities = new Set(saved.infectedCities);
+                            }
+                            if (typeof saved.deaths === 'number') c.deaths = saved.deaths;
+                        });
+                    }
                     if (data.newsByDay) this.newsByDay = data.newsByDay;
                     if (Array.isArray(data.activeBuffs)) {
                         const now = Date.now();
                         this.activeBuffs = data.activeBuffs.filter(b => b.until > now);
                     }
+                    // Resume infection growth loop if there's anything active.
+                    const hasInfection = Object.values(this.continents)
+                        .some(c => c.infectionLevel > 0);
+                    if (hasInfection) this.startInfectionGrowth();
                 } catch (e) {}
+            }
+
+            // Debug: clear all persisted state and reload the game.
+            resetProgress() {
+                try { localStorage.removeItem('vg_state'); } catch (e) {}
+                try { localStorage.removeItem('tutorialDone'); } catch (e) {}
+                try { localStorage.removeItem('inviteRef'); } catch (e) {}
+                location.reload();
             }
 
             // ---- News feed (daily, exactly two per UTC day) --------------
@@ -7721,6 +7807,7 @@
 
                 this.dnaPoints += dnaAmount;
                 this.updateDNACounter();
+                this.saveState();
 
                 bubble.classList.add('popping');
 
