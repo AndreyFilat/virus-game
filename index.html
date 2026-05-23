@@ -4614,6 +4614,9 @@
                     const isInf = infectedSet.has(m.userData.idx);
                     m.userData.infected = isInf;
                     m.material.color.set(isInf ? INFECTED_COLOR : m.userData.baseColor);
+                    // Hide the grey outline ring on infected cities so only
+                    // the red infection halo + red dot are visible.
+                    if (m.userData.ring) m.userData.ring.visible = !isInf;
                 }
                 // Create/update active ones
                 for (const [idx, level] of infected) {
@@ -4632,13 +4635,13 @@
                              Math.sin(phi) * Math.sin(theta)
                         );
                         group = new THREE.Group();
-                        // Outer "spread zone" — translucent orange-red,
-                        // scaled with infection level.
+                        // Outer "spread zone" — translucent red, scaled with
+                        // infection level.
                         const halo = new THREE.Mesh(
                             new THREE.SphereGeometry(0.05, 18, 14),
                             new THREE.MeshBasicMaterial({
-                                color: 0xff6a3a, transparent: true,
-                                opacity: 0.35, depthWrite: false
+                                color: 0xff2a1a, transparent: true,
+                                opacity: 0.5, depthWrite: false
                             })
                         );
                         // Bright epicentre — small intense red dot pulsing
@@ -5041,8 +5044,13 @@
                     const m = this.cityMeshes[i];
                     const v = factor <= m.userData.maxVisFactor;
                     if (m.visible !== v) m.visible = v;
-                    if (m.userData.ring && m.userData.ring.visible !== v) {
-                        m.userData.ring.visible = v;
+                    if (m.userData.ring) {
+                        // Hide the grey outline ring when infected so only
+                        // the red dot + red halo are visible.
+                        const ringV = v && !m.userData.infected;
+                        if (m.userData.ring.visible !== ringV) {
+                            m.userData.ring.visible = ringV;
+                        }
                     }
                 }
                 // Animate infection halos — slow breath + bright epicentre.
@@ -5053,7 +5061,7 @@
                         const base = 1 + (level / 100) * 5;     // 1× → 6× at 100
                         const pulse = 1 + Math.sin(t) * 0.07;
                         g.userData.halo.scale.setScalar(base * pulse);
-                        g.userData.halo.material.opacity = 0.28 + 0.10 * Math.sin(t * 1.4);
+                        g.userData.halo.material.opacity = 0.45 + 0.10 * Math.sin(t * 1.4);
                         const corePulse = 1 + Math.sin(t * 2.3) * 0.18;
                         g.userData.core.scale.setScalar(corePulse);
                         g.userData.core.material.opacity = 0.85 + 0.12 * Math.sin(t * 2.3);
