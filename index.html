@@ -4536,15 +4536,6 @@
                     capital ? 1.05 : 0.70;
                 mesh.userData = { idx, name, continent,
                     baseColor: DOT_FILL, baseSize: size, ring, maxVisFactor };
-                if (famous) {
-                    const haloGeom = new THREE.SphereGeometry(size * 2.2, 12, 10);
-                    const haloMat = new THREE.MeshBasicMaterial({
-                        color: DOT_FILL, transparent: true, opacity: 0.30, depthWrite: false
-                    });
-                    const halo = new THREE.Mesh(haloGeom, haloMat);
-                    mesh.add(halo);
-                    mesh.userData.famousHalo = halo;
-                }
                 this.cityGroup.add(mesh);
                 this.cityMeshes.push(mesh);
 
@@ -4603,11 +4594,6 @@
                     const isInf = infectedSet.has(m.userData.idx);
                     m.userData.infected = isInf;
                     m.material.color.set(isInf ? INFECTED_COLOR : m.userData.baseColor);
-                    // Hide the mint-tinted famous-city halo for infected
-                    // cities so only the red infection halo is visible.
-                    if (m.userData.famousHalo) {
-                        m.userData.famousHalo.visible = !isInf;
-                    }
                 }
                 // Create/update active ones
                 for (const [idx, level] of infected) {
@@ -4819,12 +4805,12 @@
                 this.cityMeshes.forEach((m, i) => {
                     const ud = m.userData;
                     if (i === idx) {
-                        m.material.color.set(0x00ff9f);
+                        // Keep infected cities red; only healthy selections
+                        // turn mint.
+                        m.material.color.set(ud.infected ? 0xff3a2a : 0x00ff9f);
                         m.scale.setScalar(1.6);
                         if (ud.ring) ud.ring.scale.setScalar(1.6);
                     } else {
-                        // Restore: red for infected anchor cities, default
-                        // fill otherwise.
                         m.material.color.set(ud.infected ? 0xff3a2a : ud.baseColor);
                         m.scale.setScalar(1);
                         if (ud.ring) ud.ring.scale.setScalar(1);
@@ -7352,15 +7338,42 @@
                 let any = false;
                 const baseGrowth = 0.18;
                 const infectivityEff = this.virusStats.infectivity * this.buffMult('infectivity_mult');
+                const lethalityEff   = this.virusStats.lethality   * this.buffMult('lethality_mult');
+                const severityEff    = this.virusStats.severity    * this.buffMult('severity_mult');
                 const statBonus = (infectivityEff / 100) * 0.7;
                 const speedMult = this.buffMult('spread_speed_mult');
                 const step = (baseGrowth + statBonus) * speedMult;
+
+                // Lethality kills a fraction of currently-infected people
+                // every tick. Severity drives the cure rate but only takes
+                // effect while the global vaccine buff is active.
+                const vaccineActive = this.activeBuffs.some(
+                    b => b.source === 'g_vaccine');
+                const deathPerTick = (lethalityEff / 100) * 0.012;
+                const curePerTick = vaccineActive
+                    ? (severityEff / 100) * 0.015 : 0;
+
                 Object.values(this.continents).forEach(c => {
-                    if (c.infectionLevel > 0 && c.infectionLevel < 100) {
+                    if (c.infectionLevel <= 0) return;
+                    if (c.infectionLevel < 100) {
                         c.infectionLevel = Math.min(100, c.infectionLevel + step);
                         any = true;
                     }
+                    const pop = c.population || 0;
+                    if (pop <= 0 || c.infectionLevel <= 0) return;
+                    const infected = pop * c.infectionLevel / 100;
+                    const deaths = infected * deathPerTick;
+                    const cured  = (infected - deaths) * curePerTick;
+                    if (deaths <= 0 && cured <= 0) return;
+                    c.deaths = (c.deaths || 0) + deaths;
+                    const newPop = Math.max(0, pop - deaths);
+                    const newInfected = Math.max(0, infected - deaths - cured);
+                    c.population = newPop;
+                    c.infectionLevel = newPop > 0
+                        ? Math.max(0, (newInfected / newPop) * 100) : 0;
+                    any = true;
                 });
+
                 const cityChanged = this.autoSpreadCities(infectivityEff, speedMult);
                 if (any || cityChanged) {
                     this.renderInfections();
