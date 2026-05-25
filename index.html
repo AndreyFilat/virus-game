@@ -3871,7 +3871,7 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 </head>
 <body>
-    <button id="debugResetBtn" class="debug-reset" title="Сбросить прогресс">⟲ DEBUG v10</button>
+    <button id="debugResetBtn" class="debug-reset" title="Сбросить прогресс">⟲ DEBUG v11</button>
     <div class="game-container">
         <!-- DNA Counter (always visible) -->
         <div class="dna-counter">
@@ -7188,12 +7188,29 @@
                     if (cb) cb.classList.add('visible');
                 } else {
                     // Invalid target — surface the name so the player sees
-                    // they did tap something, but offer no action.
+                    // they did tap something, and tell them why this city
+                    // can't be picked with the current transmission method.
                     if (this.globe) this.globe.setSelectedCity(-1);
                     this.selectedCityIdx = null;
                     this.showCityPlate(idx, c[0], null, null);
                     const cb = document.getElementById('confirmContinent');
                     if (cb) cb.classList.remove('visible');
+                    const cont = this.continents[continent];
+                    let reason;
+                    if (cont && cont.infectionLevel > 0) {
+                        reason = 'Континент уже заражён';
+                    } else if (this.pickerMode === 'land') {
+                        reason = 'Сухопутный путь сюда не доходит';
+                    } else if (this.pickerMode === 'water') {
+                        reason = 'Морской путь сюда не доходит';
+                    } else if (this.pickerMode === 'air') {
+                        reason = 'Авиа-путь сюда не доходит';
+                    } else if (this.pickerMode === 'insect') {
+                        reason = 'Насекомые не переносят сюда';
+                    } else {
+                        reason = 'Недоступно';
+                    }
+                    this.showToast(reason, c[0], 'above-map');
                 }
             }
 
