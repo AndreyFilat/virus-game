@@ -7670,10 +7670,13 @@
                         * this.buffMult('infectivity_mult');
                 }
                 if (speedMult == null) speedMult = this.buffMult('spread_speed_mult');
-                // Spread rate per tick: low at base stat, ramps up with upgrades.
-                const SPREAD_BASE = 0.006;
-                const SPREAD_GAIN = 0.0225;
-                const probScale = (SPREAD_BASE + (infectivityEff / 100) * SPREAD_GAIN)
+                // Spread rate per tick: practically zero without infectivity
+                // upgrades, quadratic ramp with the stat so even mid-game
+                // spread stays slow without speed buffs.
+                const SPREAD_BASE = 0.0003;
+                const SPREAD_GAIN = 0.012;
+                const inf01 = Math.max(0, infectivityEff / 100);
+                const probScale = (SPREAD_BASE + SPREAD_GAIN * inf01 * inf01)
                     * speedMult;
                 const FALLOFF_KM = 4500;
                 let changed = false;
