@@ -3869,6 +3869,7 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 </head>
 <body>
+    <button id="debugResetBtn" class="debug-reset" title="Сбросить прогресс">⟲ DEBUG</button>
     <div class="game-container">
         <!-- DNA Counter (always visible) -->
         <div class="dna-counter">
@@ -3885,7 +3886,6 @@
         
         <!-- Start Screen -->
         <div class="screen start-screen active" id="startScreen">
-            <button id="debugResetBtn" class="debug-reset" title="Сбросить прогресс">⟲ DEBUG</button>
             <div class="cell-bg" aria-hidden="true">
                 <span class="organelle o1"></span>
                 <span class="organelle o2"></span>
@@ -4573,6 +4573,51 @@
                 this.cityHitboxes.push(hit);
             }
 
+            // Lazy-built radial-gradient texture for the soft infection
+            // halo. Coral-red centre, fades to transparent at the rim.
+            _getHaloTexture() {
+                if (this._haloTex) return this._haloTex;
+                const size = 256, c = document.createElement('canvas');
+                c.width = c.height = size;
+                const ctx = c.getContext('2d');
+                const g = ctx.createRadialGradient(
+                    size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+                g.addColorStop(0.00, 'rgba(255, 130,  95, 0.85)');
+                g.addColorStop(0.18, 'rgba(255,  90,  55, 0.62)');
+                g.addColorStop(0.45, 'rgba(225,  55,  35, 0.32)');
+                g.addColorStop(0.78, 'rgba(160,  30,  20, 0.10)');
+                g.addColorStop(1.00, 'rgba(120,  15,  10, 0.00)');
+                ctx.fillStyle = g;
+                ctx.fillRect(0, 0, size, size);
+                const tex = new THREE.CanvasTexture(c);
+                tex.minFilter = THREE.LinearFilter;
+                tex.magFilter = THREE.LinearFilter;
+                this._haloTex = tex;
+                return tex;
+            }
+
+            // Bright warm-white core gradient — gives the epicentre a
+            // glowing focal point that reads through the halo.
+            _getCoreTexture() {
+                if (this._coreTex) return this._coreTex;
+                const size = 128, c = document.createElement('canvas');
+                c.width = c.height = size;
+                const ctx = c.getContext('2d');
+                const g = ctx.createRadialGradient(
+                    size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+                g.addColorStop(0.00, 'rgba(255, 235, 210, 1.0)');
+                g.addColorStop(0.25, 'rgba(255, 170, 110, 0.85)');
+                g.addColorStop(0.60, 'rgba(255,  90,  55, 0.45)');
+                g.addColorStop(1.00, 'rgba(220,  40,  25, 0.00)');
+                ctx.fillStyle = g;
+                ctx.fillRect(0, 0, size, size);
+                const tex = new THREE.CanvasTexture(c);
+                tex.minFilter = THREE.LinearFilter;
+                tex.magFilter = THREE.LinearFilter;
+                this._coreTex = tex;
+                return tex;
+            }
+
             // Render infection halos at each infected continent's anchor
             // city. Called from VirusGame.renderInfectionLayer() whenever
             // infection state changes. Pulse animation runs in _tick.
@@ -4599,9 +4644,9 @@
                 for (const [idx, group] of this._infectionMeshes) {
                     if (!infected.has(idx)) {
                         this._infectionGroup.remove(group);
-                        group.userData.halo.geometry.dispose();
+                        // Sprites share geometry — only the material needs
+                        // disposing.
                         group.userData.halo.material.dispose();
-                        group.userData.core.geometry.dispose();
                         group.userData.core.material.dispose();
                         this._infectionMeshes.delete(idx);
                     }
@@ -4635,24 +4680,24 @@
                              Math.sin(phi) * Math.sin(theta)
                         );
                         group = new THREE.Group();
-                        // Outer "spread zone" — translucent red, scaled with
-                        // infection level.
-                        const halo = new THREE.Mesh(
-                            new THREE.SphereGeometry(0.05, 18, 14),
-                            new THREE.MeshBasicMaterial({
-                                color: 0xff2a1a, transparent: true,
-                                opacity: 0.5, depthWrite: false
-                            })
-                        );
-                        // Bright epicentre — small intense red dot pulsing
-                        // brighter as level rises.
-                        const core = new THREE.Mesh(
-                            new THREE.SphereGeometry(0.015, 16, 12),
-                            new THREE.MeshBasicMaterial({
-                                color: 0xff3a1f, transparent: true,
-                                opacity: 0.95, depthWrite: false
-                            })
-                        );
+                        // Soft radial-gradient halo (Sprite, always faces
+                        // camera) — gives a smooth glowing disc instead of
+                        // a hard-edged red sphere.
+                        const halo = new THREE.Sprite(new THREE.SpriteMaterial({
+                            map: this._getHaloTexture(),
+                            transparent: true,
+                            depthWrite: false
+                        }));
+                        halo.scale.set(0.1, 0.1, 1);
+                        // Soft warm core — smaller sprite with brighter
+                        // centre, blended additively so it glows.
+                        const core = new THREE.Sprite(new THREE.SpriteMaterial({
+                            map: this._getCoreTexture(),
+                            transparent: true,
+                            depthWrite: false,
+                            blending: THREE.AdditiveBlending
+                        }));
+                        core.scale.set(0.04, 0.04, 1);
                         group.add(halo);
                         group.add(core);
                         group.userData = { dir, idx, halo, core, level: 0 };
@@ -5053,17 +5098,20 @@
                         }
                     }
                 }
-                // Animate infection halos — slow breath + bright epicentre.
+                // Animate infection halos — slow breath, soft glow.
                 if (this._infectionMeshes && this._infectionMeshes.size) {
                     const t = performance.now() * 0.0017;
                     for (const g of this._infectionMeshes.values()) {
                         const level = g.userData.level || 0;
-                        const base = 1 + (level / 100) * 5;     // 1× → 6× at 100
-                        const pulse = 1 + Math.sin(t) * 0.07;
-                        g.userData.halo.scale.setScalar(base * pulse);
-                        g.userData.halo.material.opacity = 0.45 + 0.10 * Math.sin(t * 1.4);
-                        const corePulse = 1 + Math.sin(t * 2.3) * 0.18;
-                        g.userData.core.scale.setScalar(corePulse);
+                        // Sprite scale = visual diameter in world units.
+                        const haloSize = 0.10 + (level / 100) * 0.38;
+                        const haloPulse = 1 + Math.sin(t) * 0.06;
+                        const hs = haloSize * haloPulse;
+                        g.userData.halo.scale.set(hs, hs, 1);
+                        g.userData.halo.material.opacity = 0.85 + 0.10 * Math.sin(t * 1.4);
+                        const corePulse = 1 + Math.sin(t * 2.3) * 0.14;
+                        const cs = 0.045 * corePulse;
+                        g.userData.core.scale.set(cs, cs, 1);
                         g.userData.core.material.opacity = 0.85 + 0.12 * Math.sin(t * 2.3);
                     }
                 }
@@ -5490,6 +5538,16 @@
                 } else {
                     this.afterTutorialSetup();
                 }
+                // Catch up world growth after the tab was hidden/frozen.
+                document.addEventListener('visibilitychange', () => {
+                    if (document.visibilityState === 'hidden') {
+                        this.lastTickAt = Date.now();
+                        this.saveState();
+                    } else if (document.visibilityState === 'visible'
+                               && this.lastTickAt) {
+                        this.catchUpOffline(Date.now() - this.lastTickAt);
+                    }
+                });
             }
 
             afterTutorialSetup() {
@@ -7373,7 +7431,9 @@
                 this.updateCityPickerAffordance();
             }
 
-            growInfections() {
+            // Run one growth tick (no rendering / saving). Returns whether
+            // anything in the world state actually changed.
+            runGrowthTick() {
                 let any = false;
                 const baseGrowth = 0.18;
                 const infectivityEff = this.virusStats.infectivity * this.buffMult('infectivity_mult');
@@ -7383,9 +7443,6 @@
                 const speedMult = this.buffMult('spread_speed_mult');
                 const step = (baseGrowth + statBonus) * speedMult;
 
-                // Lethality kills a fraction of currently-infected people
-                // every tick. Severity drives the cure rate but only takes
-                // effect while the global vaccine buff is active.
                 const vaccineActive = this.activeBuffs.some(
                     b => b.source === 'g_vaccine');
                 const deathPerTick = (lethalityEff / 100) * 0.012;
@@ -7414,7 +7471,34 @@
                 });
 
                 const cityChanged = this.autoSpreadCities(infectivityEff, speedMult);
-                if (any || cityChanged) {
+                return any || cityChanged;
+            }
+
+            growInfections() {
+                const changed = this.runGrowthTick();
+                this.lastTickAt = Date.now();
+                if (changed) {
+                    this.renderInfections();
+                    this.updateMapStats();
+                    this.saveState();
+                }
+            }
+
+            // After a long absence, replay growth ticks so the world keeps
+            // evolving while the game is closed. Caps at MAX_OFFLINE_MS to
+            // avoid "world destroyed in one tab open" after multi-day gaps.
+            catchUpOffline(elapsedMs) {
+                const MAX_OFFLINE_MS = 30 * 60 * 1000; // 30 min hard cap
+                const TICK_MS = 1400;
+                if (!elapsedMs || elapsedMs < TICK_MS) return;
+                const capped = Math.min(elapsedMs, MAX_OFFLINE_MS);
+                const ticks = Math.floor(capped / TICK_MS);
+                let any = false;
+                for (let i = 0; i < ticks; i++) {
+                    if (this.runGrowthTick()) any = true;
+                }
+                this.lastTickAt = Date.now();
+                if (any) {
                     this.renderInfections();
                     this.updateMapStats();
                     this.saveState();
@@ -7515,6 +7599,7 @@
                         homeHintShown: this.homeHintShown,
                         startingContinent: this.startingContinent,
                         gameStartTime: this.gameStartTime,
+                        lastTickAt: this.lastTickAt || Date.now(),
                         continents: continentsData,
                         newsByDay: this.newsByDay,
                         activeBuffs: this.activeBuffs
@@ -7559,7 +7644,14 @@
                     // Resume infection growth loop if there's anything active.
                     const hasInfection = Object.values(this.continents)
                         .some(c => c.infectionLevel > 0);
-                    if (hasInfection) this.startInfectionGrowth();
+                    if (hasInfection) {
+                        // Replay growth ticks for the time the game was
+                        // closed before resuming live growth.
+                        if (typeof data.lastTickAt === 'number') {
+                            this.catchUpOffline(Date.now() - data.lastTickAt);
+                        }
+                        this.startInfectionGrowth();
+                    }
                 } catch (e) {}
             }
 
