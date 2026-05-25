@@ -3871,7 +3871,7 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 </head>
 <body>
-    <button id="debugResetBtn" class="debug-reset" title="Сбросить прогресс">⟲ DEBUG v13</button>
+    <button id="debugResetBtn" class="debug-reset" title="Сбросить прогресс">⟲ DEBUG v14</button>
     <div class="game-container">
         <!-- DNA Counter (always visible) -->
         <div class="dna-counter">
@@ -4594,9 +4594,11 @@
                 for (let i = 0; i <= STOPS; i++) {
                     const t = i / STOPS;
                     const alpha = 0.92 * Math.pow(1 - t, 1.8);
-                    const r = lerp(220, 80, t);
-                    const gn = lerp(140, 20, t);
-                    const b = lerp(255, 160, t);
+                    // Toxic biohazard green: bright lime core → dark moss
+                    // outer rim, fading into transparent.
+                    const r = lerp(180, 30, t);
+                    const gn = lerp(255, 90, t);
+                    const b = lerp(120, 20, t);
                     g.addColorStop(t, `rgba(${r}, ${gn}, ${b}, ${alpha.toFixed(3)})`);
                 }
                 ctx.fillStyle = g;
@@ -4613,10 +4615,11 @@
                 const ctx = c.getContext('2d');
                 const g = ctx.createRadialGradient(
                     size / 2, size / 2, 0, size / 2, size / 2, size / 2);
-                g.addColorStop(0.00, 'rgba(255, 220, 255, 1.00)');
-                g.addColorStop(0.35, 'rgba(240, 130, 240, 0.80)');
-                g.addColorStop(0.75, 'rgba(170,  60, 210, 0.20)');
-                g.addColorStop(1.00, 'rgba(120,  40, 180, 0.00)');
+                // Bright lime-yellow core fading to acid green.
+                g.addColorStop(0.00, 'rgba(240, 255, 200, 1.00)');
+                g.addColorStop(0.35, 'rgba(180, 255, 100, 0.85)');
+                g.addColorStop(0.75, 'rgba( 90, 200,  40, 0.20)');
+                g.addColorStop(1.00, 'rgba( 40, 120,  20, 0.00)');
                 ctx.fillStyle = g;
                 ctx.fillRect(0, 0, size, size);
                 const tex = new THREE.CanvasTexture(c);
@@ -4631,9 +4634,10 @@
                 const ctx = c.getContext('2d');
                 const g = ctx.createRadialGradient(
                     size / 2, size / 2, 0, size / 2, size / 2, size / 2);
-                g.addColorStop(0.00, 'rgba(255, 230, 255, 1.00)');
-                g.addColorStop(0.50, 'rgba(230, 140, 240, 0.70)');
-                g.addColorStop(1.00, 'rgba(160,  60, 210, 0.00)');
+                // Neon green twinkle.
+                g.addColorStop(0.00, 'rgba(220, 255, 200, 1.00)');
+                g.addColorStop(0.50, 'rgba(140, 255,  80, 0.70)');
+                g.addColorStop(1.00, 'rgba( 60, 180,  20, 0.00)');
                 ctx.fillStyle = g;
                 ctx.fillRect(0, 0, size, size);
                 const tex = new THREE.CanvasTexture(c);
@@ -4641,9 +4645,31 @@
                 return this._sparkTex = tex;
             }
 
-            // Build the infection visual anchored at a city. Three small
-            // layers: soft purple fog + bright magenta core + 3 sparks.
-            // Sizes/opacities animate in _tick by infection level.
+            // Tiny spore particle — small dark-green dot with a soft glow
+            // halo. Used in large numbers around each infected city to give
+            // the "swarm of viral spores" feel.
+            _getSporeTexture() {
+                if (this._sporeTex) return this._sporeTex;
+                const size = 32, c = document.createElement('canvas');
+                c.width = c.height = size;
+                const ctx = c.getContext('2d');
+                const g = ctx.createRadialGradient(
+                    size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+                g.addColorStop(0.00, 'rgba(190, 255, 130, 1.00)');
+                g.addColorStop(0.30, 'rgba(120, 220,  60, 0.85)');
+                g.addColorStop(0.65, 'rgba( 60, 160,  30, 0.30)');
+                g.addColorStop(1.00, 'rgba( 30,  90,  10, 0.00)');
+                ctx.fillStyle = g;
+                ctx.fillRect(0, 0, size, size);
+                const tex = new THREE.CanvasTexture(c);
+                tex.minFilter = tex.magFilter = THREE.LinearFilter;
+                return this._sporeTex = tex;
+            }
+
+            // Build the infection visual anchored at a city. Layers: soft
+            // toxic-green fog + bright lime core + glowing sparks + a cloud
+            // of small drifting spores. Sizes/opacities animate in _tick by
+            // infection level.
             _buildInfectionVisual(dir) {
                 const group = new THREE.Group();
                 const mk = (tex, blend) => new THREE.Sprite(
@@ -4686,8 +4712,38 @@
                     });
                     group.add(sp);
                 }
+
+                // Cloud of tiny spores around the city — larger orbits,
+                // slower angular drift, fainter twinkle than sparks. Gives
+                // the territory a "swarming pathogen" texture.
+                const spores = [];
+                const sporePhases = [];
+                const SPORE_COUNT = 32;
+                for (let i = 0; i < SPORE_COUNT; i++) {
+                    const sp = mk(this._getSporeTexture(), THREE.AdditiveBlending);
+                    const r0 = 0.018 + Math.sqrt(Math.random()) * 0.095;
+                    const a0 = Math.random() * Math.PI * 2;
+                    sp.position.set(
+                        u.x * r0 * Math.cos(a0) + v.x * r0 * Math.sin(a0),
+                        u.y * r0 * Math.cos(a0) + v.y * r0 * Math.sin(a0),
+                        u.z * r0 * Math.cos(a0) + v.z * r0 * Math.sin(a0)
+                    );
+                    spores.push(sp);
+                    sporePhases.push({
+                        r0, a0,
+                        size: 0.0035 + Math.random() * 0.0045,
+                        // Each spore drifts on its own slow orbit + radial wobble.
+                        angSpeed: (Math.random() < 0.5 ? -1 : 1) * (0.02 + Math.random() * 0.05),
+                        twSpeed: 0.4 + Math.random() * 1.0,
+                        phase: Math.random() * Math.PI * 2,
+                        driftPhase: Math.random() * Math.PI * 2,
+                        driftAmp: 0.0015 + Math.random() * 0.003
+                    });
+                    group.add(sp);
+                }
+
                 group.userData = {
-                    fog, core, sparks, sparkPhases, u, v, dir,
+                    fog, core, sparks, sparkPhases, spores, sporePhases, u, v, dir,
                     phaseOffset: Math.random() * Math.PI * 2
                 };
                 return group;
@@ -4723,13 +4779,14 @@
                         ud.fog.material.dispose();
                         ud.core.material.dispose();
                         ud.sparks.forEach(s => s.material.dispose());
+                        if (ud.spores) ud.spores.forEach(s => s.material.dispose());
                         this._infectionMeshes.delete(idx);
                     }
                 }
                 // Tint + scale city dots: infected ones glow purple and
                 // sit slightly larger so they pop against the mint base
                 // dots and dark continents.
-                const INFECTED_COLOR = 0xc084fc;
+                const INFECTED_COLOR = 0xa3e635;
                 const INFECTED_SCALE = 1.4;
                 for (let i = 0; i < this.cityMeshes.length; i++) {
                     const m = this.cityMeshes[i];
@@ -4944,11 +5001,11 @@
                     if (i === idx) {
                         // Keep infected cities purple; only healthy
                         // selections turn mint.
-                        m.material.color.set(ud.infected ? 0xc084fc : 0x00ff9f);
+                        m.material.color.set(ud.infected ? 0xa3e635 : 0x00ff9f);
                         m.scale.setScalar(infScale * 1.4);
                         if (ud.ring) ud.ring.scale.setScalar(1.6);
                     } else {
-                        m.material.color.set(ud.infected ? 0xc084fc : ud.baseColor);
+                        m.material.color.set(ud.infected ? 0xa3e635 : ud.baseColor);
                         m.scale.setScalar(infScale);
                         if (ud.ring) ud.ring.scale.setScalar(1);
                     }
@@ -5234,6 +5291,34 @@
                             s.material.opacity = tw * 0.7;
                             const ss = ph.size * (0.6 + 0.4 * tw);
                             s.scale.set(ss, ss, 1);
+                        }
+
+                        // Spores: ambient swarm cloud. Always-on (even at
+                        // level 1) so a freshly-infected city already looks
+                        // alive. They drift slowly on their own orbits and
+                        // pulse very gently.
+                        if (ud.spores && ud.spores.length) {
+                            // 40% visible at level 1, full count by ~level 40.
+                            const sporeBase = 0.35 + earlyRamp * 0.65;
+                            const activeSpores = Math.min(ud.spores.length,
+                                Math.ceil(ud.spores.length * sporeBase));
+                            for (let i = 0; i < ud.spores.length; i++) {
+                                const s = ud.spores[i];
+                                if (i >= activeSpores) { s.material.opacity = 0; continue; }
+                                const ph = ud.sporePhases[i];
+                                const drift = Math.sin(t * 0.35 + ph.driftPhase) * ph.driftAmp;
+                                const a = ph.a0 + t * ph.angSpeed;
+                                const r = ph.r0 + drift;
+                                const cosA = Math.cos(a), sinA = Math.sin(a);
+                                s.position.set(
+                                    ud.u.x * r * cosA + ud.v.x * r * sinA,
+                                    ud.u.y * r * cosA + ud.v.y * r * sinA,
+                                    ud.u.z * r * cosA + ud.v.z * r * sinA
+                                );
+                                const tw = 0.55 + 0.45 * Math.sin(t * ph.twSpeed + ph.phase);
+                                s.material.opacity = tw * (0.45 + earlyRamp * 0.30);
+                                s.scale.set(ph.size, ph.size, 1);
+                            }
                         }
                     }
                 }
