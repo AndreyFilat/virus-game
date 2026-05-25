@@ -7176,7 +7176,11 @@
                     this.showCityPlate(idx, c[0], label, () => this.confirmContinent());
                     // Fallback: also show the persistent bottom confirm button
                     // so the player has a way through even if the floating
-                    // plate gets occluded or fails to layout.
+                    // plate gets occluded or fails to layout. Strip any
+                    // lingering `intro` / `placing` class that would otherwise
+                    // suppress it via !important CSS.
+                    const ws = document.getElementById('worldMapScreen');
+                    if (ws) { ws.classList.remove('intro'); ws.classList.remove('placing'); }
                     const cb = document.getElementById('confirmContinent');
                     if (cb) cb.classList.add('visible');
                 } else {
