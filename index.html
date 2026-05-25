@@ -4576,70 +4576,173 @@
                 this.cityHitboxes.push(hit);
             }
 
-            // Mint-tinted soft glow texture used per particle. White-hot
-            // centre fades through mint to transparent.
-            _getParticleTexture() {
-                if (this._particleTex) return this._particleTex;
+            // ---- Infection visualization textures ---------------------
+            // Each layer is a lazy-built CanvasTexture shared across all
+            // infected cities. Layers stack to form a soft volumetric glow.
+
+            _getFogTexture() {
+                if (this._fogTex) return this._fogTex;
+                const size = 256, c = document.createElement('canvas');
+                c.width = c.height = size;
+                const ctx = c.getContext('2d');
+                const g = ctx.createRadialGradient(
+                    size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+                g.addColorStop(0.00, 'rgba(190, 110, 255, 0.55)');
+                g.addColorStop(0.35, 'rgba(160,  75, 230, 0.30)');
+                g.addColorStop(0.72, 'rgba(110,  40, 200, 0.10)');
+                g.addColorStop(1.00, 'rgba( 60,  20, 130, 0.00)');
+                ctx.fillStyle = g;
+                ctx.fillRect(0, 0, size, size);
+                const tex = new THREE.CanvasTexture(c);
+                tex.minFilter = tex.magFilter = THREE.LinearFilter;
+                return this._fogTex = tex;
+            }
+
+            _getGlowTexture() {
+                if (this._glowTex) return this._glowTex;
+                const size = 256, c = document.createElement('canvas');
+                c.width = c.height = size;
+                const ctx = c.getContext('2d');
+                const g = ctx.createRadialGradient(
+                    size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+                g.addColorStop(0.00, 'rgba(255, 235, 255, 0.95)');
+                g.addColorStop(0.22, 'rgba(255, 120, 235, 0.85)');
+                g.addColorStop(0.55, 'rgba(205,  65, 220, 0.32)');
+                g.addColorStop(1.00, 'rgba(120,  30, 180, 0.00)');
+                ctx.fillStyle = g;
+                ctx.fillRect(0, 0, size, size);
+                const tex = new THREE.CanvasTexture(c);
+                tex.minFilter = tex.magFilter = THREE.LinearFilter;
+                return this._glowTex = tex;
+            }
+
+            _getCoreTexture() {
+                if (this._coreTex) return this._coreTex;
+                const size = 128, c = document.createElement('canvas');
+                c.width = c.height = size;
+                const ctx = c.getContext('2d');
+                const g = ctx.createRadialGradient(
+                    size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+                g.addColorStop(0.00, 'rgba(255, 250, 255, 1.00)');
+                g.addColorStop(0.30, 'rgba(255, 185, 255, 0.95)');
+                g.addColorStop(0.65, 'rgba(225, 105, 235, 0.45)');
+                g.addColorStop(1.00, 'rgba(160,  60, 200, 0.00)');
+                ctx.fillStyle = g;
+                ctx.fillRect(0, 0, size, size);
+                const tex = new THREE.CanvasTexture(c);
+                tex.minFilter = tex.magFilter = THREE.LinearFilter;
+                return this._coreTex = tex;
+            }
+
+            _getSparkTexture() {
+                if (this._sparkTex) return this._sparkTex;
                 const size = 64, c = document.createElement('canvas');
                 c.width = c.height = size;
                 const ctx = c.getContext('2d');
                 const g = ctx.createRadialGradient(
                     size / 2, size / 2, 0, size / 2, size / 2, size / 2);
-                g.addColorStop(0.00, 'rgba(232, 200, 255, 1.00)');
-                g.addColorStop(0.30, 'rgba(192, 132, 252, 0.95)');
-                g.addColorStop(0.65, 'rgba(147,  51, 234, 0.55)');
-                g.addColorStop(1.00, 'rgba( 80,  20, 160, 0.00)');
+                g.addColorStop(0.00, 'rgba(255, 250, 255, 1.00)');
+                g.addColorStop(0.45, 'rgba(255, 155, 245, 0.75)');
+                g.addColorStop(1.00, 'rgba(180,  60, 200, 0.00)');
                 ctx.fillStyle = g;
                 ctx.fillRect(0, 0, size, size);
                 const tex = new THREE.CanvasTexture(c);
-                tex.minFilter = THREE.LinearFilter;
-                tex.magFilter = THREE.LinearFilter;
-                this._particleTex = tex;
-                return tex;
+                tex.minFilter = tex.magFilter = THREE.LinearFilter;
+                return this._sparkTex = tex;
             }
 
-            // Build a floating particle cloud around the city's outward
-            // direction. Stores per-particle animation state for the
-            // per-frame motion in _tick.
-            _buildParticleCloud(dir) {
-                const COUNT = 48;
-                const positions = new Float32Array(COUNT * 3);
-                const phases = new Array(COUNT);
-                // Tangent basis to the sphere at this point.
-                const up = Math.abs(dir.y) < 0.95
+            // Procedural "energy" noise — scattered soft magenta blobs
+            // masked to a circular disc. Rotates slowly per frame for the
+            // churning bio-energy feel.
+            _getNoiseTexture() {
+                if (this._noiseTex) return this._noiseTex;
+                const size = 256, c = document.createElement('canvas');
+                c.width = c.height = size;
+                const ctx = c.getContext('2d');
+                for (let i = 0; i < 70; i++) {
+                    const x = Math.random() * size;
+                    const y = Math.random() * size;
+                    const r = 10 + Math.random() * 32;
+                    const grad = ctx.createRadialGradient(x, y, 0, x, y, r);
+                    const a = 0.12 + Math.random() * 0.22;
+                    grad.addColorStop(0, `rgba(255, 140, 250, ${a.toFixed(2)})`);
+                    grad.addColorStop(1, 'rgba(255, 140, 250, 0)');
+                    ctx.fillStyle = grad;
+                    ctx.fillRect(x - r, y - r, 2 * r, 2 * r);
+                }
+                // Mask: feather edges so it's a soft disc, not a square.
+                const mask = ctx.createRadialGradient(
+                    size / 2, size / 2, size * 0.25,
+                    size / 2, size / 2, size / 2);
+                mask.addColorStop(0, 'rgba(0,0,0,0)');
+                mask.addColorStop(1, 'rgba(0,0,0,1)');
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.fillStyle = mask;
+                ctx.fillRect(0, 0, size, size);
+                const tex = new THREE.CanvasTexture(c);
+                tex.minFilter = tex.magFilter = THREE.LinearFilter;
+                return this._noiseTex = tex;
+            }
+
+            // Build the layered glow visual anchored at a city. Layers
+            // (back→front): fog → noise → glow → core, plus accent sparks.
+            // Sizes/opacities are driven by infectionLevel in _tick.
+            _buildInfectionVisual(dir) {
+                const group = new THREE.Group();
+
+                const mk = (tex, blend) => new THREE.Sprite(
+                    new THREE.SpriteMaterial({
+                        map: tex, transparent: true, depthWrite: false,
+                        blending: blend, opacity: 0
+                    }));
+                const fog   = mk(this._getFogTexture(),   THREE.NormalBlending);
+                const noise = mk(this._getNoiseTexture(), THREE.AdditiveBlending);
+                const glow  = mk(this._getGlowTexture(),  THREE.AdditiveBlending);
+                const core  = mk(this._getCoreTexture(),  THREE.AdditiveBlending);
+                fog.scale.set(0.15, 0.15, 1);
+                noise.scale.set(0.12, 0.12, 1);
+                glow.scale.set(0.08, 0.08, 1);
+                core.scale.set(0.03, 0.03, 1);
+                group.add(fog);
+                group.add(noise);
+                group.add(glow);
+                group.add(core);
+
+                // Tangent basis at this point on the sphere — used to
+                // place + drift accent sparks in the tangent plane.
+                const upAxis = Math.abs(dir.y) < 0.95
                     ? new THREE.Vector3(0, 1, 0)
                     : new THREE.Vector3(1, 0, 0);
-                const u = new THREE.Vector3().crossVectors(dir, up).normalize();
+                const u = new THREE.Vector3().crossVectors(dir, upAxis).normalize();
                 const v = new THREE.Vector3().crossVectors(dir, u).normalize();
-                for (let i = 0; i < COUNT; i++) {
-                    const r0 = Math.sqrt(Math.random()) * 0.05;
+                const sparks = [];
+                const sparkPhases = [];
+                const SPARK_COUNT = 8;
+                for (let i = 0; i < SPARK_COUNT; i++) {
+                    const sp = mk(this._getSparkTexture(), THREE.AdditiveBlending);
+                    const r0 = 0.018 + Math.random() * 0.05;
                     const a0 = Math.random() * Math.PI * 2;
-                    const h0 = (Math.random() - 0.2) * 0.012;
-                    phases[i] = {
-                        r0, a0, h0,
-                        rA: 0.002 + Math.random() * 0.004,
-                        hA: 0.002 + Math.random() * 0.004,
-                        spin: (Math.random() - 0.5) * 0.18,
-                        rPhase: Math.random() * Math.PI * 2,
-                        hPhase: Math.random() * Math.PI * 2,
-                        rSpeed: 0.3 + Math.random() * 0.6,
-                        hSpeed: 0.4 + Math.random() * 0.7
-                    };
+                    sp.position.set(
+                        u.x * r0 * Math.cos(a0) + v.x * r0 * Math.sin(a0),
+                        u.y * r0 * Math.cos(a0) + v.y * r0 * Math.sin(a0),
+                        u.z * r0 * Math.cos(a0) + v.z * r0 * Math.sin(a0)
+                    );
+                    sparks.push(sp);
+                    sparkPhases.push({
+                        r0, a0,
+                        size: 0.014 + Math.random() * 0.012,
+                        speed: 0.8 + Math.random() * 1.7,
+                        phase: Math.random() * Math.PI * 2,
+                        driftPhase: Math.random() * Math.PI * 2,
+                        driftAmp: 0.003 + Math.random() * 0.005
+                    });
+                    group.add(sp);
                 }
-                const geom = new THREE.BufferGeometry();
-                geom.setAttribute('position',
-                    new THREE.BufferAttribute(positions, 3));
-                const mat = new THREE.PointsMaterial({
-                    map: this._getParticleTexture(),
-                    size: 0.032,
-                    transparent: true,
-                    depthWrite: false,
-                    color: 0xffffff,
-                    sizeAttenuation: true
-                });
-                const points = new THREE.Points(geom, mat);
-                points.userData = { phases, u, v, dir, count: COUNT };
-                return points;
+                group.userData = {
+                    fog, noise, glow, core,
+                    sparks, sparkPhases, u, v, dir
+                };
+                return group;
             }
 
             // Render infection halos at each infected continent's anchor
@@ -4668,8 +4771,12 @@
                 for (const [idx, group] of this._infectionMeshes) {
                     if (!infected.has(idx)) {
                         this._infectionGroup.remove(group);
-                        group.userData.cloud.geometry.dispose();
-                        group.userData.cloud.material.dispose();
+                        const ud = group.userData;
+                        ud.fog.material.dispose();
+                        ud.noise.material.dispose();
+                        ud.glow.material.dispose();
+                        ud.core.material.dispose();
+                        ud.sparks.forEach(s => s.material.dispose());
                         this._infectionMeshes.delete(idx);
                     }
                 }
@@ -4709,13 +4816,12 @@
                              Math.cos(theta),
                              Math.sin(phi) * Math.sin(theta)
                         );
-                        group = new THREE.Group();
-                        // Mint particle cloud — gentle floating swarm of
-                        // glowing dots that reads as "living infection
-                        // zone" instead of an aggressive red splat.
-                        const cloud = this._buildParticleCloud(dir);
-                        group.add(cloud);
-                        group.userData = { dir, idx, cloud, level: 0 };
+                        // Layered neon-purple glow built around the city.
+                        // Sizes + intensities animate in _tick driven by
+                        // the continent's current infection level.
+                        group = this._buildInfectionVisual(dir);
+                        group.userData.idx = idx;
+                        group.userData.level = 0;
                         this._infectionGroup.add(group);
                         this._infectionMeshes.set(idx, group);
                     }
@@ -5114,32 +5220,68 @@
                         }
                     }
                 }
-                // Drift the infection particle clouds — each particle
-                // wobbles along the surface tangent + slight outward bob.
+                // Layered infection glow animation. Each layer fades in
+                // at a different infection-level threshold so the visual
+                // reads as four discrete tiers:
+                //   <20  → light haze (fog only)
+                //   20-45 → bright glow (+ energy noise)
+                //   45-75 → pulsing hotspot (+ core, sparks)
+                //   >75   → critical viral node (+ fast pulse, full sparks)
                 if (this._infectionMeshes && this._infectionMeshes.size) {
                     const t = performance.now() * 0.001;
                     for (const g of this._infectionMeshes.values()) {
                         const level = g.userData.level || 0;
-                        const cloud = g.userData.cloud;
-                        const ud = cloud.userData;
-                        // Spread radius + particle size scale with infection
-                        // level — denser, larger zone at high levels.
-                        const spreadMul = 0.7 + (level / 100) * 1.6;
-                        const arr = cloud.geometry.attributes.position.array;
-                        const u = ud.u, v = ud.v, dir = ud.dir;
-                        for (let i = 0; i < ud.count; i++) {
-                            const p = ud.phases[i];
-                            const r = (p.r0 + Math.sin(t * p.rSpeed + p.rPhase) * p.rA) * spreadMul;
-                            const a = p.a0 + t * p.spin;
-                            const h = p.h0 + Math.sin(t * p.hSpeed + p.hPhase) * p.hA;
-                            const ou = r * Math.cos(a), ov = r * Math.sin(a);
-                            const i3 = i * 3;
-                            arr[i3]     = u.x * ou + v.x * ov + dir.x * h;
-                            arr[i3 + 1] = u.y * ou + v.y * ov + dir.y * h;
-                            arr[i3 + 2] = u.z * ou + v.z * ov + dir.z * h;
+                        const intensity = Math.min(1, level / 100);
+                        const ud = g.userData;
+
+                        const fogPulse = 1 + Math.sin(t * 0.55) * 0.07;
+                        const fogSize = (0.20 + intensity * 0.42) * fogPulse;
+                        ud.fog.scale.set(fogSize, fogSize, 1);
+                        ud.fog.material.opacity = 0.42 + intensity * 0.30;
+
+                        const noiseFade = Math.max(0, Math.min(1, (level - 18) / 35));
+                        const noiseSize = 0.16 + intensity * 0.32;
+                        ud.noise.scale.set(noiseSize, noiseSize, 1);
+                        ud.noise.material.rotation = t * 0.18;
+                        ud.noise.material.opacity = noiseFade * (0.20 + intensity * 0.22);
+
+                        const glowFade = Math.max(0, Math.min(1, (level - 22) / 30));
+                        const glowPulse = 1 + Math.sin(t * 1.4) * 0.10;
+                        const glowSize = (0.10 + intensity * 0.24) * glowPulse;
+                        ud.glow.scale.set(glowSize, glowSize, 1);
+                        ud.glow.material.opacity = glowFade * (0.55 + intensity * 0.35);
+
+                        const coreFade = Math.max(0, Math.min(1, (level - 45) / 30));
+                        const critical = level >= 75 ? 1 : 0;
+                        const corePulseSpeed = 2.4 + critical * 1.6;
+                        const corePulse = 1 + Math.sin(t * corePulseSpeed) * (0.18 + critical * 0.18);
+                        const coreSize = (0.030 + intensity * 0.05) * corePulse;
+                        ud.core.scale.set(coreSize, coreSize, 1);
+                        ud.core.material.opacity = coreFade
+                            * (0.80 + 0.15 * Math.sin(t * corePulseSpeed));
+
+                        const activeSparks = Math.min(
+                            ud.sparks.length,
+                            Math.ceil(intensity * ud.sparks.length));
+                        for (let i = 0; i < ud.sparks.length; i++) {
+                            const s = ud.sparks[i];
+                            if (i >= activeSparks) { s.material.opacity = 0; continue; }
+                            const ph = ud.sparkPhases[i];
+                            const drift = Math.sin(t * 0.6 + ph.driftPhase) * ph.driftAmp;
+                            const a = ph.a0 + t * 0.05 + drift * 4;
+                            const r = ph.r0 + drift;
+                            const cosA = Math.cos(a), sinA = Math.sin(a);
+                            s.position.set(
+                                ud.u.x * r * cosA + ud.v.x * r * sinA,
+                                ud.u.y * r * cosA + ud.v.y * r * sinA,
+                                ud.u.z * r * cosA + ud.v.z * r * sinA
+                            );
+                            const tw = 0.35 + 0.65 * Math.max(0,
+                                Math.sin(t * ph.speed + ph.phase));
+                            s.material.opacity = tw * 0.85;
+                            const ss = ph.size * (0.65 + 0.4 * tw);
+                            s.scale.set(ss, ss, 1);
                         }
-                        cloud.geometry.attributes.position.needsUpdate = true;
-                        cloud.material.size = 0.028 + (level / 100) * 0.018;
                     }
                 }
                 this.renderer.render(this.scene, this.camera);
