@@ -4594,10 +4594,10 @@
                 const lerp = (a, b, t) => Math.round(a + (b - a) * t);
                 for (let i = 0; i <= STOPS; i++) {
                     const t = i / STOPS;
-                    const alpha = 0.72 * Math.pow(1 - t, 2.2);
-                    const r = lerp(210, 70, t);
+                    const alpha = 0.92 * Math.pow(1 - t, 1.8);
+                    const r = lerp(220, 80, t);
                     const gn = lerp(140, 20, t);
-                    const b = lerp(255, 150, t);
+                    const b = lerp(255, 160, t);
                     g.addColorStop(t, `rgba(${r}, ${gn}, ${b}, ${alpha.toFixed(3)})`);
                 }
                 ctx.fillStyle = g;
@@ -5193,13 +5193,16 @@
                         // visible than before but still small enough that
                         // neighbouring cities only overlap a little.
                         const fogPulse = 1 + Math.sin(t * 0.5 + ud.phaseOffset) * 0.08;
-                        const fogSize = (0.11 + intensity * 0.14) * fogPulse;
+                        // Non-linear ramp: a freshly-infected city already shows
+                        // a noticeable haze; growth keeps adding density.
+                        const earlyRamp = Math.sqrt(intensity);
+                        const fogSize = (0.17 + earlyRamp * 0.14) * fogPulse;
                         ud.fog.scale.set(fogSize, fogSize, 1);
-                        ud.fog.material.opacity = 0.32 + intensity * 0.30;
+                        ud.fog.material.opacity = 0.55 + earlyRamp * 0.28;
 
                         // Core: bright bio-pink, additive. Visible early
                         // (from level 5) so even faint infections read.
-                        const coreFade = Math.max(0, Math.min(1, (level - 5) / 35));
+                        const coreFade = Math.max(0, Math.min(1, (level - 1) / 20));
                         const critical = level >= 75 ? 1 : 0;
                         const corePulseSpeed = 1.8 + critical * 1.2;
                         const corePulse = 1 + Math.sin(t * corePulseSpeed + ud.phaseOffset)
@@ -5211,9 +5214,9 @@
 
                         // Sparks: twinkling cloud inside the fog. Half are
                         // active from level 10, all by level 60.
-                        const activeSparks = level < 10 ? 0
+                        const activeSparks = level < 3 ? 0
                             : Math.min(ud.sparks.length,
-                                Math.ceil(ud.sparks.length * (0.3 + intensity * 0.7)));
+                                Math.ceil(ud.sparks.length * (0.45 + earlyRamp * 0.55)));
                         for (let i = 0; i < ud.sparks.length; i++) {
                             const s = ud.sparks[i];
                             if (i >= activeSparks) { s.material.opacity = 0; continue; }
@@ -7782,9 +7785,13 @@
 
             // Debug: clear all persisted state and reload the game.
             resetProgress() {
-                try { localStorage.removeItem('vg_state'); } catch (e) {}
-                try { localStorage.removeItem('tutorialDone'); } catch (e) {}
-                try { localStorage.removeItem('inviteRef'); } catch (e) {}
+                try { localStorage.clear(); } catch (e) {}
+                try { sessionStorage.clear(); } catch (e) {}
+                try { this.virusStats = { infectivity: 0, severity: 0, lethality: 0 }; } catch (e) {}
+                try { this.abilityLevels = {}; } catch (e) {}
+                try { this.dnaPoints = 0; } catch (e) {}
+                try { this.tutorialDone = false; } catch (e) {}
+                try { if (this.continents) this.continents.forEach(c => { c.infectedCities = new Set(); c.cities.forEach(city => { city.infected = 0; city.deaths = 0; }); }); } catch (e) {}
                 location.reload();
             }
 
