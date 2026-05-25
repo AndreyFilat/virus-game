@@ -7671,8 +7671,8 @@
                 }
                 if (speedMult == null) speedMult = this.buffMult('spread_speed_mult');
                 // Spread rate per tick: low at base stat, ramps up with upgrades.
-                const SPREAD_BASE = 0.12;
-                const SPREAD_GAIN = 0.45;
+                const SPREAD_BASE = 0.006;
+                const SPREAD_GAIN = 0.0225;
                 const probScale = (SPREAD_BASE + (infectivityEff / 100) * SPREAD_GAIN)
                     * speedMult;
                 const FALLOFF_KM = 4500;
