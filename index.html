@@ -5663,6 +5663,7 @@
                 }
                 // Catch up world growth after the tab was hidden/frozen.
                 document.addEventListener('visibilitychange', () => {
+                    if (this._resetting) return;
                     if (document.visibilityState === 'hidden') {
                         this.lastTickAt = Date.now();
                         this.saveState();
@@ -7712,6 +7713,7 @@
             // ---- Persistence ---------------------------------------------
 
             saveState() {
+                if (this._resetting) return;
                 try {
                     const continentsData = {};
                     Object.entries(this.continents).forEach(([id, c]) => {
@@ -7792,13 +7794,13 @@
 
             // Debug: clear all persisted state and reload the game.
             resetProgress() {
+                // Block any further saves between now and the actual unload.
+                // `location.reload()` fires `visibilitychange: hidden`, which
+                // would otherwise re-save the (still infected) in-memory
+                // state back into localStorage right after we clear it.
+                this._resetting = true;
                 try { localStorage.clear(); } catch (e) {}
                 try { sessionStorage.clear(); } catch (e) {}
-                try { this.virusStats = { infectivity: 0, severity: 0, lethality: 0 }; } catch (e) {}
-                try { this.abilityLevels = {}; } catch (e) {}
-                try { this.dnaPoints = 0; } catch (e) {}
-                try { this.tutorialDone = false; } catch (e) {}
-                try { if (this.continents) this.continents.forEach(c => { c.infectedCities = new Set(); c.cities.forEach(city => { city.infected = 0; city.deaths = 0; }); }); } catch (e) {}
                 location.reload();
             }
 
