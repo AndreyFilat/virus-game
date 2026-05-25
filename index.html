@@ -3871,7 +3871,7 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 </head>
 <body>
-    <button id="debugResetBtn" class="debug-reset" title="Сбросить прогресс">⟲ DEBUG v12</button>
+    <button id="debugResetBtn" class="debug-reset" title="Сбросить прогресс">⟲ DEBUG v13</button>
     <div class="game-container">
         <!-- DNA Counter (always visible) -->
         <div class="dna-counter">
@@ -6302,10 +6302,16 @@
                 const proj = worldPos.clone().project(cam);
                 const canvas = this.globe.canvas;
                 const rect = canvas.getBoundingClientRect();
-                const x = rect.left + (proj.x * 0.5 + 0.5) * rect.width;
-                const y = rect.top  + (-proj.y * 0.5 + 0.5) * rect.height;
-                plate.style.left = x + 'px';
-                plate.style.top  = y + 'px';
+                const xViewport = rect.left + (proj.x * 0.5 + 0.5) * rect.width;
+                const yViewport = rect.top  + (-proj.y * 0.5 + 0.5) * rect.height;
+                // The plate's containing block is whichever ancestor has a
+                // `transform` set — `.world-map-screen` does. Convert from
+                // viewport coords to coords relative to that ancestor so
+                // `position: fixed` lands the plate over the right city.
+                const offsetParent = plate.offsetParent || document.body;
+                const opRect = offsetParent.getBoundingClientRect();
+                plate.style.left = (xViewport - opRect.left) + 'px';
+                plate.style.top  = (yViewport - opRect.top)  + 'px';
             }
 
             cloneHelixToMap() {
