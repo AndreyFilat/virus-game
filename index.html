@@ -3928,7 +3928,7 @@
             <div class="world-map-wrapper">
                 <canvas class="globe-canvas" id="globeCanvas"></canvas>
                 <div class="world-map-pan" id="worldMapPan">
-                    <img src="assets/world%20map.png" class="world-map-image" alt="World Map" />
+                    <img src="assets/world_map.png" class="world-map-image" alt="World Map" />
                     <!-- Continent selection overlay -->
                 <svg class="continents-overlay" viewBox="0 0 1050 700" preserveAspectRatio="xMidYMid slice">
                     <polygon class="continent-zone" data-id="north-america" data-name="Северная Америка"
@@ -4294,7 +4294,7 @@
                 // load a true equirectangular Earth texture from the
                 // Three.js CDN so real (lat, lon) maps to the correct spot
                 // for every city, no per-city manual overrides needed.
-                // The illustrated `assets/world map.png` is kept as a
+                // The illustrated `assets/world_map.png` is kept as a
                 // fallback in case the CDN can't be reached.
                 const loader = new THREE.TextureLoader();
                 loader.crossOrigin = 'anonymous';
@@ -7186,7 +7186,7 @@
                 if (!canvas) return;
                 this.globe = new Globe({
                     canvas,
-                    textureUrl: 'assets/world%20map.png',
+                    textureUrl: 'assets/world_map.png',
                     cities: this.cities,
                     vboxForCity: (c) => this.cityToXY(c[1], c[2], c[4], c[0]),
                     onCityTap: (idx) => this.handleCityTap(idx),
