@@ -4585,10 +4585,10 @@
                 const ctx = c.getContext('2d');
                 const g = ctx.createRadialGradient(
                     size / 2, size / 2, 0, size / 2, size / 2, size / 2);
-                g.addColorStop(0.00, 'rgba(230, 255, 235, 1.00)');
-                g.addColorStop(0.35, 'rgba(130, 250, 145, 0.75)');
-                g.addColorStop(0.75, 'rgba( 60, 200,  90, 0.20)');
-                g.addColorStop(1.00, 'rgba( 30, 150,  70, 0.00)');
+                g.addColorStop(0.00, 'rgba(245, 225, 255, 1.00)');
+                g.addColorStop(0.35, 'rgba(192, 132, 252, 0.78)');
+                g.addColorStop(0.75, 'rgba(126,  58, 205, 0.22)');
+                g.addColorStop(1.00, 'rgba( 80,  30, 160, 0.00)');
                 ctx.fillStyle = g;
                 ctx.fillRect(0, 0, size, size);
                 const tex = new THREE.CanvasTexture(c);
@@ -4676,7 +4676,7 @@
                 }
                 // Tint city dots: every infected city glows red, others
                 // fall back to their default mint-tinted fill.
-                const INFECTED_COLOR = 0xff3a2a;
+                const INFECTED_COLOR = 0xc084fc;
                 for (let i = 0; i < this.cityMeshes.length; i++) {
                     const m = this.cityMeshes[i];
                     const isInf = infectedSet.has(m.userData.idx);
@@ -4883,11 +4883,11 @@
                     if (i === idx) {
                         // Keep infected cities red; only healthy selections
                         // turn mint.
-                        m.material.color.set(ud.infected ? 0xff3a2a : 0x00ff9f);
+                        m.material.color.set(ud.infected ? 0xc084fc : 0x00ff9f);
                         m.scale.setScalar(1.6);
                         if (ud.ring) ud.ring.scale.setScalar(1.6);
                     } else {
-                        m.material.color.set(ud.infected ? 0xff3a2a : ud.baseColor);
+                        m.material.color.set(ud.infected ? 0xc084fc : ud.baseColor);
                         m.scale.setScalar(1);
                         if (ud.ring) ud.ring.scale.setScalar(1);
                     }
