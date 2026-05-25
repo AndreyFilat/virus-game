@@ -4588,10 +4588,18 @@
                 const ctx = c.getContext('2d');
                 const g = ctx.createRadialGradient(
                     size / 2, size / 2, 0, size / 2, size / 2, size / 2);
-                g.addColorStop(0.00, 'rgba(210, 140, 255, 0.75)');
-                g.addColorStop(0.30, 'rgba(170,  85, 240, 0.50)');
-                g.addColorStop(0.65, 'rgba(125,  45, 215, 0.22)');
-                g.addColorStop(1.00, 'rgba( 70,  20, 150, 0.00)');
+                // Smooth quadratic alpha falloff — many stops so multiple
+                // overlapping fogs don't produce visible concentric bands.
+                const STOPS = 24;
+                const lerp = (a, b, t) => Math.round(a + (b - a) * t);
+                for (let i = 0; i <= STOPS; i++) {
+                    const t = i / STOPS;
+                    const alpha = 0.72 * Math.pow(1 - t, 2.2);
+                    const r = lerp(210, 70, t);
+                    const gn = lerp(140, 20, t);
+                    const b = lerp(255, 150, t);
+                    g.addColorStop(t, `rgba(${r}, ${gn}, ${b}, ${alpha.toFixed(3)})`);
+                }
                 ctx.fillStyle = g;
                 ctx.fillRect(0, 0, size, size);
                 const tex = new THREE.CanvasTexture(c);
@@ -4658,10 +4666,10 @@
                 const v = new THREE.Vector3().crossVectors(dir, u).normalize();
                 const sparks = [];
                 const sparkPhases = [];
-                const SPARK_COUNT = 3;
+                const SPARK_COUNT = 12;
                 for (let i = 0; i < SPARK_COUNT; i++) {
                     const sp = mk(this._getSparkTexture(), THREE.AdditiveBlending);
-                    const r0 = 0.015 + Math.random() * 0.035;
+                    const r0 = 0.012 + Math.sqrt(Math.random()) * 0.055;
                     const a0 = Math.random() * Math.PI * 2;
                     sp.position.set(
                         u.x * r0 * Math.cos(a0) + v.x * r0 * Math.sin(a0),
@@ -4671,11 +4679,11 @@
                     sparks.push(sp);
                     sparkPhases.push({
                         r0, a0,
-                        size: 0.008 + Math.random() * 0.008,
-                        speed: 0.9 + Math.random() * 1.6,
+                        size: 0.006 + Math.random() * 0.008,
+                        speed: 0.7 + Math.random() * 1.8,
                         phase: Math.random() * Math.PI * 2,
                         driftPhase: Math.random() * Math.PI * 2,
-                        driftAmp: 0.002 + Math.random() * 0.003
+                        driftAmp: 0.002 + Math.random() * 0.004
                     });
                     group.add(sp);
                 }
@@ -5167,7 +5175,7 @@
                     if (m.userData.infected
                         && this._selectedCityIdx !== m.userData.idx) {
                         const phase = (m.userData.idx || 0) * 0.37;
-                        const pulse = 1.4 + Math.sin(tPulse * 1.6 + phase) * 0.18;
+                        const pulse = 1.4 + Math.sin(tPulse * 0.9 + phase) * 0.08;
                         m.scale.setScalar(pulse);
                     }
                 }
@@ -5201,10 +5209,11 @@
                         ud.core.material.opacity = coreFade
                             * (0.70 + 0.18 * Math.sin(t * corePulseSpeed + ud.phaseOffset));
 
-                        // Sparks: subtle twinkles within the field.
-                        const activeSparks = level < 25 ? 0
+                        // Sparks: twinkling cloud inside the fog. Half are
+                        // active from level 10, all by level 60.
+                        const activeSparks = level < 10 ? 0
                             : Math.min(ud.sparks.length,
-                                Math.ceil(intensity * ud.sparks.length));
+                                Math.ceil(ud.sparks.length * (0.3 + intensity * 0.7)));
                         for (let i = 0; i < ud.sparks.length; i++) {
                             const s = ud.sparks[i];
                             if (i >= activeSparks) { s.material.opacity = 0; continue; }
