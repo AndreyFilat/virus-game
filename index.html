@@ -3327,11 +3327,10 @@
             filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.45));
         }
 
-        /* Map-screen "Распространить" pill disappears while the plate is
-           open (the plate carries the action). We keep the picker bottom
-           "Подтвердить" button visible as a fallback in case the floating
-           plate fails to layout for any reason. */
-        body.plate-open .open-spread-btn { display: none; }
+        /* Both the picker bottom "Подтвердить" button and the map-screen
+           "Распространить" pill stay visible as fallbacks while the
+           floating city plate is open — that way the player always has a
+           way through, even if the plate gets occluded or fails to layout. */
         .modal-link {
             background: rgba(0, 0, 0, 0.45);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -3872,7 +3871,7 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 </head>
 <body>
-    <button id="debugResetBtn" class="debug-reset" title="Сбросить прогресс">⟲ DEBUG v9</button>
+    <button id="debugResetBtn" class="debug-reset" title="Сбросить прогресс">⟲ DEBUG v10</button>
     <div class="game-container">
         <!-- DNA Counter (always visible) -->
         <div class="dna-counter">
