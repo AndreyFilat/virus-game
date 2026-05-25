@@ -6608,13 +6608,15 @@
                     if (!valid.has(targetId)) return;
                 }
 
-                // Fade out the picker chrome (prompt, helix, confirm) before
-                // the placement animation / toast appears.
+                // Fade out the picker chrome (prompt, helix, confirm, city
+                // plate) before the placement animation / toast appears so
+                // the toast doesn't overlap the "Разместить/Заразить" plate.
                 const screen = document.getElementById('worldMapScreen');
                 if (screen) screen.classList.add('placing');
                 document.querySelector('.world-map-wrapper').classList.remove('selecting');
                 document.getElementById('confirmContinent').classList.remove('visible');
                 document.querySelectorAll('.city-group.selected').forEach(g => g.classList.remove('selected'));
+                this.hideCityPlate();
 
                 const finish = () => {
                     setTimeout(() => {
@@ -6647,7 +6649,9 @@
                     this.saveState();
                     try { localStorage.setItem('tutorialDone', '1'); } catch (e) {}
                     this.afterTutorialSetup();
-                    this.showToast('Вирус размещён', cityName, 'above-map');
+                    // Wait for the city plate to finish its fade-out before
+                    // showing the "Вирус размещён" toast.
+                    setTimeout(() => this.showToast('Вирус размещён', cityName, 'above-map'), 260);
                     finish();
                     return;
                 }
