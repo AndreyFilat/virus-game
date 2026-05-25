@@ -3871,7 +3871,7 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 </head>
 <body>
-    <button id="debugResetBtn" class="debug-reset" title="Сбросить прогресс">⟲ DEBUG v11</button>
+    <button id="debugResetBtn" class="debug-reset" title="Сбросить прогресс">⟲ DEBUG v12</button>
     <div class="game-container">
         <!-- DNA Counter (always visible) -->
         <div class="dna-counter">
@@ -6598,13 +6598,17 @@
                 const mode = this.pickerMode;
 
                 // Defence-in-depth: re-validate the target continent against
-                // the picker mode (e.g. land must hit a land-adjacent
-                // continent). Should already be caught by handleCityTap but
-                // belt + braces — we don't want a cross-continent land
-                // infection to slip through.
+                // the picker mode. The target must either be a fresh
+                // continent reachable by `mode`, or an already-infected
+                // continent where we're just adding another city.
                 if (!isTutorial && mode) {
                     const valid = this.getValidTargets(mode);
-                    if (!valid.has(targetId)) return;
+                    const targetCont = this.continents[targetId];
+                    const isInternalSpread = targetCont
+                        && targetCont.infectionLevel > 0
+                        && targetCont.infectedCities
+                        && !targetCont.infectedCities.has(cityIdx);
+                    if (!valid.has(targetId) && !isInternalSpread) return;
                 }
 
                 // Fade out the picker chrome (prompt, helix, confirm, city
@@ -7170,7 +7174,16 @@
                 }
                 const continent = c[4];
                 const valid = this.getValidTargets(this.pickerMode === 'tutorial' ? 'any' : this.pickerMode);
-                const isValid = valid.has(continent);
+                const cont = this.continents[continent];
+                const cityAlreadyInfected = cont && cont.infectedCities
+                    && cont.infectedCities.has(idx);
+                // Internal spread: tapping an uninfected city inside a
+                // continent that's already been hit. We still allow this
+                // (manual reinforcement) but only outside tutorial.
+                const internalSpread = !cityAlreadyInfected
+                    && this.pickerMode !== 'tutorial'
+                    && cont && cont.infectionLevel > 0;
+                const isValid = valid.has(continent) || internalSpread;
                 if (isValid) {
                     this.selectedCityIdx = idx;
                     this.selectedContinent = continent;
@@ -7195,10 +7208,9 @@
                     this.showCityPlate(idx, c[0], null, null);
                     const cb = document.getElementById('confirmContinent');
                     if (cb) cb.classList.remove('visible');
-                    const cont = this.continents[continent];
                     let reason;
-                    if (cont && cont.infectionLevel > 0) {
-                        reason = 'Континент уже заражён';
+                    if (cityAlreadyInfected) {
+                        reason = 'Город уже заражён';
                     } else if (this.pickerMode === 'land') {
                         reason = 'Сухопутный путь сюда не доходит';
                     } else if (this.pickerMode === 'water') {
