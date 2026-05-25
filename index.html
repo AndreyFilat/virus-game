@@ -4585,10 +4585,10 @@
                 const ctx = c.getContext('2d');
                 const g = ctx.createRadialGradient(
                     size / 2, size / 2, 0, size / 2, size / 2, size / 2);
-                g.addColorStop(0.00, 'rgba(245, 225, 255, 1.00)');
-                g.addColorStop(0.35, 'rgba(192, 132, 252, 0.78)');
-                g.addColorStop(0.75, 'rgba(126,  58, 205, 0.22)');
-                g.addColorStop(1.00, 'rgba( 80,  30, 160, 0.00)');
+                g.addColorStop(0.00, 'rgba(232, 200, 255, 1.00)');
+                g.addColorStop(0.30, 'rgba(192, 132, 252, 0.95)');
+                g.addColorStop(0.65, 'rgba(147,  51, 234, 0.55)');
+                g.addColorStop(1.00, 'rgba( 80,  20, 160, 0.00)');
                 ctx.fillStyle = g;
                 ctx.fillRect(0, 0, size, size);
                 const tex = new THREE.CanvasTexture(c);
@@ -4631,11 +4631,10 @@
                     new THREE.BufferAttribute(positions, 3));
                 const mat = new THREE.PointsMaterial({
                     map: this._getParticleTexture(),
-                    size: 0.022,
+                    size: 0.032,
                     transparent: true,
                     depthWrite: false,
                     color: 0xffffff,
-                    blending: THREE.AdditiveBlending,
                     sizeAttenuation: true
                 });
                 const points = new THREE.Points(geom, mat);
@@ -4674,17 +4673,25 @@
                         this._infectionMeshes.delete(idx);
                     }
                 }
-                // Tint city dots: every infected city glows red, others
-                // fall back to their default mint-tinted fill.
+                // Tint + scale city dots: infected ones glow purple and
+                // sit slightly larger so they pop against the mint base
+                // dots and dark continents.
                 const INFECTED_COLOR = 0xc084fc;
+                const INFECTED_SCALE = 1.8;
                 for (let i = 0; i < this.cityMeshes.length; i++) {
                     const m = this.cityMeshes[i];
                     const isInf = infectedSet.has(m.userData.idx);
+                    const wasInf = !!m.userData.infected;
                     m.userData.infected = isInf;
                     m.material.color.set(isInf ? INFECTED_COLOR : m.userData.baseColor);
                     // Hide the grey outline ring on infected cities so only
-                    // the red infection halo + red dot are visible.
+                    // the purple halo + purple dot are visible.
                     if (m.userData.ring) m.userData.ring.visible = !isInf;
+                    // Resize dot — only when the state actually changes so
+                    // we don't fight `setSelectedCity`'s 1.6× highlight.
+                    if (isInf !== wasInf) {
+                        m.scale.setScalar(isInf ? INFECTED_SCALE : 1);
+                    }
                 }
                 // Create/update active ones
                 for (const [idx, level] of infected) {
@@ -4880,15 +4887,16 @@
             setSelectedCity(idx) {
                 this.cityMeshes.forEach((m, i) => {
                     const ud = m.userData;
+                    const infScale = ud.infected ? 1.8 : 1;
                     if (i === idx) {
-                        // Keep infected cities red; only healthy selections
-                        // turn mint.
+                        // Keep infected cities purple; only healthy
+                        // selections turn mint.
                         m.material.color.set(ud.infected ? 0xc084fc : 0x00ff9f);
-                        m.scale.setScalar(1.6);
+                        m.scale.setScalar(infScale * 1.4);
                         if (ud.ring) ud.ring.scale.setScalar(1.6);
                     } else {
                         m.material.color.set(ud.infected ? 0xc084fc : ud.baseColor);
-                        m.scale.setScalar(1);
+                        m.scale.setScalar(infScale);
                         if (ud.ring) ud.ring.scale.setScalar(1);
                     }
                 });
@@ -5131,7 +5139,7 @@
                             arr[i3 + 2] = u.z * ou + v.z * ov + dir.z * h;
                         }
                         cloud.geometry.attributes.position.needsUpdate = true;
-                        cloud.material.size = 0.018 + (level / 100) * 0.014;
+                        cloud.material.size = 0.028 + (level / 100) * 0.018;
                     }
                 }
                 this.renderer.render(this.scene, this.camera);
