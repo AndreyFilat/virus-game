@@ -3327,11 +3327,11 @@
             filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.45));
         }
 
-        /* The map-screen "Распространить" pill and the picker bottom
-           "Подтвердить" button disappear while the plate is showing —
-           the plate carries the action itself. */
-        body.plate-open .open-spread-btn,
-        body.plate-open .confirm-button { display: none; }
+        /* Map-screen "Распространить" pill disappears while the plate is
+           open (the plate carries the action). We keep the picker bottom
+           "Подтвердить" button visible as a fallback in case the floating
+           plate fails to layout for any reason. */
+        body.plate-open .open-spread-btn { display: none; }
         .modal-link {
             background: rgba(0, 0, 0, 0.45);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -4976,7 +4976,7 @@
                     if (!dragging || mode !== 'drag') return;
                     const dx = x - lastX;
                     const dy = y - lastY;
-                    if (Math.hypot(x - tapStartX, y - tapStartY) > 4) moved = true;
+                    if (Math.hypot(x - tapStartX, y - tapStartY) > 8) moved = true;
                     const baseZ = this._baseZ || 2.6;
                     const k = 0.005 * (this.camera.position.z / baseZ);
                     // Free trackball — rotations are world-space via
@@ -7173,12 +7173,19 @@
                     if (this.globe) this.globe.setSelectedCity(idx);
                     const label = this.pickerMode === 'tutorial' ? 'Разместить' : 'Заразить';
                     this.showCityPlate(idx, c[0], label, () => this.confirmContinent());
+                    // Fallback: also show the persistent bottom confirm button
+                    // so the player has a way through even if the floating
+                    // plate gets occluded or fails to layout.
+                    const cb = document.getElementById('confirmContinent');
+                    if (cb) cb.classList.add('visible');
                 } else {
                     // Invalid target — surface the name so the player sees
                     // they did tap something, but offer no action.
                     if (this.globe) this.globe.setSelectedCity(-1);
                     this.selectedCityIdx = null;
                     this.showCityPlate(idx, c[0], null, null);
+                    const cb = document.getElementById('confirmContinent');
+                    if (cb) cb.classList.remove('visible');
                 }
             }
 
