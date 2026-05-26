@@ -3838,9 +3838,7 @@
             overflow: visible;
         }
         .home-virus.tapped {
-            animation: home-virus-tap 0.36s cubic-bezier(0.25, 1.45, 0.4, 1);
-            filter: drop-shadow(0 14px 36px rgba(0, 0, 0, 0.7))
-                    drop-shadow(0 0 48px rgba(248, 113, 113, 0.95));
+            animation: home-virus-tap 0.5s cubic-bezier(0.34, 1.56, 0.4, 1);
         }
         /* Once the player has finished the tap tutorial the breathing
            animation stops so the button stays calm. */
@@ -3848,10 +3846,49 @@
             animation: none;
         }
         @keyframes home-virus-tap {
-            0%   { transform: translate(-50%, -50%) scale(1); }
-            32%  { transform: translate(-50%, -50%) scale(0.92); }
-            58%  { transform: translate(-50%, -50%) scale(1.04); }
-            100% { transform: translate(-50%, -50%) scale(1); }
+            0%   {
+                transform: translate(-50%, -50%) scale(1);
+                filter: drop-shadow(0 14px 36px rgba(0, 0, 0, 0.7))
+                        drop-shadow(0 0 28px rgba(248, 113, 113, 0.55));
+            }
+            18%  {
+                transform: translate(-50%, -49%) scale(0.9);
+                filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.65))
+                        drop-shadow(0 0 56px rgba(248, 113, 113, 1));
+            }
+            55%  {
+                transform: translate(-50%, -51%) scale(1.06);
+                filter: drop-shadow(0 16px 40px rgba(0, 0, 0, 0.72))
+                        drop-shadow(0 0 50px rgba(248, 113, 113, 0.85));
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+                filter: drop-shadow(0 14px 36px rgba(0, 0, 0, 0.7))
+                        drop-shadow(0 0 28px rgba(248, 113, 113, 0.55));
+            }
+        }
+        body.faction-resist .home-virus.tapped { animation: home-virus-tap-resist 0.5s cubic-bezier(0.34, 1.56, 0.4, 1); }
+        @keyframes home-virus-tap-resist {
+            0%   {
+                transform: translate(-50%, -50%) scale(1);
+                filter: drop-shadow(0 14px 36px rgba(0, 0, 0, 0.7))
+                        drop-shadow(0 0 28px rgba(59, 130, 246, 0.55));
+            }
+            18%  {
+                transform: translate(-50%, -49%) scale(0.9);
+                filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.65))
+                        drop-shadow(0 0 56px rgba(96, 165, 250, 1));
+            }
+            55%  {
+                transform: translate(-50%, -51%) scale(1.06);
+                filter: drop-shadow(0 16px 40px rgba(0, 0, 0, 0.72))
+                        drop-shadow(0 0 50px rgba(96, 165, 250, 0.9));
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+                filter: drop-shadow(0 14px 36px rgba(0, 0, 0, 0.7))
+                        drop-shadow(0 0 28px rgba(59, 130, 246, 0.55));
+            }
         }
 
         /* Floating point-gain text that rises from the tap location and
@@ -9465,10 +9502,10 @@
                 const pct = Math.round((buff.value - 1) * 100);
                 const sign = pct >= 0 ? '+' : '';
                 const labels = {
-                    infectivity_mult:  'заразность',
-                    lethality_mult:    'летальность',
-                    severity_mult:     'тяжесть',
-                    spread_speed_mult: 'скорость распр.',
+                    infectivity_mult:  'охват сети',
+                    lethality_mult:    'разрушение',
+                    severity_mult:     'давление',
+                    spread_speed_mult: 'скорость роста',
                     income_mult:       'доход Влияния',
                     upgrade_cost_mult: 'стоимость улучш.'
                 };
@@ -9664,7 +9701,7 @@
                 this.saveState();
 
                 target.classList.add('tapped');
-                setTimeout(() => target.classList.remove('tapped'), 360);
+                setTimeout(() => target.classList.remove('tapped'), 520);
 
                 this.showGainText(cx, cy, '+' + amount);
 
