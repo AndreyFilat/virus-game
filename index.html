@@ -335,6 +335,39 @@
             margin-bottom: 60px;
             letter-spacing: 1px;
         }
+        /* During the tutorial pull the subtitle out of the flex column so it
+           sits high above the button and reads as the tap instruction. */
+        body.tutorial-active .start-screen .game-subtitle {
+            position: absolute;
+            top: 12%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin: 0;
+            padding: 12px 22px;
+            font-size: 17px;
+            font-weight: 700;
+            font-family: 'Space Mono', monospace;
+            letter-spacing: 1.2px;
+            text-align: center;
+            color: #fff;
+            background: rgba(8, 14, 28, 0.78);
+            border: 2px solid rgba(125, 211, 252, 0.55);
+            border-radius: 16px;
+            box-shadow:
+                0 8px 24px rgba(0, 0, 0, 0.55),
+                0 0 30px rgba(125, 211, 252, 0.35),
+                inset 0 1px 0 rgba(255, 255, 255, 0.16);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            text-shadow: 0 0 12px rgba(125, 211, 252, 0.85);
+            animation: tutorial-hint-pulse 2.2s ease-in-out infinite;
+            z-index: 30;
+            white-space: nowrap;
+        }
+        @keyframes tutorial-hint-pulse {
+            0%, 100% { transform: translateX(-50%) scale(1); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55), 0 0 30px rgba(125, 211, 252, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.16); }
+            50%      { transform: translateX(-50%) scale(1.04); box-shadow: 0 8px 28px rgba(0, 0, 0, 0.6), 0 0 44px rgba(125, 211, 252, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.2); }
+        }
 
         /* Debug reset — hidden later. */
         .debug-reset {
@@ -3809,6 +3842,11 @@
             filter: drop-shadow(0 14px 36px rgba(0, 0, 0, 0.7))
                     drop-shadow(0 0 48px rgba(248, 113, 113, 0.95));
         }
+        /* Once the player has finished the tap tutorial the breathing
+           animation stops so the button stays calm. */
+        .home-virus.tutorial-done {
+            animation: none;
+        }
         @keyframes home-virus-tap {
             0%   { transform: translate(-50%, -50%) scale(1); }
             32%  { transform: translate(-50%, -50%) scale(0.92); }
@@ -4226,7 +4264,7 @@
         
         <!-- Start Screen -->
         <!-- Faction-select Screen (shown once on first launch) -->
-        <div class="screen faction-select-screen active" id="factionSelectScreen">
+        <div class="screen faction-select-screen" id="factionSelectScreen">
             <h1 class="faction-title">КИБЕР-КОРАЛЛ</h1>
             <p class="faction-subtitle">Выбери сторону</p>
             <div class="faction-cards">
@@ -4279,7 +4317,7 @@
         </div>
 
         <!-- Home Screen -->
-        <div class="screen start-screen" id="startScreen">
+        <div class="screen start-screen active" id="startScreen">
             <div class="cell-bg" aria-hidden="true">
                 <span class="organelle o1"></span>
                 <span class="organelle o2"></span>
@@ -4354,15 +4392,15 @@
             <div class="world-map-stats">
                 <div class="map-stat">
                     <div class="map-stat-value" id="statInfected">0</div>
-                    <div class="map-stat-label">Заражено</div>
+                    <div class="map-stat-label">Под сетью</div>
                 </div>
                 <div class="map-stat">
                     <div class="map-stat-value" id="statRegions">0</div>
-                    <div class="map-stat-label">Городов</div>
+                    <div class="map-stat-label">Узлов</div>
                 </div>
                 <div class="map-stat">
                     <div class="map-stat-value" id="statWorld">0%</div>
-                    <div class="map-stat-label">Мир</div>
+                    <div class="map-stat-label">Покрытие</div>
                 </div>
             </div>
 
@@ -6587,13 +6625,13 @@
                 // Spread (transmission) upgrades — each pick lets the player
                 // infect one new region by tapping the map
                 this.spreadOptions = [
-                    { id: 'air',  name: 'Авиасообщение',   icon: '🛫', baseCost: 60,
-                      description: 'Заразить регион через аэропорты',
+                    { id: 'air',  name: 'Магистраль',       icon: '📡', baseCost: 60,
+                      description: 'Через опорные провайдеры',
                       requiresInvite: true },
-                    { id: 'sea',  name: 'Морской путь',    icon: '🚢', baseCost: 80,
-                      description: 'Передача через торговые суда',
+                    { id: 'sea',  name: 'Подводный кабель', icon: '🌊', baseCost: 80,
+                      description: 'Сегмент подводной сети',
                       requiresInvite: true },
-                    { id: 'land', name: 'Сухопутный путь', icon: '🚛', baseCost: 100,
+                    { id: 'land', name: 'Локальная сеть',   icon: '📶', baseCost: 100,
                       description: 'Только в соседние регионы',
                       requiresNeighbor: true }
                 ];
@@ -6755,12 +6793,24 @@
                 this.startOpponentLoop();
                 if (!this.tutorialDone) {
                     document.body.classList.add('tutorial-active');
+                    // Ensure the tutorial starts on the Home screen (not the
+                    // legacy faction-select). The faction picker only opens
+                    // after the 3-tap tutorial completes.
+                    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+                    const start = document.getElementById('startScreen');
+                    if (start) start.classList.add('active');
                     setTimeout(() => {
                         const hint = document.getElementById('fingerHint');
                         if (hint) hint.classList.remove('hidden');
                     }, 500);
                 } else {
                     this.afterTutorialSetup();
+                    // Returning player with no faction yet — show the picker.
+                    if (!this.faction) {
+                        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+                        const fs = document.getElementById('factionSelectScreen');
+                        if (fs) fs.classList.add('active');
+                    }
                 }
                 // Catch up world growth after the tab was hidden/frozen.
                 document.addEventListener('visibilitychange', () => {
@@ -7515,19 +7565,44 @@
                 });
             }
 
+            // Called once the 3-tap tutorial finishes — stops the button
+            // breathing and slides the player to the faction picker.
+            completeTapTutorial() {
+                this.tutorialDone = true;
+                this.tutorialCompleting = false;
+                this.saveState && this.saveState();
+                const btn = document.getElementById('homeTapTarget');
+                if (btn) btn.classList.add('tutorial-done');
+                this.afterTutorialSetup();
+                setTimeout(() => {
+                    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+                    const fs = document.getElementById('factionSelectScreen');
+                    if (fs) fs.classList.add('active');
+                }, 500);
+            }
+
             chooseFaction(faction) {
                 this.faction = faction;
                 this.saveFaction();
                 this.applyFactionTheme();
-                // Slide to Home.
-                const fs = document.getElementById('factionSelectScreen');
-                if (fs) fs.classList.remove('active');
-                const home = document.getElementById('startScreen');
-                if (home) home.classList.add('active');
+                // Faction-select → map screen directly (no city picker).
+                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+                const map = document.getElementById('worldMapScreen');
+                if (map) map.classList.add('active');
                 document.querySelectorAll('.nav-btn').forEach(b => {
-                    b.classList.toggle('active', b.dataset.screen === 'startScreen');
+                    b.classList.toggle('active', b.dataset.screen === 'worldMapScreen');
                 });
-                // Re-render anything that depends on faction colours.
+                // Strip any leftover picker chrome and make sure the coral
+                // is initialised + animating.
+                document.body.classList.remove('selecting', 'tutorial-active');
+                const ws = document.getElementById('worldMapScreen');
+                if (ws) ws.classList.remove('selecting', 'intro', 'placing');
+                const nav = document.querySelector('.bottom-nav');
+                if (nav) nav.classList.remove('locked');
+                const prompt = document.getElementById('selectionPrompt');
+                if (prompt) prompt.style.display = 'none';
+                this.pickerMode = null;
+                this.ensureCoral && this.ensureCoral();
                 if (this.coralMap) this.coralMap.draw();
                 this.updateFactionCopy();
             }
@@ -7536,23 +7611,27 @@
                 document.body.classList.remove('faction-rkn', 'faction-resist');
                 if (this.faction === 'rkn' || this.faction === 'resist') {
                     document.body.classList.add('faction-' + this.faction);
-                    // Skip the faction-select screen on future launches.
-                    const fs = document.getElementById('factionSelectScreen');
-                    if (fs && fs.classList.contains('active')) {
-                        fs.classList.remove('active');
-                        const home = document.getElementById('startScreen');
-                        if (home) home.classList.add('active');
-                    }
-                    this.rebuildFactionUI();
-                    this.updateFactionCopy();
                 }
+                // Always rebuild — renders a neutral tutorial button when
+                // no faction is chosen yet.
+                this.rebuildFactionUI();
+                this.updateFactionCopy();
             }
 
             // Inject the faction-themed button SVG into the Home tap target
             // and the Network screen's centre slot.
             rebuildFactionUI() {
                 const home = document.getElementById('homeTapTarget');
-                if (home) home.innerHTML = this.buildFactionButton('home');
+                if (home) {
+                    home.innerHTML = this.buildFactionButton('home');
+                    // Returning players (faction already set OR tutorial done)
+                    // shouldn't see the breathing animation any more.
+                    if (this.faction || this.tutorialDone) {
+                        home.classList.add('tutorial-done');
+                    } else {
+                        home.classList.remove('tutorial-done');
+                    }
+                }
                 const slot = document.querySelector('.virus-character');
                 if (slot) slot.innerHTML = this.buildFactionButton('compact');
             }
@@ -7561,13 +7640,19 @@
             // РКН → red БЛОК! button. Свобода → blue VPN button.
             buildFactionButton(variant) {
                 const cls = variant === 'compact' ? 'virus-art' : 'home-node-svg';
-                const isResist = this.faction === 'resist';
-                return this.renderCasualButton({
-                    cls,
-                    variant,
-                    label: isResist ? 'VPN' : 'БЛОК!',
-                    palette: isResist ? this.factionPalette('resist') : this.factionPalette('rkn')
-                });
+                let label, palette;
+                if (this.faction === 'resist') {
+                    label = 'VPN';
+                    palette = this.factionPalette('resist');
+                } else if (this.faction === 'rkn') {
+                    label = 'БЛОК!';
+                    palette = this.factionPalette('rkn');
+                } else {
+                    // No faction yet — neutral tutorial button.
+                    label = 'ТАП';
+                    palette = this.factionPalette('neutral');
+                }
+                return this.renderCasualButton({ cls, variant, label, palette });
             }
 
             factionPalette(faction) {
@@ -7584,6 +7669,21 @@
                         sparkle: '#fde047',
                         innerRim:'rgba(191,219,254,0.85)',
                         glow:    'rgba(96,165,250,0.6)'
+                    };
+                }
+                if (faction === 'neutral') {
+                    return {
+                        halo: '125, 211, 252',
+                        border:  '#0b1424',
+                        rimDark: '#334155',
+                        rimMid:  '#64748b',
+                        rimLite: '#cbd5e1',
+                        faceTop: '#e2e8f0',
+                        faceMid: '#64748b',
+                        faceBot: '#1e293b',
+                        sparkle: '#bae6fd',
+                        innerRim:'rgba(203,213,225,0.85)',
+                        glow:    'rgba(125,211,252,0.55)'
                     };
                 }
                 return {
@@ -9581,8 +9681,7 @@
                 if (!this.tutorialDone) {
                     this.popCount = (this.popCount || 0) + 1;
                     if (this.popCount >= 3) {
-                        this.tutorialCompleting = true;
-                        setTimeout(() => this.enterSelectionMode(), 700);
+                        this.completeTapTutorial();
                     }
                 }
             }
