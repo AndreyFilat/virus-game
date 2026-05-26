@@ -4388,9 +4388,9 @@
 
         <!-- News Screen -->
         <div class="screen news-screen" id="newsScreen">
-            <h2 class="news-screen-title">Сводки из мира</h2>
+            <h2 class="news-screen-title">Сводки из сети</h2>
             <div class="news-feed" id="newsFeed">
-                <div class="news-empty">Заразите хотя бы один регион, чтобы получать новости.</div>
+                <div class="news-empty">Захватите хотя бы один регион, чтобы получать сводки.</div>
             </div>
         </div>
 
@@ -6547,105 +6547,105 @@
                 this.newsPool = [
                     // ----- Global (apply to every player) -----
                     { id: 'g_who_alarm',  scope: 'global', type: 'negative', icon: '🚨',
-                      title: 'ВОЗ объявляет тревогу',
-                      text: 'ВОЗ повышает уровень угрозы — мир ускоряет разработку вакцины.',
+                      title: 'Новый закон о суверенном интернете',
+                      text: 'Госдума принимает пакет ужесточений — сети медленнее адаптируются.',
                       buff: { type: 'spread_speed_mult', value: 0.8 } },
-                    { id: 'g_virology',   scope: 'global', type: 'positive', icon: '🧪',
-                      title: 'Прорыв в DPI',
-                      text: 'Утечка алгоритма — фильтры временно усилились.',
+                    { id: 'g_virology',   scope: 'global', type: 'positive', icon: '📡',
+                      title: 'Обновление прошивки ТСПУ',
+                      text: 'Утечка ядра DPI — алгоритмы временно стали точнее.',
                       buff: { type: 'infectivity_mult',  value: 1.3 } },
-                    { id: 'g_panic',      scope: 'global', type: 'positive', icon: '😱',
-                      title: 'Мировая паника',
-                      text: 'СМИ раздувают истерию, люди скупают всё подряд и заражают друг друга.',
+                    { id: 'g_panic',      scope: 'global', type: 'positive', icon: '📱',
+                      title: 'Массовая миграция в Telegram',
+                      text: 'Пользователи переходят в мессенджеры пачками — связь кипит.',
                       buff: { type: 'spread_speed_mult', value: 1.25 } },
                     { id: 'g_funding',    scope: 'global', type: 'positive', icon: '💰',
-                      title: 'Гранты на исследования',
-                      text: 'Биолаборатории мира открыли финансирование тёмных тем.',
+                      title: 'Резкий рост абонентов VPN',
+                      text: 'Подписки на обход штурмуют топы магазинов приложений.',
                       buff: { type: 'income_mult',       value: 1.4 } },
-                    { id: 'g_lab_leak',   scope: 'global', type: 'positive', icon: '☣️',
-                      title: 'Утечка в лаборатории',
-                      text: 'Новый штамм быстрее распространяется по континентам.',
+                    { id: 'g_lab_leak',   scope: 'global', type: 'positive', icon: '🕳️',
+                      title: 'Утечка инструмента блокировки',
+                      text: 'Свежий 0-day гуляет по сети — обходы и блоки мутируют быстрее.',
                       buff: { type: 'spread_speed_mult', value: 1.3 } },
-                    { id: 'g_quarantine', scope: 'global', type: 'negative', icon: '🚧',
-                      title: 'Глобальный карантин',
-                      text: 'Карантин по всему миру замедляет распространение.',
+                    { id: 'g_quarantine', scope: 'global', type: 'negative', icon: '🐌',
+                      title: 'Глобальное замедление трафика',
+                      text: 'Магистральные провайдеры режут скорости — всё ползёт.',
                       buff: { type: 'spread_speed_mult', value: 0.75 } },
-                    { id: 'g_vaccine',    scope: 'global', type: 'negative', icon: '💉',
-                      title: 'Испытания вакцины',
-                      text: 'Идут массовые испытания — иммунитет растёт.',
+                    { id: 'g_vaccine',    scope: 'global', type: 'negative', icon: '🛡️',
+                      title: 'ФСБ объявляет тендер на анти-VPN',
+                      text: 'Профильные ведомства закупают системы детектирования обхода.',
                       buff: { type: 'infectivity_mult',  value: 0.78 } },
-                    { id: 'g_hygiene',    scope: 'global', type: 'negative', icon: '🧼',
-                      title: 'Кампания гигиены',
-                      text: 'Кампании по гигиене по всему миру снижают заражение.',
+                    { id: 'g_hygiene',    scope: 'global', type: 'negative', icon: '🔒',
+                      title: 'Кампания «Безопасный интернет»',
+                      text: 'Школы и банки массово учат пользователей осторожности.',
                       buff: { type: 'infectivity_mult',  value: 0.8 } },
                     { id: 'g_economy',    scope: 'global', type: 'positive', icon: '📉',
-                      title: 'Глобальный кризис',
-                      text: 'Падение экономики — наука недополучает финансирования.',
+                      title: 'Кризис в IT — оборудование дешевеет',
+                      text: 'Серверы и роутеры распродают со складов — апгрейды дешевле.',
                       buff: { type: 'upgrade_cost_mult', value: 0.85 } },
-                    { id: 'g_strike',     scope: 'global', type: 'negative', icon: '🩺',
-                      title: 'Забастовка врачей',
-                      text: 'Медики устроили мировую забастовку, в итоге появились новые протоколы.',
+                    { id: 'g_strike',     scope: 'global', type: 'negative', icon: '⚙️',
+                      title: 'Забастовка сетевых инженеров',
+                      text: 'Без специалистов любая правка обходится дороже обычного.',
                       buff: { type: 'upgrade_cost_mult', value: 1.2 } },
 
                     // ----- Local (apply only if player started in this region) -----
                     // North America
-                    { id: 'l_na_airport', scope: 'local', regionIds: ['north-america'], type: 'positive', icon: '✈️',
-                      title: 'Хаб в Лос-Анджелесе расширен',
-                      text: 'Новый терминал LAX удваивает пассажиропоток.',
+                    { id: 'l_na_airport', scope: 'local', regionIds: ['north-america'], type: 'positive', icon: '🛰️',
+                      title: 'Starlink развернулся над материком',
+                      text: 'Новые спутниковые каналы добавили пропускной способности.',
                       buff: { type: 'spread_speed_mult', value: 1.3 } },
                     { id: 'l_na_protest', scope: 'local', regionIds: ['north-america'], type: 'positive', icon: '📢',
-                      title: 'Массовые протесты в США',
-                      text: 'Толпы на улицах — сети есть где расти.',
+                      title: 'Протесты против блокировок в Штатах',
+                      text: 'Активисты ломают всё что фильтрует — пробои в защите.',
                       buff: { type: 'infectivity_mult', value: 1.35 } },
 
                     // South America
-                    { id: 'l_sa_sao_paulo', scope: 'local', regionIds: ['south-america'], type: 'positive', icon: '🤧',
-                      title: 'Вспышка гриппа в Сан-Паулу',
-                      text: 'Падение независимых СМИ — у сети меньше противников.',
+                    { id: 'l_sa_sao_paulo', scope: 'local', regionIds: ['south-america'], type: 'positive', icon: '🕳️',
+                      title: 'Дыра в фильтрах Сан-Паулу',
+                      text: 'Локальные провайдеры пропускают незашифрованный трафик.',
                       buff: { type: 'infectivity_mult', value: 1.3 } },
                     { id: 'l_sa_carnival',  scope: 'local', regionIds: ['south-america'], type: 'positive', icon: '🎉',
-                      title: 'Карнавал в Рио',
-                      text: 'Миллион человек танцуют без масок.',
+                      title: 'Карнавал Рио — мобильный трафик взлетел',
+                      text: 'Сети 4G/5G перегружены — каналы тащат всё подряд.',
                       buff: { type: 'spread_speed_mult', value: 1.4 } },
 
                     // Europe
-                    { id: 'l_eu_istanbul', scope: 'local', regionIds: ['europe'], type: 'positive', icon: '🛫',
-                      title: 'Новый аэропорт в Стамбуле',
-                      text: 'Транзитный узел Европы и Азии нарастил трафик.',
+                    { id: 'l_eu_istanbul', scope: 'local', regionIds: ['europe'], type: 'positive', icon: '🌐',
+                      title: 'Стамбул стал транзитным IX',
+                      text: 'Новый интернет-обмен между Европой и Азией поднял трафик.',
                       buff: { type: 'spread_speed_mult', value: 1.3 } },
-                    { id: 'l_eu_lockdown', scope: 'local', regionIds: ['europe'], type: 'negative', icon: '🚪',
-                      title: 'Локдаун в Германии',
-                      text: 'ЕС вводит строгий локдаун.',
+                    { id: 'l_eu_lockdown', scope: 'local', regionIds: ['europe'], type: 'negative', icon: '⚖️',
+                      title: 'Германия вводит контроль HTTPS',
+                      text: 'ЕС обязывает провайдеров логировать SNI — обходить сложнее.',
                       buff: { type: 'spread_speed_mult', value: 0.7 } },
 
                     // Africa
-                    { id: 'l_af_drought', scope: 'local', regionIds: ['africa'], type: 'positive', icon: '🌵',
-                      title: 'Засуха в Сахеле',
-                      text: 'Слабая инфраструктура — сети легче укореняться.',
+                    { id: 'l_af_drought', scope: 'local', regionIds: ['africa'], type: 'positive', icon: '🔌',
+                      title: 'Перебои с электричеством в Сахеле',
+                      text: 'Системы фильтрации падают первыми — сетям есть где расти.',
                       buff: { type: 'infectivity_mult', value: 1.35 } },
                     { id: 'l_af_aid',     scope: 'local', regionIds: ['africa'], type: 'negative', icon: '🆘',
-                      title: 'Гуманитарная помощь',
-                      text: 'ВОЗ направила медикаменты в регион.',
+                      title: 'Гуманитарный интернет в Африку',
+                      text: 'Подключают защищённые ноды — сети стабилизируются.',
                       buff: { type: 'spread_speed_mult', value: 0.75 } },
 
                     // Asia
                     { id: 'l_as_tokyo', scope: 'local', regionIds: ['asia'], type: 'positive', icon: '🚇',
-                      title: 'Перегруз метро в Токио',
-                      text: 'Часы пик — идеальные условия для воздушного заражения.',
+                      title: 'Часы пик в Токийском метро',
+                      text: 'Десятки миллионов сидят в LTE одновременно — каналы вытянуты в струну.',
                       buff: { type: 'infectivity_mult', value: 1.35 } },
-                    { id: 'l_as_market', scope: 'local', regionIds: ['asia'], type: 'positive', icon: '🐔',
-                      title: 'Вспышка на рынке в Гуанчжоу',
-                      text: 'Зооноз ускоряет мутации.',
+                    { id: 'l_as_market', scope: 'local', regionIds: ['asia'], type: 'positive', icon: '📡',
+                      title: 'Гуанчжоу: рынок VPN-роутеров',
+                      text: 'Mesh-устройства расходятся миллионами штук — узлы умножаются.',
                       buff: { type: 'spread_speed_mult', value: 1.35 } },
 
                     // Australia
                     { id: 'l_au_isolation', scope: 'local', regionIds: ['australia'], type: 'negative', icon: '🏝️',
-                      title: 'Изоляция Австралии',
-                      text: 'Свободный интернет — сеть не может пробиться.',
+                      title: 'Австралийский сегмент изолирован',
+                      text: 'Подводный кабель повреждён — пробиться в регион тяжелее.',
                       buff: { type: 'spread_speed_mult', value: 0.6 } },
-                    { id: 'l_au_outback',   scope: 'local', regionIds: ['australia'], type: 'positive', icon: '☀️',
-                      title: 'Жара в Аутбэке',
-                      text: 'Экстремальные условия — больше доходов с глобуса.',
+                    { id: 'l_au_outback',   scope: 'local', regionIds: ['australia'], type: 'positive', icon: '🛰️',
+                      title: 'Спутниковый интернет в Аутбэке',
+                      text: 'Новые точки доступа в пустыне — доход с региона вырос.',
                       buff: { type: 'income_mult', value: 1.3 } }
                 ];
 
@@ -9314,7 +9314,7 @@
                 if (!feed) return;
                 const items = this.newsByDay[this.todayKey()] || [];
                 if (items.length === 0) {
-                    feed.innerHTML = '<div class="news-empty">Сводки появятся после старта эпидемии.</div>';
+                    feed.innerHTML = '<div class="news-empty">Сводки появятся после первой блокировки.</div>';
                     return;
                 }
                 feed.innerHTML = '';
