@@ -4126,36 +4126,45 @@
             <p class="faction-subtitle">Выбери сторону</p>
             <div class="faction-cards">
                 <button class="faction-card faction-rkn-card" data-faction="rkn">
-                    <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" class="faction-icon">
+                    <svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="faction-icon">
                         <defs>
-                            <radialGradient id="fcRknG" cx=".5" cy=".5"><stop offset="0" stop-color="#dc2626" stop-opacity=".7"/><stop offset="1" stop-color="#dc2626" stop-opacity="0"/></radialGradient>
-                            <radialGradient id="fcRknH" cx=".4" cy=".3"><stop offset="0" stop-color="#fecaca"/><stop offset=".5" stop-color="#dc2626"/><stop offset="1" stop-color="#1a0303"/></radialGradient>
+                            <radialGradient id="fcRknHalo" cx=".5" cy=".5"><stop offset="0" stop-color="rgba(220,38,38,0.55)"/><stop offset=".55" stop-color="rgba(220,38,38,0.15)"/><stop offset="1" stop-color="rgba(220,38,38,0)"/></radialGradient>
+                            <linearGradient id="fcRknRim" x1=".5" y1="0" x2=".5" y2="1"><stop offset="0" stop-color="#fecaca"/><stop offset=".5" stop-color="#ef4444"/><stop offset="1" stop-color="#7f1d1d"/></linearGradient>
+                            <linearGradient id="fcRknFace" x1=".5" y1="0" x2=".5" y2="1"><stop offset="0" stop-color="#fee2e2"/><stop offset=".45" stop-color="#ef4444"/><stop offset="1" stop-color="#991b1b"/></linearGradient>
+                            <radialGradient id="fcRknSpec" cx=".5" cy="0" r=".8"><stop offset="0" stop-color="#fff" stop-opacity="0.85"/><stop offset=".4" stop-color="#fff" stop-opacity="0.3"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
                         </defs>
-                        <circle cx="40" cy="40" r="36" fill="url(#fcRknG)"/>
-                        <g stroke="#dc2626" stroke-width="1.5" fill="none" opacity=".85" stroke-linecap="round">
-                            <path d="M40 18 V8 M40 62 V72 M18 40 H8 M62 40 H72 M24 24 L16 16 M56 24 L64 16 M24 56 L16 64 M56 56 L64 64"/>
-                        </g>
-                        <g fill="#dc2626"><circle cx="40" cy="8" r="2"/><circle cx="40" cy="72" r="2"/><circle cx="8" cy="40" r="2"/><circle cx="72" cy="40" r="2"/><circle cx="16" cy="16" r="2"/><circle cx="64" cy="16" r="2"/><circle cx="16" cy="64" r="2"/><circle cx="64" cy="64" r="2"/></g>
-                        <polygon points="40,20 58,30 58,50 40,60 22,50 22,30" fill="url(#fcRknH)" stroke="#fecaca" stroke-width="1"/>
-                        <text x="40" y="44" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" font-weight="700" fill="#fef2f2">РКН</text>
+                        <circle cx="110" cy="110" r="108" fill="url(#fcRknHalo)"/>
+                        <ellipse cx="110" cy="198" rx="74" ry="11" fill="rgba(0,0,0,0.6)"/>
+                        <circle cx="110" cy="118" r="90" fill="#2c0606"/>
+                        <circle cx="110" cy="112" r="89" fill="url(#fcRknRim)"/>
+                        <circle cx="110" cy="112" r="82" fill="#7f1d1d"/>
+                        <circle cx="110" cy="110" r="78" fill="url(#fcRknFace)"/>
+                        <ellipse cx="110" cy="80" rx="62" ry="34" fill="url(#fcRknSpec)"/>
+                        <ellipse cx="82" cy="72" rx="18" ry="8" fill="#fff" opacity="0.45" transform="rotate(-22 82 72)"/>
+                        <ellipse cx="82" cy="72" rx="10" ry="4" fill="#fff" opacity="0.8" transform="rotate(-22 82 72)"/>
+                        <text x="110" y="122" text-anchor="middle" font-family="'Space Mono', monospace" font-size="38" font-weight="900" fill="#fff" style="letter-spacing:1px; paint-order: stroke; stroke: rgba(0,0,0,0.55); stroke-width: 2;">БЛОК!</text>
                     </svg>
                     <div class="faction-name">РКН</div>
                     <div class="faction-desc">Распространяй блокировки. Контролируй трафик. Глуши свободу.</div>
                 </button>
                 <button class="faction-card faction-resist-card" data-faction="resist">
-                    <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" class="faction-icon">
+                    <svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="faction-icon">
                         <defs>
-                            <radialGradient id="fcRsG" cx=".5" cy=".5"><stop offset="0" stop-color="#22c55e" stop-opacity=".7"/><stop offset="1" stop-color="#22c55e" stop-opacity="0"/></radialGradient>
-                            <radialGradient id="fcRsH" cx=".4" cy=".3"><stop offset="0" stop-color="#dcfce7"/><stop offset=".5" stop-color="#22c55e"/><stop offset="1" stop-color="#052e16"/></radialGradient>
+                            <radialGradient id="fcRsHalo" cx=".5" cy=".5"><stop offset="0" stop-color="rgba(59,130,246,0.55)"/><stop offset=".55" stop-color="rgba(59,130,246,0.15)"/><stop offset="1" stop-color="rgba(59,130,246,0)"/></radialGradient>
+                            <linearGradient id="fcRsRim" x1=".5" y1="0" x2=".5" y2="1"><stop offset="0" stop-color="#bfdbfe"/><stop offset=".5" stop-color="#3b82f6"/><stop offset="1" stop-color="#1d4ed8"/></linearGradient>
+                            <linearGradient id="fcRsFace" x1=".5" y1="0" x2=".5" y2="1"><stop offset="0" stop-color="#dbeafe"/><stop offset=".45" stop-color="#3b82f6"/><stop offset="1" stop-color="#1e40af"/></linearGradient>
+                            <radialGradient id="fcRsSpec" cx=".5" cy="0" r=".8"><stop offset="0" stop-color="#fff" stop-opacity="0.85"/><stop offset=".4" stop-color="#fff" stop-opacity="0.3"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
                         </defs>
-                        <circle cx="40" cy="40" r="36" fill="url(#fcRsG)"/>
-                        <g stroke="#22c55e" stroke-width="1.5" fill="none" opacity=".85" stroke-linecap="round">
-                            <path d="M40 18 C 36 28 36 32 30 36 M40 18 C 44 28 44 32 50 36 M40 62 C 36 52 36 48 30 44 M40 62 C 44 52 44 48 50 44"/>
-                            <path d="M22 30 C 28 32 32 32 36 36 M58 30 C 52 32 48 32 44 36 M22 50 C 28 48 32 48 36 44 M58 50 C 52 48 48 48 44 44"/>
-                        </g>
-                        <g fill="#22c55e"><circle cx="40" cy="18" r="2.5"/><circle cx="40" cy="62" r="2.5"/><circle cx="22" cy="30" r="2"/><circle cx="58" cy="30" r="2"/><circle cx="22" cy="50" r="2"/><circle cx="58" cy="50" r="2"/></g>
-                        <circle cx="40" cy="40" r="11" fill="url(#fcRsH)" stroke="#dcfce7" stroke-width="1"/>
-                        <text x="40" y="44" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" font-weight="700" fill="#dcfce7">VPN</text>
+                        <circle cx="110" cy="110" r="108" fill="url(#fcRsHalo)"/>
+                        <ellipse cx="110" cy="198" rx="74" ry="11" fill="rgba(0,0,0,0.6)"/>
+                        <circle cx="110" cy="118" r="90" fill="#0a1330"/>
+                        <circle cx="110" cy="112" r="89" fill="url(#fcRsRim)"/>
+                        <circle cx="110" cy="112" r="82" fill="#1d4ed8"/>
+                        <circle cx="110" cy="110" r="78" fill="url(#fcRsFace)"/>
+                        <ellipse cx="110" cy="80" rx="62" ry="34" fill="url(#fcRsSpec)"/>
+                        <ellipse cx="82" cy="72" rx="18" ry="8" fill="#fff" opacity="0.45" transform="rotate(-22 82 72)"/>
+                        <ellipse cx="82" cy="72" rx="10" ry="4" fill="#fff" opacity="0.8" transform="rotate(-22 82 72)"/>
+                        <text x="110" y="126" text-anchor="middle" font-family="'Space Mono', monospace" font-size="44" font-weight="900" fill="#fff" style="letter-spacing:2px; paint-order: stroke; stroke: rgba(0,0,0,0.55); stroke-width: 2;">VPN</text>
                     </svg>
                     <div class="faction-name">Свобода</div>
                     <div class="faction-desc">Растяни сеть обхода. Прокопай туннели. Сопротивляйся блокировкам.</div>
@@ -7430,76 +7439,135 @@
             // РКН → red БЛОК! button. Свобода → blue VPN button.
             buildFactionButton(variant) {
                 const cls = variant === 'compact' ? 'virus-art' : 'home-node-svg';
-                if (this.faction === 'resist') {
-                    return `<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" class="${cls}">
-                        <defs>
-                            <radialGradient id="btnHalo_${variant}" cx=".5" cy=".5">
-                                <stop offset="0"   stop-color="#3b82f6" stop-opacity="0.55"/>
-                                <stop offset=".55" stop-color="#3b82f6" stop-opacity="0.15"/>
-                                <stop offset="1"   stop-color="#3b82f6" stop-opacity="0"/>
-                            </radialGradient>
-                            <radialGradient id="btnHousing_${variant}" cx=".5" cy=".5">
-                                <stop offset=".82" stop-color="#1e3a8a"/>
-                                <stop offset="1"   stop-color="#050b14"/>
-                            </radialGradient>
-                            <radialGradient id="btnFace_${variant}" cx=".38" cy=".3">
-                                <stop offset="0"   stop-color="#dbeafe"/>
-                                <stop offset=".25" stop-color="#60a5fa"/>
-                                <stop offset=".65" stop-color="#2563eb"/>
-                                <stop offset="1"   stop-color="#1e3a8a"/>
-                            </radialGradient>
-                            <linearGradient id="btnSpec_${variant}" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0"   stop-color="#fff" stop-opacity="0.8"/>
-                                <stop offset=".5"  stop-color="#fff" stop-opacity="0.1"/>
-                                <stop offset="1"   stop-color="#fff" stop-opacity="0"/>
-                            </linearGradient>
-                        </defs>
-                        <circle cx="100" cy="100" r="98" fill="url(#btnHalo_${variant})"/>
-                        <circle cx="100" cy="100" r="88" fill="none" stroke="rgba(147,197,253,0.35)" stroke-width="1"/>
-                        <circle cx="100" cy="100" r="78" fill="none" stroke="rgba(147,197,253,0.18)" stroke-width="0.6" stroke-dasharray="3 4"/>
-                        <circle cx="100" cy="100" r="84" fill="url(#btnHousing_${variant})" stroke="#1e3a8a" stroke-width="1.5"/>
-                        <circle cx="100" cy="100" r="84" fill="none" stroke="rgba(147,197,253,0.5)" stroke-width="0.6"/>
-                        <circle cx="100" cy="108" r="68" fill="url(#btnFace_${variant})" stroke="#93c5fd" stroke-width="1.6"/>
-                        <circle cx="100" cy="108" r="68" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="0.6"/>
-                        <ellipse cx="100" cy="86" rx="52" ry="22" fill="url(#btnSpec_${variant})"/>
-                        <text x="100" y="122" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="34" font-weight="800" fill="#fff" style="letter-spacing:2px; paint-order: stroke; stroke: rgba(0,0,0,0.55); stroke-width: 0.5;">VPN</text>
-                        <circle cx="100" cy="108" r="63" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="0.5"/>
-                    </svg>`;
+                const isResist = this.faction === 'resist';
+                return this.renderCasualButton({
+                    cls,
+                    variant,
+                    label: isResist ? 'VPN' : 'БЛОК!',
+                    palette: isResist ? this.factionPalette('resist') : this.factionPalette('rkn')
+                });
+            }
+
+            factionPalette(faction) {
+                if (faction === 'resist') {
+                    return {
+                        halo: '59, 130, 246',
+                        border:  '#0a1330',
+                        rimDark: '#1d4ed8',
+                        rimMid:  '#3b82f6',
+                        rimLite: '#bfdbfe',
+                        faceTop: '#dbeafe',
+                        faceMid: '#3b82f6',
+                        faceBot: '#1e40af',
+                        sparkle: '#fde047',
+                        innerRim:'rgba(191,219,254,0.85)',
+                        glow:    'rgba(96,165,250,0.6)'
+                    };
                 }
-                // Default: РКН red БЛОК! button.
-                return `<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" class="${cls}">
+                return {
+                    halo: '220, 38, 38',
+                    border:  '#2c0606',
+                    rimDark: '#7f1d1d',
+                    rimMid:  '#ef4444',
+                    rimLite: '#fecaca',
+                    faceTop: '#fee2e2',
+                    faceMid: '#ef4444',
+                    faceBot: '#991b1b',
+                    sparkle: '#fde047',
+                    innerRim:'rgba(254,202,202,0.85)',
+                    glow:    'rgba(248,113,113,0.65)'
+                };
+            }
+
+            // Render a casual mobile-game style 3D push button. Used by both
+            // the home tap target and the compact slot on the Network screen.
+            renderCasualButton({ cls, variant, label, palette }) {
+                const p = palette;
+                const fontSize = label.length > 3 ? 38 : 44;
+                return `<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="${cls}">
                     <defs>
-                        <radialGradient id="btnHalo_${variant}" cx=".5" cy=".5">
-                            <stop offset="0"   stop-color="#dc2626" stop-opacity="0.55"/>
-                            <stop offset=".55" stop-color="#dc2626" stop-opacity="0.15"/>
-                            <stop offset="1"   stop-color="#dc2626" stop-opacity="0"/>
+                        <radialGradient id="cb_halo_${variant}" cx=".5" cy=".5">
+                            <stop offset="0"   stop-color="rgba(${p.halo},0.55)"/>
+                            <stop offset=".55" stop-color="rgba(${p.halo},0.18)"/>
+                            <stop offset="1"   stop-color="rgba(${p.halo},0)"/>
                         </radialGradient>
-                        <radialGradient id="btnHousing_${variant}" cx=".5" cy=".5">
-                            <stop offset=".82" stop-color="#450a0a"/>
-                            <stop offset="1"   stop-color="#1a0303"/>
+                        <radialGradient id="cb_shadow_${variant}" cx=".5" cy=".5">
+                            <stop offset="0"   stop-color="rgba(0,0,0,0.7)"/>
+                            <stop offset="1"   stop-color="rgba(0,0,0,0)"/>
                         </radialGradient>
-                        <radialGradient id="btnFace_${variant}" cx=".38" cy=".3">
-                            <stop offset="0"   stop-color="#fecaca"/>
-                            <stop offset=".25" stop-color="#f87171"/>
-                            <stop offset=".65" stop-color="#dc2626"/>
-                            <stop offset="1"   stop-color="#7f1d1d"/>
-                        </radialGradient>
-                        <linearGradient id="btnSpec_${variant}" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0"   stop-color="#fff" stop-opacity="0.75"/>
-                            <stop offset=".5"  stop-color="#fff" stop-opacity="0.1"/>
-                            <stop offset="1"   stop-color="#fff" stop-opacity="0"/>
+                        <linearGradient id="cb_face_${variant}" x1=".5" y1="0" x2=".5" y2="1">
+                            <stop offset="0"   stop-color="${p.faceTop}"/>
+                            <stop offset=".45" stop-color="${p.faceMid}"/>
+                            <stop offset="1"   stop-color="${p.faceBot}"/>
                         </linearGradient>
+                        <linearGradient id="cb_rim_${variant}" x1=".5" y1="0" x2=".5" y2="1">
+                            <stop offset="0"   stop-color="${p.rimLite}"/>
+                            <stop offset=".5"  stop-color="${p.rimMid}"/>
+                            <stop offset="1"   stop-color="${p.rimDark}"/>
+                        </linearGradient>
+                        <radialGradient id="cb_spec_${variant}" cx=".5" cy="0" r=".8">
+                            <stop offset="0"   stop-color="#fff" stop-opacity="0.85"/>
+                            <stop offset=".4"  stop-color="#fff" stop-opacity="0.3"/>
+                            <stop offset="1"   stop-color="#fff" stop-opacity="0"/>
+                        </radialGradient>
+                        <radialGradient id="cb_inner_${variant}" cx=".5" cy=".5">
+                            <stop offset=".78" stop-color="${p.innerRim}" stop-opacity="0"/>
+                            <stop offset=".94" stop-color="${p.innerRim}" stop-opacity="0.9"/>
+                            <stop offset="1"   stop-color="${p.innerRim}" stop-opacity="0"/>
+                        </radialGradient>
                     </defs>
-                    <circle cx="100" cy="100" r="98" fill="url(#btnHalo_${variant})"/>
-                    <circle cx="100" cy="100" r="88" fill="none" stroke="rgba(248,113,113,0.35)" stroke-width="1"/>
-                    <circle cx="100" cy="100" r="78" fill="none" stroke="rgba(248,113,113,0.18)" stroke-width="0.6" stroke-dasharray="3 4"/>
-                    <circle cx="100" cy="100" r="84" fill="url(#btnHousing_${variant})" stroke="#7f1d1d" stroke-width="1.5"/>
-                    <circle cx="100" cy="100" r="84" fill="none" stroke="rgba(254,202,202,0.5)" stroke-width="0.6"/>
-                    <circle cx="100" cy="108" r="68" fill="url(#btnFace_${variant})" stroke="#fecaca" stroke-width="1.6"/>
-                    <circle cx="100" cy="108" r="68" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="0.6"/>
-                    <ellipse cx="100" cy="86" rx="52" ry="22" fill="url(#btnSpec_${variant})"/>
-                    <text x="100" y="124" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="34" font-weight="800" fill="#fff" style="letter-spacing:1.5px; paint-order: stroke; stroke: rgba(0,0,0,0.55); stroke-width: 0.5;">БЛОК!</text>
-                    <circle cx="100" cy="108" r="63" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="0.5"/>
+
+                    <!-- Soft halo glow -->
+                    <circle cx="110" cy="110" r="108" fill="url(#cb_halo_${variant})"/>
+
+                    <!-- Drop shadow under the button -->
+                    <ellipse cx="110" cy="198" rx="78" ry="13" fill="url(#cb_shadow_${variant})"/>
+
+                    <!-- Sticker dark border (sits a bit below the face) -->
+                    <circle cx="110" cy="118" r="90" fill="${p.border}"/>
+
+                    <!-- Coloured rim ring -->
+                    <circle cx="110" cy="112" r="89" fill="url(#cb_rim_${variant})"/>
+
+                    <!-- Inner darker frame to give the rim depth -->
+                    <circle cx="110" cy="112" r="82" fill="${p.rimDark}"/>
+
+                    <!-- Button face -->
+                    <circle cx="110" cy="110" r="78" fill="url(#cb_face_${variant})"/>
+
+                    <!-- Inner rim glow (light ring just inside the face edge) -->
+                    <circle cx="110" cy="110" r="78" fill="url(#cb_inner_${variant})"/>
+
+                    <!-- Glossy specular highlight (top half) -->
+                    <ellipse cx="110" cy="80" rx="62" ry="34" fill="url(#cb_spec_${variant})"/>
+
+                    <!-- Crisp reflective dot top-left -->
+                    <ellipse cx="82"  cy="72" rx="22" ry="10" fill="#fff" opacity="0.5"  transform="rotate(-22 82 72)"/>
+                    <ellipse cx="82"  cy="72" rx="12" ry="5"  fill="#fff" opacity="0.85" transform="rotate(-22 82 72)"/>
+
+                    <!-- Small accent on the lower-right of the face -->
+                    <ellipse cx="146" cy="142" rx="14" ry="6" fill="#fff" opacity="0.18" transform="rotate(-22 146 142)"/>
+
+                    <!-- Label -->
+                    <text x="110" y="${122 + (label.length > 3 ? 0 : 4)}" text-anchor="middle"
+                          font-family="'Space Mono', 'JetBrains Mono', monospace"
+                          font-size="${fontSize}" font-weight="900"
+                          fill="#fff"
+                          style="letter-spacing:${label.length > 3 ? '1' : '2'}px; paint-order: stroke; stroke: rgba(0,0,0,0.55); stroke-width: 2;">${label}</text>
+
+                    <!-- Decorative sparkles around the button -->
+                    <g fill="${p.sparkle}" opacity="0.85">
+                        <circle cx="32" cy="66"  r="2.5"/>
+                        <circle cx="188" cy="58" r="3"/>
+                        <circle cx="200" cy="130" r="2"/>
+                        <circle cx="24" cy="140" r="2.4"/>
+                        <circle cx="180" cy="170" r="1.8"/>
+                    </g>
+                    <g fill="#fff" opacity="0.55">
+                        <circle cx="48"  cy="48"  r="1.2"/>
+                        <circle cx="172" cy="38" r="1.6"/>
+                        <circle cx="40"  cy="172" r="1.4"/>
+                    </g>
                 </svg>`;
             }
 
