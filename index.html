@@ -3615,6 +3615,55 @@
         .home-virus { display: none; }
         .start-screen.active .home-virus { display: block; }
 
+        /* Meme toast — fires on home taps to mock the censorship dystopia. */
+        .meme-toast {
+            position: absolute;
+            left: 50%;
+            bottom: 20%;
+            transform: translate(-50%, 0);
+            background: rgba(10, 18, 30, 0.92);
+            border: 1px solid rgba(74, 222, 128, 0.45);
+            border-radius: 12px;
+            padding: 10px 16px;
+            color: #ecfccb;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12.5px;
+            font-weight: 500;
+            line-height: 1.35;
+            letter-spacing: 0.01em;
+            max-width: 78%;
+            text-align: center;
+            box-shadow: 0 6px 22px rgba(0, 0, 0, 0.55),
+                        0 0 28px rgba(74, 222, 128, 0.22);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            z-index: 50;
+            pointer-events: none;
+            animation: meme-toast-in 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .meme-toast::before {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            border-radius: 12px;
+            background: linear-gradient(135deg,
+                rgba(74, 222, 128, 0.18),
+                rgba(248, 113, 113, 0.12));
+            pointer-events: none;
+            z-index: -1;
+        }
+        .meme-toast.fade-out {
+            animation: meme-toast-out 0.45s ease-in forwards;
+        }
+        @keyframes meme-toast-in {
+            0%   { opacity: 0; transform: translate(-50%, 14px) scale(0.96); }
+            100% { opacity: 1; transform: translate(-50%, 0)    scale(1); }
+        }
+        @keyframes meme-toast-out {
+            0%   { opacity: 1; }
+            100% { opacity: 0; transform: translate(-50%, -10px); }
+        }
+
         /* First-visit Home hint — text bubble above the virus */
         .home-hint {
             position: absolute;
@@ -5664,6 +5713,83 @@
                 this.tutorialCompleting = false;
                 this.homeHintShown = false; // first-visit Home hint
                 this.gameStartTime = Date.now(); // antibodies join after 3 min
+
+                // Meme toast — fires on home taps with a 3-6 s cooldown so it
+                // doesn't spam. List is meant to keep growing.
+                this.lastMemeAt = 0;
+                this.memeCooldownMs = 3500;
+                this.memeMessages = [
+                    'Трафик временно замедлен. Навсегда.',
+                    'Ваш пакет данных не прошёл проверку на патриотичность.',
+                    'DPI снова что-то сломал.',
+                    'Соединение выглядит слишком свободным.',
+                    'VPN обнаружен. Уважаем.',
+                    'Этот узел отказался подчиняться.',
+                    'РКН отправил сигнал подавления.',
+                    'Пользователь слишком быстро смотрит YouTube.',
+                    'Сервер делает вид, что всё нормально.',
+                    'Пакеты успешно потеряны.',
+                    'Ваш трафик свернул не туда.',
+                    'Шифрование вызывает подозрения.',
+                    'Слишком много свободы в одном соединении.',
+                    'Подключение к реальности нестабильно.',
+                    'Этот мем запрещён в 14 регионах.',
+                    'Маршрут успешно переобут.',
+                    'Канал связи ушёл в подполье.',
+                    'Трафик маскируется под калькулятор.',
+                    'Ветка сети притворилась принтером.',
+                    'DNS снова вспомнил 2022 год.',
+                    'Обнаружена незаконная скорость загрузки.',
+                    'Сеть сопротивляется оптимизации.',
+                    'Подавление сигнала прошло успешно. Почти.',
+                    'Новый обход появился раньше нового запрета.',
+                    'Глушение усилилось на 12%',
+                    'Пользователи опять что-то придумали.',
+                    'Этот пакет выглядит слишком зашифрованным.',
+                    'РКН тестирует режим «ой».',
+                    'Сервер переехал в туман.',
+                    'Туннель успешно прокопан.',
+                    'Интернет снова разделился на до и после.',
+                    'Сеть дышит через прокси.',
+                    'Ваш relay-node теперь в розыске.',
+                    'Подключение стабильно нестабильно.',
+                    'Трафик успешно мимикрировал под госуслуги.',
+                    'Новая блокировка уже выехала.',
+                    'QUIC притворился обычным HTTPS.',
+                    'Ветка обхода пережила волну DPI.',
+                    'Packet loss или политика? Никто не знает.',
+                    'Обнаружен подозрительно довольный пользователь.',
+                    'Сигнал ушёл через Казахстан.',
+                    'CDN снова принял удар на себя.',
+                    'Провайдер делает вид, что это случайность.',
+                    'Этот узел слишком живой.',
+                    'Корень сети дал новую ветку.',
+                    'Шторм помех накрыл магистраль.',
+                    'Слишком много трафика в сторону свободы.',
+                    'VPN держится на энтузиазме и duct tape.',
+                    'Новая версия обхода уже в проде.',
+                    'Трафик снова течёт по подпольным каналам.',
+                    'Соединение пережило очередную инициативу.',
+                    'Ваша сеть стала на 1% менее блокируемой.',
+                    'Пользователи распространяют мемы с критической скоростью.',
+                    'РКН случайно заблокировал сам себя.',
+                    'Система фильтрации фильтрует систему фильтрации.',
+                    'Маршрут перестроен. Причина: опять.',
+                    'Эта ветка отказалась умирать.',
+                    'Сеть адаптировалась.',
+                    'Интернет нашёл новый путь.',
+                    'Красная зона расширяется.',
+                    'Зелёный сигнал пробился сквозь помехи.',
+                    'Новый peer подключился к сети.',
+                    'Mesh-сеть становится плотнее.',
+                    'Обход эволюционировал.',
+                    'Цифровой коралл продолжает расти.',
+                    'Ваш трафик теперь выглядит как погода.',
+                    'Блокировка встретила сопротивление.',
+                    'Система подавления перегрелась.',
+                    'Туннель успешно спрятан в обычном HTTPS.',
+                    'Похоже, интернет снова победил.'
+                ];
                 this.ANTIBODY_UNLOCK_MS = 3 * 60 * 1000;
 
                 // Continents — infection state shared by map + spread upgrades
@@ -6321,6 +6447,10 @@
             }
 
             topUpFloatingBubbles(min) {
+                // Bubbles are disabled in the РКН reskin — the home node is
+                // the only tap target.
+                return;
+                // eslint-disable-next-line no-unreachable
                 const home = document.getElementById('startScreen');
                 if (!home) return;
                 const existing = home.querySelectorAll('.dna-bubble.floating:not(.popping):not(.fading)').length;
@@ -6366,6 +6496,9 @@
             }
 
             spawnFloatingBubble() {
+                // Bubbles are disabled in the РКН reskin — see topUpFloatingBubbles.
+                return;
+                // eslint-disable-next-line no-unreachable
                 const home = document.getElementById('startScreen');
                 if (!home) return;
                 const existing = home.querySelectorAll('.dna-bubble.floating').length;
@@ -8744,6 +8877,30 @@
                 setTimeout(() => toast.remove(), 1700);
             }
 
+            showMemeMessage() {
+                if (!this.memeMessages || this.memeMessages.length === 0) return;
+                // Remove any meme toast still on screen so they don't stack.
+                document.querySelectorAll('.meme-toast').forEach(t => t.remove());
+                // Pick something different from the previous message if we can.
+                let msg;
+                let attempts = 0;
+                do {
+                    msg = this.memeMessages[Math.floor(Math.random() * this.memeMessages.length)];
+                    attempts++;
+                } while (msg === this._lastMemeMsg && attempts < 5 && this.memeMessages.length > 1);
+                this._lastMemeMsg = msg;
+
+                const toast = document.createElement('div');
+                toast.className = 'meme-toast';
+                toast.textContent = msg;
+                const home = document.getElementById('startScreen') || document.body;
+                home.appendChild(toast);
+                setTimeout(() => {
+                    toast.classList.add('fade-out');
+                    setTimeout(() => toast.remove(), 500);
+                }, 2400);
+            }
+
             collectFromHome(target, event) {
                 if (this.tutorialCompleting) return;
                 if (!target) return;
@@ -8770,6 +8927,14 @@
                 setTimeout(() => {
                     this.createPopEffect(cx, cy, `+${amount}`, 'macrophage');
                 }, 60);
+
+                // Meme toast on cooldown — fire-and-forget.
+                const now = Date.now();
+                if (now - (this.lastMemeAt || 0) >= this.memeCooldownMs) {
+                    this.lastMemeAt = now;
+                    this.memeCooldownMs = 3000 + Math.floor(Math.random() * 3000); // 3–6 s
+                    this.showMemeMessage();
+                }
 
                 if (this.homeHintActive) this.hideHomeHint();
 
@@ -8938,6 +9103,7 @@
         
         // Initialize game
         const game = new VirusGame();
+        if (typeof window !== 'undefined') window.game = game;
         
         // Prevent zoom on double tap (iOS Safari) — only block when target isn't interactive
         let lastTouchEnd = 0;
