@@ -4175,119 +4175,6 @@
                 <span class="organelle o6"></span>
             </div>
             <div class="home-virus home-tap-target" id="homeTapTarget" role="button" tabindex="0" aria-label="РКН узел">
-                <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" class="home-node-svg">
-                    <defs>
-                        <radialGradient id="nodeHalo" cx=".5" cy=".5">
-                            <stop offset="0"   stop-color="#dc2626" stop-opacity="0.55"/>
-                            <stop offset=".55" stop-color="#dc2626" stop-opacity="0.15"/>
-                            <stop offset="1"   stop-color="#dc2626" stop-opacity="0"/>
-                        </radialGradient>
-                        <radialGradient id="nodeOuter" cx=".4" cy=".3">
-                            <stop offset="0"   stop-color="#fecaca"/>
-                            <stop offset=".35" stop-color="#f87171"/>
-                            <stop offset=".75" stop-color="#7f1d1d"/>
-                            <stop offset="1"   stop-color="#1a0303"/>
-                        </radialGradient>
-                        <radialGradient id="nodeInner" cx=".4" cy=".3">
-                            <stop offset="0"   stop-color="#fff"/>
-                            <stop offset=".4"  stop-color="#fde047"/>
-                            <stop offset=".75" stop-color="#dc2626"/>
-                            <stop offset="1"   stop-color="#450a0a"/>
-                        </radialGradient>
-                        <linearGradient id="tendrilG" x1="0" y1=".5" x2="1" y2=".5">
-                            <stop offset="0"   stop-color="#fde047" stop-opacity="0"/>
-                            <stop offset=".2"  stop-color="#f87171"/>
-                            <stop offset=".55" stop-color="#dc2626"/>
-                            <stop offset="1"   stop-color="#1a0303" stop-opacity="0"/>
-                        </linearGradient>
-                    </defs>
-
-                    <!-- Outer halo + pulsing rings -->
-                    <circle cx="100" cy="100" r="95" fill="url(#nodeHalo)"/>
-                    <circle cx="100" cy="100" r="78" fill="none" stroke="rgba(248,113,113,0.45)" stroke-width="1"/>
-                    <circle cx="100" cy="100" r="88" fill="none" stroke="rgba(248,113,113,0.22)" stroke-width="1"/>
-                    <circle cx="100" cy="100" r="68" fill="none" stroke="rgba(254,202,202,0.18)" stroke-width="0.6" stroke-dasharray="3 4"/>
-
-                    <!-- 8 cyber-coral tendrils with sub-branches -->
-                    <g stroke="url(#tendrilG)" stroke-width="2.4" fill="none" stroke-linecap="round" opacity="0.9">
-                        <!-- top -->
-                        <path d="M100 80 C 100 60, 96 38, 92 18"/>
-                        <path d="M97 40 C 88 36, 80 30, 76 22"/>
-                        <path d="M93 30 C 100 24, 104 20, 110 12"/>
-                        <!-- top-right -->
-                        <path d="M114 86 C 134 78, 156 70, 178 58"/>
-                        <path d="M148 70 C 152 60, 156 54, 168 48"/>
-                        <path d="M150 72 C 158 76, 168 78, 174 80"/>
-                        <!-- right -->
-                        <path d="M120 100 C 140 100, 168 102, 188 110"/>
-                        <path d="M170 106 C 178 110, 184 116, 188 122"/>
-                        <!-- bottom-right -->
-                        <path d="M114 114 C 132 128, 152 144, 172 158"/>
-                        <path d="M148 134 C 158 134, 166 138, 172 144"/>
-                        <!-- bottom -->
-                        <path d="M100 120 C 100 140, 102 162, 104 184"/>
-                        <path d="M102 158 C 108 164, 116 168, 124 172"/>
-                        <!-- bottom-left -->
-                        <path d="M86 114 C 70 132, 50 148, 30 162"/>
-                        <path d="M52 138 C 46 142, 40 148, 36 156"/>
-                        <!-- left -->
-                        <path d="M80 100 C 60 100, 36 102, 14 110"/>
-                        <path d="M30 104 C 22 110, 16 114, 12 122"/>
-                        <!-- top-left -->
-                        <path d="M86 86 C 70 72, 50 58, 28 46"/>
-                        <path d="M50 62 C 42 58, 36 54, 30 48"/>
-                    </g>
-
-                    <!-- Glowing tip nodes on tendrils -->
-                    <g fill="#fef2f2">
-                        <circle cx="92" cy="18"  r="2.8"/><circle cx="178" cy="58"  r="2.8"/>
-                        <circle cx="188" cy="110" r="2.8"/><circle cx="172" cy="158" r="2.8"/>
-                        <circle cx="104" cy="184" r="2.8"/><circle cx="30"  cy="162" r="2.8"/>
-                        <circle cx="14"  cy="110" r="2.8"/><circle cx="28"  cy="46"  r="2.8"/>
-                    </g>
-                    <g fill="#dc2626" opacity="0.9">
-                        <circle cx="92" cy="18"  r="4.5"/><circle cx="178" cy="58"  r="4.5"/>
-                        <circle cx="188" cy="110" r="4.5"/><circle cx="172" cy="158" r="4.5"/>
-                        <circle cx="104" cy="184" r="4.5"/><circle cx="30"  cy="162" r="4.5"/>
-                        <circle cx="14"  cy="110" r="4.5"/><circle cx="28"  cy="46"  r="4.5"/>
-                    </g>
-
-                    <!-- Hex core: outer shell -->
-                    <polygon points="100,40 156,72 156,128 100,160 44,128 44,72"
-                             fill="url(#nodeOuter)" stroke="#fecaca" stroke-width="1.8"/>
-                    <polygon points="100,40 156,72 156,128 100,160 44,128 44,72"
-                             fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="0.6"/>
-
-                    <!-- Hex core: inner -->
-                    <polygon points="100,58 138,78 138,122 100,142 62,122 62,78"
-                             fill="url(#nodeInner)" stroke="#fef2f2" stroke-width="0.9"/>
-
-                    <!-- Core glow highlight -->
-                    <ellipse cx="84" cy="76" rx="14" ry="6" fill="#fff" opacity="0.55"/>
-
-                    <!-- Central RKN sigil -->
-                    <text x="100" y="108" text-anchor="middle"
-                          font-family="'JetBrains Mono', monospace"
-                          font-size="22" font-weight="700"
-                          fill="#fef2f2"
-                          style="letter-spacing:0.5px">РКН</text>
-
-                    <!-- Floating data sparkles -->
-                    <g fill="#fde047" opacity="0.85">
-                        <circle cx="64" cy="38"  r="1.4"/>
-                        <circle cx="142" cy="48" r="1.6"/>
-                        <circle cx="158" cy="92" r="1.2"/>
-                        <circle cx="50"  cy="118" r="1.4"/>
-                        <circle cx="68"  cy="162" r="1.2"/>
-                        <circle cx="142" cy="156" r="1.4"/>
-                    </g>
-                    <g fill="#86efac" opacity="0.6">
-                        <circle cx="38" cy="68"  r="1"/>
-                        <circle cx="168" cy="128" r="1"/>
-                        <circle cx="118" cy="172" r="1"/>
-                        <circle cx="72" cy="22"  r="0.9"/>
-                    </g>
-                </svg>
             </div>
             <div class="home-hint" id="homeHint" hidden>
                 <div class="home-hint-text">Тапай по узлу<br>чтобы расти</div>
@@ -4441,56 +4328,6 @@
                     </div>
                 </div>
                 <div class="virus-character">
-                    <svg class="virus-art" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                        <defs>
-                            <radialGradient id="vaHalo" cx=".5" cy=".5">
-                                <stop offset="0" stop-color="#dc2626" stop-opacity="0.5"/>
-                                <stop offset="1" stop-color="#dc2626" stop-opacity="0"/>
-                            </radialGradient>
-                            <radialGradient id="vaOuter" cx=".4" cy=".3">
-                                <stop offset="0"   stop-color="#fecaca"/>
-                                <stop offset=".4"  stop-color="#dc2626"/>
-                                <stop offset="1"   stop-color="#1a0303"/>
-                            </radialGradient>
-                            <radialGradient id="vaInner" cx=".4" cy=".3">
-                                <stop offset="0"   stop-color="#fff"/>
-                                <stop offset=".4"  stop-color="#fde047"/>
-                                <stop offset="1"   stop-color="#7f1d1d"/>
-                            </radialGradient>
-                            <linearGradient id="vaTend" x1="0" y1=".5" x2="1" y2=".5">
-                                <stop offset="0" stop-color="#f87171" stop-opacity="0"/>
-                                <stop offset=".5" stop-color="#dc2626"/>
-                                <stop offset="1" stop-color="#1a0303" stop-opacity="0"/>
-                            </linearGradient>
-                        </defs>
-                        <circle cx="100" cy="100" r="90" fill="url(#vaHalo)"/>
-                        <circle cx="100" cy="100" r="78" fill="none" stroke="rgba(248,113,113,0.35)" stroke-width="1"/>
-                        <g stroke="url(#vaTend)" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.85">
-                            <path d="M100 80 C 100 56, 96 36, 92 22"/>
-                            <path d="M114 86 C 134 78, 156 70, 172 60"/>
-                            <path d="M120 100 C 142 100, 168 102, 184 110"/>
-                            <path d="M114 114 C 132 128, 152 144, 168 156"/>
-                            <path d="M100 120 C 100 144, 102 162, 104 180"/>
-                            <path d="M86 114 C 70 132, 50 148, 34 160"/>
-                            <path d="M80 100 C 60 100, 36 102, 18 110"/>
-                            <path d="M86 86 C 70 72, 50 58, 34 48"/>
-                        </g>
-                        <g fill="#dc2626" opacity="0.95">
-                            <circle cx="92" cy="22"  r="3.2"/><circle cx="172" cy="60"  r="3.2"/>
-                            <circle cx="184" cy="110" r="3.2"/><circle cx="168" cy="156" r="3.2"/>
-                            <circle cx="104" cy="180" r="3.2"/><circle cx="34" cy="160" r="3.2"/>
-                            <circle cx="18" cy="110" r="3.2"/><circle cx="34" cy="48"  r="3.2"/>
-                        </g>
-                        <polygon points="100,42 154,73 154,127 100,158 46,127 46,73"
-                                 fill="url(#vaOuter)" stroke="#fecaca" stroke-width="1.6"/>
-                        <polygon points="100,60 136,80 136,120 100,140 64,120 64,80"
-                                 fill="url(#vaInner)" stroke="#fef2f2" stroke-width="0.8"/>
-                        <ellipse cx="84" cy="78" rx="12" ry="5" fill="#fff" opacity="0.5"/>
-                        <text x="100" y="108" text-anchor="middle"
-                              font-family="'JetBrains Mono', monospace"
-                              font-size="20" font-weight="700"
-                              fill="#fef2f2">РКН</text>
-                    </svg>
                 </div>
             </div>
 
@@ -7575,86 +7412,95 @@
                         const home = document.getElementById('startScreen');
                         if (home) home.classList.add('active');
                     }
-                    this.recolorHomeNode();
+                    this.rebuildFactionUI();
                     this.updateFactionCopy();
                 }
             }
 
-            // Mutate the inline home-node SVG to match the chosen faction's
-            // colour scheme. The structure stays the same; only fills, stops,
-            // and the centre text change.
-            recolorHomeNode() {
-                const root = document.querySelector('.home-virus .home-node-svg');
-                if (!root) return;
-                const resist = this.faction === 'resist';
-                const palette = resist ? {
-                    haloStop0: 'rgba( 34, 197,  94, 0.55)', haloStop1: 'rgba( 34, 197,  94, 0.15)',
-                    outerStops: ['#dcfce7', '#86efac', '#15803d', '#052e16'],
-                    innerStops: ['#ffffff', '#bbf7d0', '#22c55e', '#052e16'],
-                    tendrilStops: ['rgba(190,242,100,0)', '#86efac', '#22c55e', 'rgba(5,46,22,0)'],
-                    rings: ['rgba(134,239,172,0.45)', 'rgba(134,239,172,0.22)', 'rgba(220,252,231,0.18)'],
-                    leafOuter: '#22c55e', leafInner: '#dcfce7',
-                    hexStroke: '#bbf7d0', innerStroke: '#dcfce7',
-                    label: 'VPN', labelFill: '#dcfce7'
-                } : {
-                    haloStop0: 'rgba(220, 38, 38, 0.55)', haloStop1: 'rgba(220, 38, 38, 0.15)',
-                    outerStops: ['#fecaca', '#f87171', '#7f1d1d', '#1a0303'],
-                    innerStops: ['#ffffff', '#fde047', '#dc2626', '#450a0a'],
-                    tendrilStops: ['rgba(253,224,71,0)', '#f87171', '#dc2626', 'rgba(26,3,3,0)'],
-                    rings: ['rgba(248,113,113,0.45)', 'rgba(248,113,113,0.22)', 'rgba(254,202,202,0.18)'],
-                    leafOuter: '#dc2626', leafInner: '#fef2f2',
-                    hexStroke: '#fecaca', innerStroke: '#fef2f2',
-                    label: 'РКН', labelFill: '#fef2f2'
-                };
+            // Inject the faction-themed button SVG into the Home tap target
+            // and the Network screen's centre slot.
+            rebuildFactionUI() {
+                const home = document.getElementById('homeTapTarget');
+                if (home) home.innerHTML = this.buildFactionButton('home');
+                const slot = document.querySelector('.virus-character');
+                if (slot) slot.innerHTML = this.buildFactionButton('compact');
+            }
 
-                const setStops = (gradId, stops) => {
-                    const g = root.querySelector('#' + gradId);
-                    if (!g) return;
-                    const allStops = g.querySelectorAll('stop');
-                    stops.forEach((color, i) => {
-                        if (allStops[i]) allStops[i].setAttribute('stop-color', color);
-                    });
-                };
-                const haloG = root.querySelector('#nodeHalo');
-                if (haloG) {
-                    const haloStops = haloG.querySelectorAll('stop');
-                    if (haloStops[0]) haloStops[0].setAttribute('stop-color', palette.haloStop0);
-                    if (haloStops[1]) haloStops[1].setAttribute('stop-color', palette.haloStop1);
+            // Build the central button SVG for the current faction.
+            // РКН → red БЛОК! button. Свобода → blue VPN button.
+            buildFactionButton(variant) {
+                const cls = variant === 'compact' ? 'virus-art' : 'home-node-svg';
+                if (this.faction === 'resist') {
+                    return `<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" class="${cls}">
+                        <defs>
+                            <radialGradient id="btnHalo_${variant}" cx=".5" cy=".5">
+                                <stop offset="0"   stop-color="#3b82f6" stop-opacity="0.55"/>
+                                <stop offset=".55" stop-color="#3b82f6" stop-opacity="0.15"/>
+                                <stop offset="1"   stop-color="#3b82f6" stop-opacity="0"/>
+                            </radialGradient>
+                            <radialGradient id="btnHousing_${variant}" cx=".5" cy=".5">
+                                <stop offset=".82" stop-color="#1e3a8a"/>
+                                <stop offset="1"   stop-color="#050b14"/>
+                            </radialGradient>
+                            <radialGradient id="btnFace_${variant}" cx=".38" cy=".3">
+                                <stop offset="0"   stop-color="#dbeafe"/>
+                                <stop offset=".25" stop-color="#60a5fa"/>
+                                <stop offset=".65" stop-color="#2563eb"/>
+                                <stop offset="1"   stop-color="#1e3a8a"/>
+                            </radialGradient>
+                            <linearGradient id="btnSpec_${variant}" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0"   stop-color="#fff" stop-opacity="0.8"/>
+                                <stop offset=".5"  stop-color="#fff" stop-opacity="0.1"/>
+                                <stop offset="1"   stop-color="#fff" stop-opacity="0"/>
+                            </linearGradient>
+                        </defs>
+                        <circle cx="100" cy="100" r="98" fill="url(#btnHalo_${variant})"/>
+                        <circle cx="100" cy="100" r="88" fill="none" stroke="rgba(147,197,253,0.35)" stroke-width="1"/>
+                        <circle cx="100" cy="100" r="78" fill="none" stroke="rgba(147,197,253,0.18)" stroke-width="0.6" stroke-dasharray="3 4"/>
+                        <circle cx="100" cy="100" r="84" fill="url(#btnHousing_${variant})" stroke="#1e3a8a" stroke-width="1.5"/>
+                        <circle cx="100" cy="100" r="84" fill="none" stroke="rgba(147,197,253,0.5)" stroke-width="0.6"/>
+                        <circle cx="100" cy="108" r="68" fill="url(#btnFace_${variant})" stroke="#93c5fd" stroke-width="1.6"/>
+                        <circle cx="100" cy="108" r="68" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="0.6"/>
+                        <ellipse cx="100" cy="86" rx="52" ry="22" fill="url(#btnSpec_${variant})"/>
+                        <text x="100" y="122" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="34" font-weight="800" fill="#fff" style="letter-spacing:2px; paint-order: stroke; stroke: rgba(0,0,0,0.55); stroke-width: 0.5;">VPN</text>
+                        <circle cx="100" cy="108" r="63" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="0.5"/>
+                    </svg>`;
                 }
-                setStops('nodeOuter',  palette.outerStops);
-                setStops('nodeInner',  palette.innerStops);
-                setStops('tendrilG',   palette.tendrilStops);
-
-                // Rings
-                const ringEls = root.querySelectorAll('circle[cx="100"][cy="100"][fill="none"]');
-                if (ringEls[0]) ringEls[0].setAttribute('stroke', palette.rings[0]);
-                if (ringEls[1]) ringEls[1].setAttribute('stroke', palette.rings[1]);
-                if (ringEls[2]) ringEls[2].setAttribute('stroke', palette.rings[2]);
-
-                // Tip nodes (the second group is the outer red, first is inner).
-                // We previously have 2 <g> blocks with 8 circles each — recolor.
-                const groups = root.querySelectorAll('g');
-                groups.forEach(g => {
-                    const fill = g.getAttribute('fill');
-                    if (fill === '#fef2f2' || fill === '#dcfce7') {
-                        g.setAttribute('fill', palette.leafInner);
-                    }
-                    if (fill === '#dc2626' || fill === '#22c55e') {
-                        g.setAttribute('fill', palette.leafOuter);
-                    }
-                });
-
-                // Hex outer + inner strokes
-                const polys = root.querySelectorAll('polygon');
-                if (polys[0]) polys[0].setAttribute('stroke', palette.hexStroke);
-                if (polys[2]) polys[2].setAttribute('stroke', palette.innerStroke);
-
-                // Label text
-                const text = root.querySelector('text');
-                if (text) {
-                    text.textContent = palette.label;
-                    text.setAttribute('fill', palette.labelFill);
-                }
+                // Default: РКН red БЛОК! button.
+                return `<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" class="${cls}">
+                    <defs>
+                        <radialGradient id="btnHalo_${variant}" cx=".5" cy=".5">
+                            <stop offset="0"   stop-color="#dc2626" stop-opacity="0.55"/>
+                            <stop offset=".55" stop-color="#dc2626" stop-opacity="0.15"/>
+                            <stop offset="1"   stop-color="#dc2626" stop-opacity="0"/>
+                        </radialGradient>
+                        <radialGradient id="btnHousing_${variant}" cx=".5" cy=".5">
+                            <stop offset=".82" stop-color="#450a0a"/>
+                            <stop offset="1"   stop-color="#1a0303"/>
+                        </radialGradient>
+                        <radialGradient id="btnFace_${variant}" cx=".38" cy=".3">
+                            <stop offset="0"   stop-color="#fecaca"/>
+                            <stop offset=".25" stop-color="#f87171"/>
+                            <stop offset=".65" stop-color="#dc2626"/>
+                            <stop offset="1"   stop-color="#7f1d1d"/>
+                        </radialGradient>
+                        <linearGradient id="btnSpec_${variant}" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0"   stop-color="#fff" stop-opacity="0.75"/>
+                            <stop offset=".5"  stop-color="#fff" stop-opacity="0.1"/>
+                            <stop offset="1"   stop-color="#fff" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                    <circle cx="100" cy="100" r="98" fill="url(#btnHalo_${variant})"/>
+                    <circle cx="100" cy="100" r="88" fill="none" stroke="rgba(248,113,113,0.35)" stroke-width="1"/>
+                    <circle cx="100" cy="100" r="78" fill="none" stroke="rgba(248,113,113,0.18)" stroke-width="0.6" stroke-dasharray="3 4"/>
+                    <circle cx="100" cy="100" r="84" fill="url(#btnHousing_${variant})" stroke="#7f1d1d" stroke-width="1.5"/>
+                    <circle cx="100" cy="100" r="84" fill="none" stroke="rgba(254,202,202,0.5)" stroke-width="0.6"/>
+                    <circle cx="100" cy="108" r="68" fill="url(#btnFace_${variant})" stroke="#fecaca" stroke-width="1.6"/>
+                    <circle cx="100" cy="108" r="68" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="0.6"/>
+                    <ellipse cx="100" cy="86" rx="52" ry="22" fill="url(#btnSpec_${variant})"/>
+                    <text x="100" y="124" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="34" font-weight="800" fill="#fff" style="letter-spacing:1.5px; paint-order: stroke; stroke: rgba(0,0,0,0.55); stroke-width: 0.5;">БЛОК!</text>
+                    <circle cx="100" cy="108" r="63" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="0.5"/>
+                </svg>`;
             }
 
             updateFactionCopy() {
