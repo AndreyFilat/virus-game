@@ -3956,33 +3956,52 @@
             position: fixed;
             pointer-events: none;
             font-family: 'Space Mono', monospace;
-            font-size: 32px;
+            font-size: 38px;
             font-weight: 900;
-            color: #fde047;
+            /* Match the points counter colour (accent-green). */
+            color: var(--accent-green);
             text-shadow:
-                0 0 14px rgba(253, 224, 71, 0.95),
-                0 0 28px rgba(253, 224, 71, 0.7),
-                0 0 48px rgba(253, 224, 71, 0.35),
-                0 2px 6px rgba(0, 0, 0, 0.7);
-            -webkit-text-stroke: 1.2px rgba(0, 0, 0, 0.55);
-            transform: translate(-50%, 0);
+                0 0 16px rgba(0, 255, 159, 0.95),
+                0 0 32px rgba(0, 255, 159, 0.7),
+                0 0 54px rgba(0, 255, 159, 0.4),
+                0 2px 6px rgba(0, 0, 0, 0.75);
+            -webkit-text-stroke: 1.4px rgba(0, 0, 0, 0.55);
+            transform: translate(-50%, -50%);
             white-space: nowrap;
             z-index: 100;
-            animation: gain-text-rise 1.15s cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
-        }
-        body.faction-resist .gain-text {
-            color: #bfdbfe;
-            text-shadow:
-                0 0 14px rgba(96, 165, 250, 1),
-                0 0 28px rgba(59, 130, 246, 0.75),
-                0 0 48px rgba(59, 130, 246, 0.4),
-                0 2px 6px rgba(0, 0, 0, 0.7);
+            animation: gain-text-rise 1.0s cubic-bezier(0.16, 0.9, 0.3, 1) forwards;
         }
         @keyframes gain-text-rise {
-            0%   { opacity: 0; transform: translate(-50%, 8px)   scale(0.5); }
-            14%  { opacity: 1; transform: translate(-50%, -14px) scale(1.25); }
-            28%  { opacity: 1; transform: translate(-50%, -30px) scale(1); }
-            100% { opacity: 0; transform: translate(-50%, -120px) scale(0.95); }
+            0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.4); }
+            16%  { opacity: 1; transform: translate(-50%, -75%) scale(1.35); }
+            32%  { opacity: 1; transform: translate(-50%, -95%) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -185%) scale(0.95); }
+        }
+
+        /* Expanding shockwave ring on every tap — "juicy" feedback. */
+        .tap-ring {
+            position: fixed;
+            pointer-events: none;
+            width: 60px;
+            height: 60px;
+            margin: -30px 0 0 -30px;
+            border-radius: 50%;
+            border: 4px solid rgba(0, 255, 159, 0.85);
+            box-shadow: 0 0 18px rgba(0, 255, 159, 0.6);
+            z-index: 99;
+            animation: tap-ring-expand 0.5s cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+        }
+        body.faction-rkn .tap-ring {
+            border-color: rgba(248, 113, 113, 0.85);
+            box-shadow: 0 0 18px rgba(248, 113, 113, 0.6);
+        }
+        body.faction-resist .tap-ring {
+            border-color: rgba(96, 165, 250, 0.9);
+            box-shadow: 0 0 18px rgba(96, 165, 250, 0.6);
+        }
+        @keyframes tap-ring-expand {
+            0%   { opacity: 0.9; transform: scale(0.4); }
+            100% { opacity: 0;   transform: scale(3.2); }
         }
 
         @keyframes home-virus-breathe {
@@ -9747,16 +9766,27 @@
                 setTimeout(() => toast.remove(), 1700);
             }
 
-            // Floating "+N" text at the tap point. Pure visual feedback, no
-            // particles / shockwave / flash.
+            // Floating "+N" that pops above the button and rises. Coloured
+            // to match the points counter (accent-green).
             showGainText(x, y, text) {
                 const el = document.createElement('div');
                 el.className = 'gain-text';
                 el.textContent = text;
                 el.style.left = x + 'px';
-                el.style.top  = (y - 30) + 'px';
+                el.style.top  = y + 'px';
                 document.body.appendChild(el);
-                setTimeout(() => el.remove(), 1180);
+                setTimeout(() => el.remove(), 1100);
+            }
+
+            // Quick expanding ring at the button centre — adds a "juicy"
+            // shockwave to every tap.
+            spawnTapRing(x, y) {
+                const ring = document.createElement('div');
+                ring.className = 'tap-ring';
+                ring.style.left = x + 'px';
+                ring.style.top  = y + 'px';
+                document.body.appendChild(ring);
+                setTimeout(() => ring.remove(), 520);
             }
 
             // Comic speech bubble that pops from the character on tap.
@@ -9821,7 +9851,12 @@
                 target.classList.add('tapped');
                 setTimeout(() => target.classList.remove('tapped'), 520);
 
-                this.showGainText(cx, cy, '+' + amount);
+                // +N always rises from just above the button (not the tap
+                // point) so it reads clearly against the dark backdrop.
+                const gainX = rect.left + rect.width / 2;
+                const gainY = rect.top + rect.height * 0.16;
+                this.showGainText(gainX, gainY, '+' + amount);
+                this.spawnTapRing(rect.left + rect.width / 2, rect.top + rect.height / 2);
                 this.showCharacterSpeech(cx, cy);
 
                 // Meme toast on cooldown — fire-and-forget.
