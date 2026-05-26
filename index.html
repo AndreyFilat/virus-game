@@ -5554,18 +5554,233 @@
                 // Each illustration is self-contained with its own gradient ids
                 // (id-prefixed to avoid collisions across simultaneously rendered cards).
                 this.cardArt = {
-                    air: `<img class="card-img" alt="" src="assets/air.png"/>`,
-                    water: `<img class="card-img" alt="" src="assets/water.png"/>`,
-                    contact: `<img class="card-img" alt="" src="assets/contact.png"/>`,
-                    insect: `<img class="card-img" alt="" src="assets/insect.png"/>`,
-                    fever: `<img class="card-img" alt="" src="assets/fever.png"/>`,
-                    cough: `<img class="card-img" alt="" src="assets/cough.png"/>`,
-                    headache: `<img class="card-img" alt="" src="assets/headache.png"/>`,
-                    nausea: `<img class="card-img" alt="" src="assets/nausea.png"/>`,
-                    bleed: `<img class="card-img" alt="" src="assets/bleed.png"/>`,
-                    organ: `<img class="card-img" alt="" src="assets/organ.png"/>`,
-                    cardiac: `<img class="card-img" alt="" src="assets/cardiac.png"/>`,
-                    brain: `<img class="card-img" alt="" src="assets/brain.png"/>`
+                    air: `<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                          <radialGradient id="dpiBg" cx=".5" cy=".55"><stop offset="0" stop-color="#4ade80" stop-opacity=".55"/><stop offset="1" stop-color="#4ade80" stop-opacity="0"/></radialGradient>
+                          <radialGradient id="dpiL" cx=".4" cy=".3"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset=".5" stop-color="#86efac" stop-opacity=".3"/><stop offset="1" stop-color="#14532d" stop-opacity=".25"/></radialGradient>
+                        </defs>
+                        <circle cx="40" cy="42" r="31" fill="url(#dpiBg)"/>
+                        <g fill="#22c55e" opacity=".55"><rect x="6" y="14" width="4" height="4" rx="1"/><rect x="16" y="22" width="4" height="4" rx="1"/><rect x="62" y="12" width="4" height="4" rx="1"/><rect x="70" y="20" width="4" height="4" rx="1"/><rect x="10" y="62" width="4" height="4" rx="1"/><rect x="66" y="66" width="4" height="4" rx="1"/></g>
+                        <line x1="50" y1="52" x2="68" y2="70" stroke="#052e16" stroke-width="7" stroke-linecap="round"/>
+                        <line x1="50" y1="52" x2="68" y2="70" stroke="#86efac" stroke-width="3" stroke-linecap="round"/>
+                        <ellipse cx="62" cy="64" rx="3" ry="1.4" fill="#fff" opacity=".55" transform="rotate(45 62 64)"/>
+                        <circle cx="34" cy="36" r="19" fill="url(#dpiL)" stroke="#052e16" stroke-width="3.5"/>
+                        <circle cx="34" cy="36" r="19" fill="none" stroke="#86efac" stroke-width="1.6"/>
+                        <circle cx="34" cy="36" r="19" fill="none" stroke="#fff" stroke-width=".6" opacity=".8"/>
+                        <g fill="#052e16" font-family="monospace" font-size="7" font-weight="bold"><text x="22" y="33">10</text><text x="36" y="33">01</text><text x="22" y="43">11</text><text x="36" y="43">10</text></g>
+                        <ellipse cx="24" cy="24" rx="5" ry="3" fill="#fff" opacity=".55"/>
+                        <circle cx="14" cy="44" r="1.4" fill="#a7f3d0" opacity=".8"/>
+                        <circle cx="72" cy="42" r="1.3" fill="#a7f3d0" opacity=".7"/>
+                    </svg>`,
+                    water: `<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                          <radialGradient id="dnsBg" cx=".5" cy=".55"><stop offset="0" stop-color="#4ade80" stop-opacity=".55"/><stop offset="1" stop-color="#4ade80" stop-opacity="0"/></radialGradient>
+                          <linearGradient id="dnsF" x1=".5" y1="0" x2=".5" y2="1"><stop offset="0" stop-color="#dcfce7"/><stop offset=".5" stop-color="#22c55e"/><stop offset="1" stop-color="#14532d"/></linearGradient>
+                        </defs>
+                        <circle cx="40" cy="42" r="31" fill="url(#dnsBg)"/>
+                        <g><circle cx="22" cy="14" r="3" fill="#86efac" stroke="#dcfce7" stroke-width=".5"/><circle cx="40" cy="10" r="3" fill="#86efac" stroke="#dcfce7" stroke-width=".5"/><circle cx="58" cy="14" r="3" fill="#86efac" stroke="#dcfce7" stroke-width=".5"/><circle cx="32" cy="18" r="2.5" fill="#86efac" opacity=".7"/><circle cx="48" cy="18" r="2.5" fill="#86efac" opacity=".7"/></g>
+                        <path d="M18 22h44l-12 18v18l-20 0v-18z" fill="url(#dnsF)" stroke="#dcfce7" stroke-width="1.2"/>
+                        <path d="M18 22h44l-12 18v18l-20 0v-18z" fill="none" stroke="#86efac" stroke-width=".5" opacity=".7"/>
+                        <ellipse cx="28" cy="26" rx="6" ry="1.5" fill="#fff" opacity=".55"/>
+                        <text x="30" y="50" font-family="monospace" font-size="9" font-weight="bold" fill="#052e16">DNS</text>
+                        <g><circle cx="34" cy="64" r="3" fill="#22c55e" stroke="#dcfce7" stroke-width=".5"/><circle cx="46" cy="68" r="3" fill="#dc2626" stroke="#fecaca" stroke-width=".5"/><path d="M44 66l4 4M48 66l-4 4" stroke="#fff" stroke-width="1"/></g>
+                        <circle cx="14" cy="44" r="1.4" fill="#a7f3d0" opacity=".8"/>
+                        <circle cx="68" cy="44" r="1.4" fill="#a7f3d0" opacity=".7"/>
+                    </svg>`,
+                    contact: `<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                          <radialGradient id="prtBg" cx=".5" cy=".55"><stop offset="0" stop-color="#4ade80" stop-opacity=".55"/><stop offset="1" stop-color="#4ade80" stop-opacity="0"/></radialGradient>
+                          <linearGradient id="prtB" x1=".5" y1="0" x2=".5" y2="1"><stop offset="0" stop-color="#dcfce7"/><stop offset=".5" stop-color="#86efac"/><stop offset="1" stop-color="#14532d"/></linearGradient>
+                        </defs>
+                        <circle cx="40" cy="42" r="31" fill="url(#prtBg)"/>
+                        <path d="M40 12 l4 4 -4 4 -4 -4 z" fill="#fde047" stroke="#fbbf24" stroke-width=".7"/>
+                        <circle cx="40" cy="16" r="1.5" fill="#fff"/>
+                        <path d="M20 26 h40 v4 h-40 z" fill="url(#prtB)" stroke="#dcfce7" stroke-width=".8"/>
+                        <g fill="url(#prtB)" stroke="#dcfce7" stroke-width=".7"><rect x="22" y="32" width="6" height="22"/><rect x="32" y="32" width="6" height="22"/><rect x="42" y="32" width="6" height="22"/><rect x="52" y="32" width="6" height="22"/></g>
+                        <g fill="#fff" opacity=".4"><rect x="23" y="34" width="1.5" height="18"/><rect x="33" y="34" width="1.5" height="18"/><rect x="43" y="34" width="1.5" height="18"/><rect x="53" y="34" width="1.5" height="18"/></g>
+                        <path d="M16 54 h48 v6 h-48 z" fill="url(#prtB)" stroke="#dcfce7" stroke-width=".8"/>
+                        <path d="M14 60 h52 v8 h-52 z" fill="url(#prtB)" stroke="#dcfce7" stroke-width=".9"/>
+                        <ellipse cx="22" cy="62" rx="4" ry="1.5" fill="#fff" opacity=".5"/>
+                        <circle cx="40" cy="44" r="6" fill="#fde047" stroke="#fbbf24" stroke-width="1"/>
+                        <text x="36" y="48" font-family="serif" font-size="9" font-weight="bold" fill="#92400e">К</text>
+                        <circle cx="14" cy="20" r="1.4" fill="#a7f3d0" opacity=".8"/>
+                        <circle cx="68" cy="20" r="1.4" fill="#a7f3d0" opacity=".7"/>
+                    </svg>`,
+                    insect: `<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                          <radialGradient id="botBg" cx=".5" cy=".55"><stop offset="0" stop-color="#4ade80" stop-opacity=".55"/><stop offset="1" stop-color="#4ade80" stop-opacity="0"/></radialGradient>
+                          <linearGradient id="botB" x1=".5" y1="0" x2=".5" y2="1"><stop offset="0" stop-color="#dcfce7"/><stop offset=".4" stop-color="#22c55e"/><stop offset="1" stop-color="#052e16"/></linearGradient>
+                          <radialGradient id="botEye" cx=".4" cy=".4"><stop offset="0" stop-color="#fde047"/><stop offset=".7" stop-color="#dc2626"/><stop offset="1" stop-color="#7f1d1d"/></radialGradient>
+                        </defs>
+                        <circle cx="40" cy="42" r="31" fill="url(#botBg)"/>
+                        <line x1="40" y1="22" x2="40" y2="14" stroke="#86efac" stroke-width="1.6"/>
+                        <circle cx="40" cy="12" r="2.5" fill="#fde047" stroke="#86efac" stroke-width=".7"/>
+                        <circle cx="40" cy="12" r="1" fill="#fff"/>
+                        <rect x="22" y="22" width="36" height="32" rx="6" fill="url(#botB)" stroke="#dcfce7" stroke-width="1.2"/>
+                        <circle cx="31" cy="36" r="5" fill="url(#botEye)" stroke="#052e16" stroke-width=".7"/>
+                        <circle cx="49" cy="36" r="5" fill="url(#botEye)" stroke="#052e16" stroke-width=".7"/>
+                        <circle cx="29" cy="34" r="1.5" fill="#fff"/>
+                        <circle cx="47" cy="34" r="1.5" fill="#fff"/>
+                        <rect x="28" y="44" width="24" height="3" rx="1" fill="#052e16"/>
+                        <g fill="#86efac"><rect x="30" y="44.5" width="2" height="2"/><rect x="34" y="44.5" width="2" height="2"/><rect x="38" y="44.5" width="2" height="2"/><rect x="42" y="44.5" width="2" height="2"/><rect x="46" y="44.5" width="2" height="2"/></g>
+                        <rect x="28" y="54" width="8" height="14" rx="2" fill="url(#botB)" stroke="#dcfce7" stroke-width=".8"/>
+                        <rect x="44" y="54" width="8" height="14" rx="2" fill="url(#botB)" stroke="#dcfce7" stroke-width=".8"/>
+                        <ellipse cx="32" cy="26" rx="6" ry="2" fill="#fff" opacity=".4"/>
+                        <circle cx="14" cy="38" r="1.4" fill="#a7f3d0" opacity=".8"/>
+                        <circle cx="68" cy="38" r="1.3" fill="#a7f3d0" opacity=".7"/>
+                    </svg>`,
+                    fever: `<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                          <radialGradient id="slwBg" cx=".5" cy=".55"><stop offset="0" stop-color="#fbbf24" stop-opacity=".55"/><stop offset="1" stop-color="#fbbf24" stop-opacity="0"/></radialGradient>
+                          <radialGradient id="slwS" cx=".4" cy=".3"><stop offset="0" stop-color="#fef3c7"/><stop offset=".5" stop-color="#f59e0b"/><stop offset="1" stop-color="#78350f"/></radialGradient>
+                          <linearGradient id="slwB" x1=".5" y1="0" x2=".5" y2="1"><stop offset="0" stop-color="#fed7aa"/><stop offset=".5" stop-color="#ea580c"/><stop offset="1" stop-color="#7c2d12"/></linearGradient>
+                        </defs>
+                        <circle cx="40" cy="42" r="31" fill="url(#slwBg)"/>
+                        <g stroke="#fde68a" stroke-width="1.2" opacity=".55" fill="none"><path d="M8 60 q4-3 8 0M22 62 q4-3 8 0M50 62 q4-3 8 0"/></g>
+                        <ellipse cx="38" cy="56" rx="20" ry="6" fill="url(#slwB)" stroke="#fed7aa" stroke-width=".9"/>
+                        <ellipse cx="34" cy="54" rx="14" ry="3" fill="#fff" opacity=".25"/>
+                        <circle cx="36" cy="50" r="14" fill="url(#slwS)" stroke="#fef3c7" stroke-width="1.2"/>
+                        <path d="M36 50 a8 8 0 1 0 0 -.1 a5 5 0 1 1 0 .1 a3 3 0 1 0 0 -.1" fill="none" stroke="#78350f" stroke-width="1.5" opacity=".8"/>
+                        <path d="M50 46 q4-4 8-2 q-1-3 2-4" fill="none" stroke="#fed7aa" stroke-width="2.5" stroke-linecap="round"/>
+                        <circle cx="60" cy="38" r="2" fill="#fde047" stroke="#fbbf24" stroke-width=".5"/>
+                        <circle cx="62" cy="32" r="1.5" fill="#fde047" stroke="#fbbf24" stroke-width=".5"/>
+                        <ellipse cx="32" cy="44" rx="3" ry="2" fill="#fff" opacity=".45"/>
+                        <rect x="10" y="68" width="60" height="4" rx="2" fill="#1a2e05" opacity=".4"/>
+                        <rect x="10" y="68" width="18" height="4" rx="2" fill="#fbbf24"/>
+                        <circle cx="14" cy="20" r="1.4" fill="#fef3c7" opacity=".8"/>
+                        <circle cx="68" cy="22" r="1.3" fill="#fef3c7" opacity=".7"/>
+                    </svg>`,
+                    cough: `<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                          <radialGradient id="capBg" cx=".5" cy=".55"><stop offset="0" stop-color="#fbbf24" stop-opacity=".55"/><stop offset="1" stop-color="#fbbf24" stop-opacity="0"/></radialGradient>
+                          <linearGradient id="capW" x1=".5" y1="0" x2=".5" y2="1"><stop offset="0" stop-color="#fef3c7"/><stop offset=".5" stop-color="#d97706"/><stop offset="1" stop-color="#451a03"/></linearGradient>
+                        </defs>
+                        <circle cx="40" cy="42" r="31" fill="url(#capBg)"/>
+                        <rect x="12" y="20" width="56" height="44" rx="3" fill="url(#capW)" stroke="#fef3c7" stroke-width="1.2"/>
+                        <g stroke="#78350f" stroke-width="1" opacity=".5">
+                          <line x1="22" y1="20" x2="22" y2="32"/><line x1="34" y1="20" x2="34" y2="32"/><line x1="46" y1="20" x2="46" y2="32"/><line x1="58" y1="20" x2="58" y2="32"/>
+                          <line x1="16" y1="32" x2="16" y2="44"/><line x1="28" y1="32" x2="28" y2="44"/><line x1="40" y1="32" x2="40" y2="44"/><line x1="52" y1="32" x2="52" y2="44"/><line x1="64" y1="32" x2="64" y2="44"/>
+                          <line x1="22" y1="44" x2="22" y2="56"/><line x1="34" y1="44" x2="34" y2="56"/><line x1="46" y1="44" x2="46" y2="56"/><line x1="58" y1="44" x2="58" y2="56"/>
+                          <line x1="12" y1="32" x2="68" y2="32"/><line x1="12" y1="44" x2="68" y2="44"/><line x1="12" y1="56" x2="68" y2="56"/>
+                        </g>
+                        <rect x="14" y="38" width="52" height="12" rx="2" fill="#fef3c7" opacity=".95"/>
+                        <g font-family="monospace" font-size="9" font-weight="bold" fill="#451a03"><text x="18" y="48" transform="rotate(-7 18 48)">7</text><text x="28" y="48" transform="rotate(5 28 48)">x</text><text x="36" y="48" transform="rotate(-4 36 48)">3</text><text x="44" y="48" transform="rotate(6 44 48)">Q</text><text x="52" y="48" transform="rotate(-3 52 48)">9</text></g>
+                        <line x1="22" y1="44" x2="52" y2="47" stroke="#78350f" stroke-width=".6" opacity=".5"/>
+                        <ellipse cx="22" cy="26" rx="6" ry="1.5" fill="#fff" opacity=".55"/>
+                        <circle cx="14" cy="14" r="1.4" fill="#fef3c7" opacity=".8"/>
+                        <circle cx="68" cy="68" r="1.4" fill="#fef3c7" opacity=".7"/>
+                    </svg>`,
+                    headache: `<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                          <radialGradient id="shpBg" cx=".5" cy=".55"><stop offset="0" stop-color="#fbbf24" stop-opacity=".55"/><stop offset="1" stop-color="#fbbf24" stop-opacity="0"/></radialGradient>
+                          <linearGradient id="shpP" x1=".5" y1="0" x2=".5" y2="1"><stop offset="0" stop-color="#fed7aa"/><stop offset=".5" stop-color="#ea580c"/><stop offset="1" stop-color="#7c2d12"/></linearGradient>
+                          <linearGradient id="shpClamp" x1=".5" y1="0" x2=".5" y2="1"><stop offset="0" stop-color="#fef3c7"/><stop offset="1" stop-color="#78350f"/></linearGradient>
+                        </defs>
+                        <circle cx="40" cy="42" r="31" fill="url(#shpBg)"/>
+                        <path d="M10 30 h22 q4 0 4 4 v6 q0 4 4 4 h26 v6 h-26 q-4 0-4 4 v6 q0 4-4 4 h-22 z" fill="url(#shpP)" stroke="#fed7aa" stroke-width="1.2"/>
+                        <path d="M10 30 h22 q4 0 4 4 v6 q0 4 4 4 h26" fill="none" stroke="#fed7aa" stroke-width="3" opacity=".4"/>
+                        <ellipse cx="20" cy="34" rx="6" ry="1.3" fill="#fff" opacity=".45"/>
+                        <rect x="30" y="22" width="14" height="44" rx="2" fill="url(#shpClamp)" stroke="#fef3c7" stroke-width="1.2"/>
+                        <rect x="32" y="24" width="2" height="40" fill="#fff" opacity=".45"/>
+                        <rect x="40" y="22" width="2" height="44" fill="#451a03" opacity=".6"/>
+                        <path d="M52 18 l8 14 -6 0 6 12 -10 -8 6 0 -8 -14 z" fill="#dc2626" stroke="#fef3c7" stroke-width=".7"/>
+                        <path d="M56 22 v6 M58 36 v6" stroke="#fef3c7" stroke-width=".7" opacity=".7"/>
+                        <circle cx="14" cy="20" r="1.4" fill="#fef3c7" opacity=".8"/>
+                        <circle cx="68" cy="68" r="1.4" fill="#fef3c7" opacity=".7"/>
+                    </svg>`,
+                    nausea: `<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                          <radialGradient id="sniBg" cx=".5" cy=".55"><stop offset="0" stop-color="#fbbf24" stop-opacity=".55"/><stop offset="1" stop-color="#fbbf24" stop-opacity="0"/></radialGradient>
+                          <linearGradient id="sniL" x1=".5" y1="0" x2=".5" y2="1"><stop offset="0" stop-color="#fef3c7"/><stop offset=".5" stop-color="#f59e0b"/><stop offset="1" stop-color="#78350f"/></linearGradient>
+                        </defs>
+                        <circle cx="40" cy="42" r="31" fill="url(#sniBg)"/>
+                        <path d="M30 38 v-8 a10 10 0 0 1 20 0 v8" fill="none" stroke="url(#sniL)" stroke-width="5" stroke-linecap="round"/>
+                        <path d="M30 38 v-8 a10 10 0 0 1 20 0 v8" fill="none" stroke="#fef3c7" stroke-width="1.2"/>
+                        <rect x="22" y="38" width="36" height="26" rx="4" fill="url(#sniL)" stroke="#fef3c7" stroke-width="1.2"/>
+                        <ellipse cx="28" cy="42" rx="6" ry="1.4" fill="#fff" opacity=".55"/>
+                        <text x="32" y="56" font-family="monospace" font-size="9" font-weight="bold" fill="#451a03">SNI</text>
+                        <circle cx="56" cy="56" r="12" fill="#dc2626" stroke="#fef3c7" stroke-width="2"/>
+                        <line x1="49" y1="49" x2="63" y2="63" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+                        <line x1="49" y1="49" x2="63" y2="63" stroke="#7f1d1d" stroke-width="1.2" stroke-linecap="round"/>
+                        <ellipse cx="52" cy="52" rx="3" ry="1.5" fill="#fff" opacity=".5"/>
+                        <circle cx="14" cy="18" r="1.4" fill="#fef3c7" opacity=".8"/>
+                        <circle cx="68" cy="18" r="1.3" fill="#fef3c7" opacity=".7"/>
+                    </svg>`,
+                    bleed: `<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                          <radialGradient id="regBg" cx=".5" cy=".55"><stop offset="0" stop-color="#f87171" stop-opacity=".55"/><stop offset="1" stop-color="#f87171" stop-opacity="0"/></radialGradient>
+                          <linearGradient id="regP" x1=".5" y1="0" x2=".5" y2="1"><stop offset="0" stop-color="#fef2f2"/><stop offset=".5" stop-color="#fecaca"/><stop offset="1" stop-color="#7f1d1d"/></linearGradient>
+                        </defs>
+                        <circle cx="40" cy="42" r="31" fill="url(#regBg)"/>
+                        <rect x="16" y="14" width="48" height="8" rx="2" fill="#7f1d1d" stroke="#fecaca" stroke-width=".8"/>
+                        <rect x="20" y="10" width="40" height="8" rx="2" fill="#7f1d1d" stroke="#fecaca" stroke-width=".8"/>
+                        <circle cx="30" cy="14" r="2" fill="#fff"/>
+                        <circle cx="50" cy="14" r="2" fill="#fff"/>
+                        <rect x="14" y="20" width="52" height="50" rx="3" fill="url(#regP)" stroke="#fecaca" stroke-width="1.2"/>
+                        <g stroke="#7f1d1d" stroke-width=".6" opacity=".5">
+                          <line x1="18" y1="30" x2="62" y2="30"/><line x1="18" y1="36" x2="62" y2="36"/><line x1="18" y1="42" x2="62" y2="42"/><line x1="18" y1="48" x2="62" y2="48"/><line x1="18" y1="54" x2="62" y2="54"/><line x1="18" y1="60" x2="62" y2="60"/>
+                        </g>
+                        <g stroke="#dc2626" stroke-width="2.5" opacity=".9">
+                          <line x1="18" y1="30" x2="58" y2="30"/><line x1="18" y1="42" x2="56" y2="42"/><line x1="18" y1="54" x2="60" y2="54"/>
+                        </g>
+                        <g transform="rotate(-12 50 50)"><rect x="42" y="58" width="20" height="12" rx="2" fill="#dc2626" stroke="#fef2f2" stroke-width="1"/><text x="44" y="67" font-family="monospace" font-size="7" font-weight="bold" fill="#fff">БАН</text></g>
+                        <ellipse cx="22" cy="26" rx="5" ry="1.3" fill="#fff" opacity=".55"/>
+                        <circle cx="12" cy="14" r="1.4" fill="#fecaca" opacity=".8"/>
+                        <circle cx="68" cy="68" r="1.3" fill="#fecaca" opacity=".7"/>
+                    </svg>`,
+                    organ: `<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                          <radialGradient id="srvBg" cx=".5" cy=".55"><stop offset="0" stop-color="#f87171" stop-opacity=".55"/><stop offset="1" stop-color="#f87171" stop-opacity="0"/></radialGradient>
+                          <linearGradient id="srvR" x1=".5" y1="0" x2=".5" y2="1"><stop offset="0" stop-color="#fecaca"/><stop offset=".5" stop-color="#7f1d1d"/><stop offset="1" stop-color="#450a0a"/></linearGradient>
+                          <radialGradient id="srvFire" cx=".5" cy="1"><stop offset="0" stop-color="#fde047"/><stop offset=".6" stop-color="#dc2626"/><stop offset="1" stop-color="#7f1d1d" stop-opacity="0"/></radialGradient>
+                        </defs>
+                        <circle cx="40" cy="42" r="31" fill="url(#srvBg)"/>
+                        <g transform="rotate(8 40 42)"><rect x="18" y="18" width="44" height="48" rx="3" fill="url(#srvR)" stroke="#fecaca" stroke-width="1.2"/>
+                        <g><rect x="22" y="22" width="36" height="8" rx="1" fill="#1a0303" stroke="#7f1d1d" stroke-width=".7"/><rect x="22" y="34" width="36" height="8" rx="1" fill="#1a0303" stroke="#7f1d1d" stroke-width=".7"/><rect x="22" y="46" width="36" height="8" rx="1" fill="#1a0303" stroke="#7f1d1d" stroke-width=".7"/><rect x="22" y="58" width="36" height="6" rx="1" fill="#1a0303" stroke="#7f1d1d" stroke-width=".7"/></g>
+                        <g fill="#dc2626"><circle cx="50" cy="26" r="1.3"/><circle cx="55" cy="26" r="1.3"/><circle cx="50" cy="38" r="1.3"/><circle cx="55" cy="38" r="1.3" opacity=".4"/><circle cx="50" cy="50" r="1.3" opacity=".4"/><circle cx="55" cy="50" r="1.3" opacity=".4"/></g>
+                        <path d="M28 24 l4 8 -2 -1 3 6 -6 -4 2 0 -4 -8 z" fill="#fde047" stroke="#fff" stroke-width=".4"/>
+                        <line x1="30" y1="40" x2="42" y2="52" stroke="#7f1d1d" stroke-width="1.8" stroke-linecap="round"/>
+                        <line x1="35" y1="42" x2="42" y2="42" stroke="#7f1d1d" stroke-width="1.2" stroke-linecap="round"/>
+                        </g>
+                        <path d="M28 60 q-4 4-2 10 q4-2 6-8 q2 4 6 4 q0-6 4-8 q4 2 4 8 q4-2 4-10" fill="url(#srvFire)" opacity=".95"/>
+                        <text x="22" y="74" font-family="monospace" font-size="7" font-weight="bold" fill="#fecaca">OFFLINE</text>
+                        <circle cx="12" cy="14" r="1.4" fill="#fecaca" opacity=".8"/>
+                        <circle cx="68" cy="14" r="1.3" fill="#fecaca" opacity=".7"/>
+                    </svg>`,
+                    cardiac: `<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                          <radialGradient id="chaBg" cx=".5" cy=".55"><stop offset="0" stop-color="#f87171" stop-opacity=".55"/><stop offset="1" stop-color="#f87171" stop-opacity="0"/></radialGradient>
+                          <linearGradient id="chaC" x1=".5" y1="0" x2=".5" y2="1"><stop offset="0" stop-color="#fecaca"/><stop offset=".5" stop-color="#dc2626"/><stop offset="1" stop-color="#450a0a"/></linearGradient>
+                        </defs>
+                        <circle cx="40" cy="42" r="31" fill="url(#chaBg)"/>
+                        <g stroke="#fde047" stroke-width="1" fill="none" opacity=".7"><path d="M8 30 l4 0 -2 4 4 -2"/><path d="M68 28 l4 2 -2 4 4 -2"/><path d="M10 60 l4 -2 0 4 4 0"/><path d="M62 64 l4 -2 0 4 2 0"/></g>
+                        <g transform="rotate(-15 22 30)"><rect x="14" y="22" width="16" height="16" rx="2" fill="url(#chaC)" stroke="#fecaca" stroke-width=".9"/><line x1="18" y1="26" x2="26" y2="26" stroke="#fee2e2" stroke-width=".6"/><line x1="18" y1="30" x2="22" y2="30" stroke="#fee2e2" stroke-width=".6" opacity=".5"/><line x1="18" y1="34" x2="24" y2="34" stroke="#fee2e2" stroke-width=".6"/></g>
+                        <g transform="rotate(18 56 30)"><rect x="48" y="22" width="16" height="16" rx="2" fill="url(#chaC)" stroke="#fecaca" stroke-width=".9"/><line x1="52" y1="26" x2="60" y2="26" stroke="#fee2e2" stroke-width=".6"/><line x1="52" y1="30" x2="58" y2="30" stroke="#fee2e2" stroke-width=".6"/><line x1="52" y1="34" x2="56" y2="34" stroke="#fee2e2" stroke-width=".6" opacity=".5"/></g>
+                        <g transform="rotate(8 30 56)"><rect x="22" y="48" width="16" height="16" rx="2" fill="url(#chaC)" stroke="#fecaca" stroke-width=".9"/><line x1="26" y1="52" x2="34" y2="52" stroke="#fee2e2" stroke-width=".6"/><line x1="26" y1="56" x2="32" y2="56" stroke="#fee2e2" stroke-width=".6" opacity=".5"/><line x1="26" y1="60" x2="34" y2="60" stroke="#fee2e2" stroke-width=".6"/></g>
+                        <g transform="rotate(-22 50 56)"><rect x="42" y="48" width="16" height="16" rx="2" fill="url(#chaC)" stroke="#fecaca" stroke-width=".9"/><line x1="46" y1="52" x2="54" y2="52" stroke="#fee2e2" stroke-width=".6" opacity=".5"/><line x1="46" y1="56" x2="50" y2="56" stroke="#fee2e2" stroke-width=".6"/><line x1="46" y1="60" x2="54" y2="60" stroke="#fee2e2" stroke-width=".6"/></g>
+                        <path d="M14 40 q10-4 20 0 q10 4 20 0 q10-4 16 0" stroke="#fde047" stroke-width="2.2" fill="none" opacity=".85"/>
+                        <path d="M14 40 q10-4 20 0 q10 4 20 0 q10-4 16 0" stroke="#fff" stroke-width=".8" fill="none" opacity=".7"/>
+                    </svg>`,
+                    brain: `<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                          <radialGradient id="totBg" cx=".5" cy=".55"><stop offset="0" stop-color="#f87171" stop-opacity=".55"/><stop offset="1" stop-color="#f87171" stop-opacity="0"/></radialGradient>
+                          <linearGradient id="totS" x1=".5" y1="0" x2=".5" y2="1"><stop offset="0" stop-color="#fecaca"/><stop offset=".5" stop-color="#dc2626"/><stop offset="1" stop-color="#450a0a"/></linearGradient>
+                          <linearGradient id="totL" x1=".5" y1="0" x2=".5" y2="1"><stop offset="0" stop-color="#fef9c3"/><stop offset=".5" stop-color="#ca8a04"/><stop offset="1" stop-color="#451a03"/></linearGradient>
+                        </defs>
+                        <circle cx="40" cy="42" r="31" fill="url(#totBg)"/>
+                        <path d="M40 12 c-14 0-22 8-22 18 v18 c0 10 22 18 22 18 s22-8 22-18 v-18 c0-10-8-18-22-18 z" fill="url(#totS)" stroke="#fecaca" stroke-width="1.3"/>
+                        <path d="M40 12 c-14 0-22 8-22 18 v18 c0 10 22 18 22 18" fill="none" stroke="#fff" stroke-width=".8" opacity=".55"/>
+                        <ellipse cx="32" cy="22" rx="6" ry="3" fill="#fff" opacity=".45"/>
+                        <path d="M32 40 v-6 a8 8 0 0 1 16 0 v6" fill="none" stroke="url(#totL)" stroke-width="4.5" stroke-linecap="round"/>
+                        <path d="M32 40 v-6 a8 8 0 0 1 16 0 v6" fill="none" stroke="#fef9c3" stroke-width="1" opacity=".7"/>
+                        <rect x="26" y="40" width="28" height="20" rx="3" fill="url(#totL)" stroke="#fef9c3" stroke-width="1.2"/>
+                        <ellipse cx="32" cy="44" rx="4" ry="1.3" fill="#fff" opacity=".55"/>
+                        <circle cx="40" cy="48" r="3" fill="#451a03" stroke="#fef9c3" stroke-width=".5"/>
+                        <rect x="38.5" y="50" width="3" height="6" fill="#451a03"/>
+                        <text x="34" y="38" font-family="monospace" font-size="7" font-weight="bold" fill="#fef9c3" opacity=".9">STOP</text>
+                        <circle cx="14" cy="18" r="1.4" fill="#fee2e2" opacity=".8"/>
+                        <circle cx="68" cy="18" r="1.3" fill="#fee2e2" opacity=".7"/>
+                    </svg>`
                 };
 
                 // Spread (transmission) upgrades — each pick lets the player
