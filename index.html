@@ -1121,6 +1121,32 @@
             transition: opacity 0.55s ease, transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
 
+        /* Cyber-coral canvas — the new branching network that replaces the
+           legacy Three.js globe + flat map. Always full-bleed inside the
+           wrapper and the only visible map layer. */
+        .coral-canvas {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            display: block;
+            background:
+                radial-gradient(circle at 50% 50%, rgba(10, 14, 24, 0) 0%, rgba(5, 8, 14, 0.9) 70%),
+                radial-gradient(circle at 30% 20%, rgba(34, 197, 94, 0.06), transparent 50%),
+                radial-gradient(circle at 70% 80%, rgba(220, 38, 38, 0.05), transparent 55%),
+                #060912;
+            touch-action: manipulation;
+            cursor: pointer;
+        }
+
+        /* Legacy globe/flat map layers — kept in the DOM so the rest of the
+           code can still reference them, but never visible in the reskin. */
+        .legacy-hidden {
+            display: none !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+        }
+
         /* 3D globe canvas — only visible during the picker. It takes over
            the wrapper while .selecting is active so the player picks a
            starting city by rotating the planet rather than panning a flat
@@ -3584,8 +3610,10 @@
             100% { transform: translate(-50%, -50%) scale(1)    rotate(0deg); }
         }
 
-        /* During the tutorial we keep the home node visible since it is the
-           single tap target (bubbles are removed in the РКН reskin). */
+        /* The home node is only visible on the Home screen — never bleed
+           through to the map. */
+        .home-virus { display: none; }
+        .start-screen.active .home-virus { display: block; }
 
         /* First-visit Home hint — text bubble above the virus */
         .home-hint {
@@ -3922,8 +3950,9 @@
                 <div class="selection-sub" id="selectionSub">Тапни по сети, чтобы разместить узел</div>
             </div>
             <div class="world-map-wrapper">
-                <canvas class="globe-canvas" id="globeCanvas"></canvas>
-                <div class="world-map-pan" id="worldMapPan">
+                <canvas class="coral-canvas" id="coralCanvas"></canvas>
+                <canvas class="globe-canvas legacy-hidden" id="globeCanvas"></canvas>
+                <div class="world-map-pan legacy-hidden" id="worldMapPan">
                     <img src="assets/world_map.png" class="world-map-image" alt="World Map" />
                     <!-- Continent selection overlay -->
                 <svg class="continents-overlay" viewBox="0 0 1050 700" preserveAspectRatio="xMidYMid slice">
@@ -5320,6 +5349,307 @@
                     }
                 }
                 this.renderer.render(this.scene, this.camera);
+            }
+        }
+
+        // ============================================================
+        // CoralMap — bioluminescent branching network that replaces
+        // the legacy 3D globe. Each main branch represents a continent.
+        // Tapping a branch's terminal node calls the game's
+        // `infectContinent` (in the РКН reskin we treat continents as
+        // sectors of the cyber-coral).
+        // ============================================================
+        class CoralMap {
+            constructor(canvas, game) {
+                this.canvas = canvas;
+                this.ctx = canvas.getContext('2d');
+                this.game = game;
+                this.dpr = window.devicePixelRatio || 1;
+                this.tick = 0;
+                this.continentIds = [
+                    'north-america', 'south-america', 'europe',
+                    'africa', 'asia', 'australia'
+                ];
+                // Stable RNG sequence so branches don't twitch every redraw.
+                this._rngSeed = 1337;
+                this.branches = null;
+                this.hitNodes = [];
+                this.animLoopActive = false;
+                this._onResize = () => this.resize();
+                window.addEventListener('resize', this._onResize, { passive: true });
+                canvas.addEventListener('click', (e) => this.handleTap(e));
+                this.resize();
+            }
+
+            // Deterministic pseudo-random in [0,1).
+            rnd() {
+                this._rngSeed = (this._rngSeed * 1664525 + 1013904223) >>> 0;
+                return this._rngSeed / 0x100000000;
+            }
+
+            resize() {
+                const rect = this.canvas.getBoundingClientRect();
+                if (rect.width === 0 || rect.height === 0) return;
+                this.canvas.width  = Math.round(rect.width  * this.dpr);
+                this.canvas.height = Math.round(rect.height * this.dpr);
+                this.W = rect.width;
+                this.H = rect.height;
+                this.rebuildBranches();
+                this.draw();
+            }
+
+            // Build a static tree once per resize. Branches are stored in
+            // canvas (CSS) pixel coordinates; draw() multiplies by DPR.
+            rebuildBranches() {
+                this._rngSeed = 1337; // reset for deterministic layout
+                const cx = this.W / 2;
+                const cy = this.H / 2;
+                const trunkLen = Math.min(this.W, this.H) * 0.30;
+                const angles = [-Math.PI/2, -Math.PI/6, Math.PI/6,
+                                Math.PI/2,  5*Math.PI/6, -5*Math.PI/6];
+                this.branches = this.continentIds.map((id, i) => {
+                    const angle = angles[i];
+                    const root = { x: cx, y: cy };
+                    const tip = {
+                        x: cx + Math.cos(angle) * trunkLen,
+                        y: cy + Math.sin(angle) * trunkLen
+                    };
+                    const branch = {
+                        id,
+                        root,
+                        tip,
+                        angle,
+                        // Recursive sub-branches grow from the tip.
+                        children: this.growSubBranches(tip, angle, trunkLen * 0.6, 3)
+                    };
+                    return branch;
+                });
+                // Collect terminal leaf nodes for hit-testing.
+                this.hitNodes = [];
+                this.branches.forEach(b => this.collectLeaves(b, this.hitNodes));
+            }
+
+            growSubBranches(from, parentAngle, length, depth) {
+                if (depth <= 0) return [];
+                const out = [];
+                const count = 2 + Math.floor(this.rnd() * 2); // 2-3 children
+                for (let i = 0; i < count; i++) {
+                    const spread = 0.55;
+                    const t = count === 1 ? 0 : (i / (count - 1) - 0.5) * 2;
+                    const angle = parentAngle + t * spread + (this.rnd() - 0.5) * 0.18;
+                    const len = length * (0.55 + this.rnd() * 0.25);
+                    const to = {
+                        x: from.x + Math.cos(angle) * len,
+                        y: from.y + Math.sin(angle) * len
+                    };
+                    out.push({
+                        root: { ...from },
+                        tip: to,
+                        angle,
+                        depth,
+                        children: this.growSubBranches(to, angle, len * 0.65, depth - 1)
+                    });
+                }
+                return out;
+            }
+
+            collectLeaves(branch, acc) {
+                if (!branch.children || branch.children.length === 0) {
+                    // Terminal — register the tip as a hit target. For the
+                    // main 6 branches, use the entire branch id.
+                    acc.push({
+                        x: branch.tip.x,
+                        y: branch.tip.y,
+                        radius: 14,
+                        continentId: branch._continentId || null
+                    });
+                    return;
+                }
+                // Propagate continent id down to leaves so taps land on the
+                // right sector.
+                branch.children.forEach(child => {
+                    child._continentId = branch._continentId || branch.id || null;
+                    this.collectLeaves(child, acc);
+                });
+            }
+
+            infectionState(continentId) {
+                const c = this.game && this.game.continents && this.game.continents[continentId];
+                if (!c) return 0;
+                return Math.max(0, Math.min(1, (c.infectionLevel || 0) / 10));
+            }
+
+            // Linearly interpolate between healthy-green and corrupted-red
+            // based on infection 0..1.
+            branchColor(inf, glow) {
+                const a = glow ? 0.95 : 0.85;
+                if (inf <= 0) {
+                    // Healthy: cyan-teal
+                    return `rgba(74, 222, 128, ${a})`;
+                }
+                // Corrupted: red-orange
+                const r = Math.round(74  + (248 - 74)  * inf);
+                const g = Math.round(222 + (60  - 222) * inf);
+                const b = Math.round(128 + (60  - 128) * inf);
+                return `rgba(${r}, ${g}, ${b}, ${a})`;
+            }
+
+            draw() {
+                const ctx = this.ctx;
+                if (!this.branches || !this.W) return;
+                ctx.save();
+                ctx.scale(this.dpr, this.dpr);
+                ctx.clearRect(0, 0, this.W, this.H);
+
+                // Subtle moving particles backdrop.
+                this.drawParticles(ctx);
+
+                // Each main branch + its descendants.
+                this.branches.forEach(b => {
+                    const inf = this.infectionState(b.id);
+                    this.drawBranchRec(ctx, b, 4.5, inf);
+                });
+
+                // Central seed node — РКН core.
+                this.drawSeed(ctx, this.W / 2, this.H / 2);
+
+                ctx.restore();
+            }
+
+            drawBranchRec(ctx, branch, thickness, inf) {
+                const color = this.branchColor(inf, true);
+                // Outer glow pass
+                ctx.shadowColor = color;
+                ctx.shadowBlur = 14 + 6 * inf;
+                ctx.strokeStyle = color;
+                ctx.lineWidth = thickness;
+                ctx.lineCap = 'round';
+                ctx.beginPath();
+                ctx.moveTo(branch.root.x, branch.root.y);
+                ctx.lineTo(branch.tip.x,  branch.tip.y);
+                ctx.stroke();
+
+                // Inner bright pass
+                ctx.shadowBlur = 0;
+                ctx.strokeStyle = inf > 0 ? 'rgba(254, 226, 226, 0.85)' : 'rgba(220, 252, 231, 0.7)';
+                ctx.lineWidth = Math.max(0.7, thickness * 0.35);
+                ctx.beginPath();
+                ctx.moveTo(branch.root.x, branch.root.y);
+                ctx.lineTo(branch.tip.x,  branch.tip.y);
+                ctx.stroke();
+
+                if (branch.children && branch.children.length) {
+                    branch.children.forEach(c =>
+                        this.drawBranchRec(ctx, c, Math.max(0.8, thickness * 0.62), inf)
+                    );
+                } else {
+                    // Leaf node — small glowing dot
+                    this.drawLeafNode(ctx, branch.tip.x, branch.tip.y, inf);
+                }
+            }
+
+            drawLeafNode(ctx, x, y, inf) {
+                const baseColor = this.branchColor(inf, true);
+                const pulse = 0.85 + 0.15 * Math.sin(this.tick * 0.06 + (x + y) * 0.03);
+                ctx.save();
+                ctx.shadowColor = baseColor;
+                ctx.shadowBlur = 18 * pulse;
+                ctx.fillStyle = baseColor;
+                ctx.beginPath();
+                ctx.arc(x, y, 4 * pulse, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = inf > 0 ? '#fef2f2' : '#dcfce7';
+                ctx.beginPath();
+                ctx.arc(x, y, 1.6, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+
+            drawSeed(ctx, x, y) {
+                // Glowing core hexagon — the РКН headquarters.
+                ctx.save();
+                ctx.shadowColor = 'rgba(220, 38, 38, 0.85)';
+                ctx.shadowBlur = 28;
+                ctx.fillStyle = 'rgba(248, 113, 113, 0.95)';
+                this.hexPath(ctx, x, y, 14);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = 'rgba(127, 29, 29, 0.95)';
+                this.hexPath(ctx, x, y, 9);
+                ctx.fill();
+                ctx.fillStyle = 'rgba(254, 226, 226, 0.95)';
+                ctx.font = 'bold 10px monospace';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('РКН', x, y + 0.5);
+                ctx.restore();
+            }
+
+            hexPath(ctx, x, y, r) {
+                ctx.beginPath();
+                for (let i = 0; i < 6; i++) {
+                    const a = -Math.PI / 2 + i * Math.PI / 3;
+                    const px = x + r * Math.cos(a);
+                    const py = y + r * Math.sin(a);
+                    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+                }
+                ctx.closePath();
+            }
+
+            drawParticles(ctx) {
+                // Slowly drifting dots — visual ambience.
+                const n = 24;
+                for (let i = 0; i < n; i++) {
+                    const t = this.tick * 0.005 + i;
+                    const x = (Math.sin(t * 0.7 + i * 1.3) * 0.5 + 0.5) * this.W;
+                    const y = ((Math.cos(t * 0.5 + i * 0.9) * 0.5 + 0.5) * this.H);
+                    ctx.fillStyle = i % 3 === 0
+                        ? 'rgba(74, 222, 128, 0.18)'
+                        : 'rgba(248, 113, 113, 0.12)';
+                    ctx.beginPath();
+                    ctx.arc(x, y, 1 + (i % 2), 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            handleTap(event) {
+                const rect = this.canvas.getBoundingClientRect();
+                const x = event.clientX - rect.left;
+                const y = event.clientY - rect.top;
+                // Hit-test main branches: pick the one whose end-of-trunk is
+                // closest to the tap. Generous radius so it feels natural.
+                let bestId = null, bestDist = Infinity;
+                this.branches.forEach(b => {
+                    const dx = b.tip.x - x;
+                    const dy = b.tip.y - y;
+                    const d = Math.hypot(dx, dy);
+                    if (d < bestDist) { bestDist = d; bestId = b.id; }
+                });
+                // Accept taps anywhere within 60px of a main branch tip OR
+                // anywhere inside a circle around the canvas centre that
+                // covers the sector.
+                if (bestId && bestDist < Math.min(this.W, this.H) * 0.45) {
+                    if (this.game && typeof this.game.coralTap === 'function') {
+                        this.game.coralTap(bestId, x, y);
+                    }
+                }
+            }
+
+            startAnimating() {
+                if (this.animLoopActive) return;
+                this.animLoopActive = true;
+                const loop = () => {
+                    if (!this.animLoopActive) return;
+                    this.tick++;
+                    this.draw();
+                    requestAnimationFrame(loop);
+                };
+                requestAnimationFrame(loop);
+            }
+
+            stopAnimating() {
+                this.animLoopActive = false;
             }
         }
 
@@ -7530,23 +7860,60 @@
 
             // ---- 3D Globe (picker mode only) ----------------------------
             ensureGlobe() {
-                if (this.globe || typeof THREE === 'undefined') return;
-                const canvas = document.getElementById('globeCanvas');
+                // Legacy 3D globe replaced by the cyber-coral in Phase 3.
+                // Kept as a no-op so existing call sites don't break.
+                this.ensureCoral();
+            }
+
+            ensureCoral() {
+                if (this.coralMap) {
+                    this.coralMap.startAnimating();
+                    return;
+                }
+                const canvas = document.getElementById('coralCanvas');
                 if (!canvas) return;
-                this.globe = new Globe({
-                    canvas,
-                    textureUrl: 'assets/world_map.png',
-                    cities: this.cities,
-                    vboxForCity: (c) => this.cityToXY(c[1], c[2], c[4], c[0]),
-                    onCityTap: (idx) => this.handleCityTap(idx),
-                    onEmptyTap: () => {
-                        // Tapping empty water / space on the map deselects
-                        // the currently highlighted city.
-                        if (!this.pickerMode && this.mapSelectedCityIdx != null) {
-                            this.clearMapSelection();
-                        }
-                    }
+                this.coralMap = new CoralMap(canvas, this);
+                // First layout pass after the screen has gained its real size.
+                requestAnimationFrame(() => {
+                    this.coralMap.resize();
+                    this.coralMap.startAnimating();
                 });
+            }
+
+            // Called by the coral when the player taps a branch / sector.
+            // In picker (tutorial) mode this places the first node; otherwise
+            // it spreads to the chosen continent.
+            coralTap(continentId) {
+                if (!continentId || !this.continents || !this.continents[continentId]) return;
+                const wasPicker = !!this.pickerMode;
+                if (wasPicker) {
+                    this.pickerMode = null;
+                    this.selectedContinent = continentId;
+                    this.infectContinent(continentId, 5);
+                    // Tear down picker chrome (prompt, body classes, nav lock).
+                    document.body.classList.remove('selecting', 'tutorial-active');
+                    const ws = document.getElementById('worldMapScreen');
+                    if (ws) {
+                        ws.classList.remove('selecting');
+                        ws.classList.remove('intro');
+                        ws.classList.remove('placing');
+                    }
+                    const nav = document.querySelector('.bottom-nav');
+                    if (nav) nav.classList.remove('locked');
+                    const prompt = document.getElementById('selectionPrompt');
+                    if (prompt) prompt.style.display = 'none';
+                    this.tutorialDone = true;
+                    this.afterTutorialSetup();
+                } else {
+                    const cur = this.continents[continentId].infectionLevel || 0;
+                    if (cur <= 0) {
+                        this.infectContinent(continentId, 5);
+                    } else {
+                        this.infectContinent(continentId, Math.min(10, cur + 1));
+                    }
+                }
+                if (this.coralMap) this.coralMap.draw();
+                this.saveState && this.saveState();
             }
 
             // ---- Infection rendering ------------------------------------
