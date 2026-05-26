@@ -2575,87 +2575,136 @@
             margin: 0 auto;
         }
 
+        /* Casual sticker-style ability card — thick coloured top half
+           "stage" with the icon, soft glossy highlight, padded bottom
+           info shelf with the name + level + progress. */
         .ability-card {
             position: relative;
-            background:
-                linear-gradient(170deg, rgba(40, 55, 75, 0.85) 0%, rgba(20, 28, 42, 0.95) 100%);
-            border: 1.5px solid rgba(255, 255, 255, 0.12);
-            border-radius: 18px;
+            background: linear-gradient(180deg, #1e2738 0%, #11172a 100%);
+            border: 2.5px solid rgba(255, 255, 255, 0.14);
+            border-radius: 22px;
             overflow: hidden;
             cursor: pointer;
-            transition: transform 0.15s ease, opacity 0.2s, border-color 0.2s, box-shadow 0.25s;
+            transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s;
             -webkit-tap-highlight-color: transparent;
-            box-shadow:
-                0 10px 26px rgba(0, 0, 0, 0.5),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1),
-                inset 0 -2px 0 rgba(0, 0, 0, 0.35);
+            padding-bottom: 4px;
         }
         .ability-card::before {
             content: '';
             position: absolute;
             inset: 0;
-            border-radius: 18px;
-            background: radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, 0.1), transparent 55%);
+            border-radius: 19px;
+            border: 1px solid rgba(255, 255, 255, 0.07);
             pointer-events: none;
-            z-index: 1;
+            z-index: 3;
         }
-        .ability-card.infectivity-card { box-shadow: 0 10px 26px rgba(0, 0, 0, 0.5), 0 0 22px rgba(74, 222, 128, 0.18),  inset 0 1px 0 rgba(255, 255, 255, 0.1), inset 0 -2px 0 rgba(0, 0, 0, 0.35); }
-        .ability-card.severity-card    { box-shadow: 0 10px 26px rgba(0, 0, 0, 0.5), 0 0 22px rgba(251, 191, 36, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.1), inset 0 -2px 0 rgba(0, 0, 0, 0.35); }
-        .ability-card.lethality-card   { box-shadow: 0 10px 26px rgba(0, 0, 0, 0.5), 0 0 22px rgba(248, 113, 113, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.1), inset 0 -2px 0 rgba(0, 0, 0, 0.35); }
+        .ability-card::after {
+            content: '';
+            position: absolute;
+            left: 0; right: 0; top: 0;
+            height: 38%;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0) 100%);
+            border-radius: 19px 19px 0 0;
+            pointer-events: none;
+            z-index: 2;
+        }
+        .ability-card.infectivity-card {
+            border-color: rgba(74, 222, 128, 0.55);
+            box-shadow:
+                0 12px 28px rgba(0, 0, 0, 0.55),
+                0 0 28px rgba(74, 222, 128, 0.22),
+                inset 0 2px 0 rgba(255, 255, 255, 0.18),
+                inset 0 -3px 0 rgba(0, 0, 0, 0.45);
+        }
+        .ability-card.severity-card {
+            border-color: rgba(251, 191, 36, 0.55);
+            box-shadow:
+                0 12px 28px rgba(0, 0, 0, 0.55),
+                0 0 28px rgba(251, 191, 36, 0.22),
+                inset 0 2px 0 rgba(255, 255, 255, 0.18),
+                inset 0 -3px 0 rgba(0, 0, 0, 0.45);
+        }
+        .ability-card.lethality-card {
+            border-color: rgba(248, 113, 113, 0.55);
+            box-shadow:
+                0 12px 28px rgba(0, 0, 0, 0.55),
+                0 0 28px rgba(248, 113, 113, 0.22),
+                inset 0 2px 0 rgba(255, 255, 255, 0.18),
+                inset 0 -3px 0 rgba(0, 0, 0, 0.45);
+        }
 
         .ability-card:active { transform: scale(0.96); }
         .ability-card.disabled { opacity: 0.6; }
         .ability-card.maxed {
-            border-color: rgba(0, 255, 159, 0.7);
+            border-color: rgba(0, 255, 159, 0.85);
             box-shadow:
-                0 10px 26px rgba(0, 0, 0, 0.5),
-                0 0 32px rgba(0, 255, 159, 0.45),
-                inset 0 1px 0 rgba(255, 255, 255, 0.18),
-                inset 0 -2px 0 rgba(0, 0, 0, 0.35);
+                0 12px 28px rgba(0, 0, 0, 0.55),
+                0 0 38px rgba(0, 255, 159, 0.55),
+                inset 0 2px 0 rgba(255, 255, 255, 0.25),
+                inset 0 -3px 0 rgba(0, 0, 0, 0.45);
         }
         .ability-card.shake { animation: upgrade-shake 0.35s ease-in-out; }
 
+        /* Top "stage" — coloured panel where the icon lives. */
         .card-image {
             position: relative;
-            height: 104px;
+            height: 108px;
+            margin: 4px 4px 0 4px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-bottom: 1.5px solid rgba(255, 255, 255, 0.07);
+            border-radius: 18px 18px 6px 6px;
+            overflow: hidden;
+            isolation: isolate;
         }
-        .card-image::after {
+        .card-image::before {
+            /* Subtle radial highlight inside the stage. */
             content: '';
             position: absolute;
             inset: 0;
-            background: radial-gradient(ellipse at 50% 10%, rgba(255, 255, 255, 0.08), transparent 55%);
+            background:
+                radial-gradient(ellipse at 50% 10%, rgba(255, 255, 255, 0.22), transparent 55%),
+                radial-gradient(ellipse at 30% 90%, rgba(0, 0, 0, 0.35), transparent 60%);
             pointer-events: none;
+            z-index: 0;
+        }
+        .card-image::after {
+            /* Inner dark frame for depth. */
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 18px 18px 6px 6px;
+            box-shadow:
+                inset 0 2px 0 rgba(255, 255, 255, 0.22),
+                inset 0 -3px 0 rgba(0, 0, 0, 0.4),
+                inset 0 0 0 1px rgba(0, 0, 0, 0.45);
+            pointer-events: none;
+            z-index: 1;
         }
         .ability-card.infectivity-card .card-image {
             background:
-                radial-gradient(circle at 50% 70%, rgba(74, 222, 128, 0.45), transparent 70%),
-                linear-gradient(180deg, rgba(20, 50, 32, 0.7), rgba(8, 22, 14, 0.92));
+                radial-gradient(ellipse at 50% 130%, #16a34a 0%, #064e29 60%, #02160e 100%);
         }
         .ability-card.severity-card .card-image {
             background:
-                radial-gradient(circle at 50% 70%, rgba(251, 191, 36, 0.4), transparent 70%),
-                linear-gradient(180deg, rgba(54, 40, 12, 0.7), rgba(25, 18, 6, 0.92));
+                radial-gradient(ellipse at 50% 130%, #f59e0b 0%, #7c2d12 60%, #2a0e02 100%);
         }
         .ability-card.lethality-card .card-image {
             background:
-                radial-gradient(circle at 50% 70%, rgba(248, 113, 113, 0.4), transparent 70%),
-                linear-gradient(180deg, rgba(50, 20, 20, 0.7), rgba(22, 8, 8, 0.92));
+                radial-gradient(ellipse at 50% 130%, #dc2626 0%, #5a0a0a 60%, #1a0303 100%);
         }
 
         .card-icon {
+            position: relative;
             font-size: 54px;
             line-height: 1;
-            filter: drop-shadow(0 5px 14px rgba(0, 0, 0, 0.65));
-            z-index: 1;
+            filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.75));
+            z-index: 2;
         }
         .card-icon svg,
         .card-icon .card-img {
-            width: 92px;
-            height: 92px;
+            width: 96px;
+            height: 96px;
             display: block;
             object-fit: contain;
             overflow: visible;
@@ -2665,77 +2714,97 @@
             position: absolute;
             top: 8px;
             right: 8px;
-            background: linear-gradient(135deg, rgba(168, 85, 247, 0.95), rgba(124, 58, 237, 0.95));
+            background: linear-gradient(135deg, #c084fc 0%, #8b5cf6 55%, #6d28d9 100%);
             color: #fff;
             font-family: 'Space Mono', monospace;
             font-size: 11px;
-            font-weight: 700;
+            font-weight: 800;
             padding: 4px 10px;
-            border-radius: 10px;
+            border-radius: 11px;
             white-space: nowrap;
-            z-index: 2;
+            z-index: 5;
+            border: 1.5px solid rgba(255, 255, 255, 0.35);
             box-shadow:
-                0 4px 12px rgba(124, 58, 237, 0.5),
-                inset 0 1px 0 rgba(255, 255, 255, 0.3),
-                inset 0 -1px 0 rgba(0, 0, 0, 0.25);
+                0 5px 14px rgba(124, 58, 237, 0.55),
+                inset 0 1.5px 0 rgba(255, 255, 255, 0.45),
+                inset 0 -2px 0 rgba(0, 0, 0, 0.3);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
+            letter-spacing: 0.4px;
         }
         .card-cost-overlay.maxed {
-            background: linear-gradient(135deg, rgba(0, 255, 159, 0.95), rgba(16, 185, 129, 0.95));
+            background: linear-gradient(135deg, #6ee7b7 0%, #10b981 55%, #047857 100%);
             color: #042418;
+            border-color: rgba(255, 255, 255, 0.45);
             box-shadow:
-                0 4px 12px rgba(0, 255, 159, 0.5),
-                inset 0 1px 0 rgba(255, 255, 255, 0.4),
-                inset 0 -1px 0 rgba(0, 0, 0, 0.15);
+                0 5px 14px rgba(0, 255, 159, 0.55),
+                inset 0 1.5px 0 rgba(255, 255, 255, 0.55),
+                inset 0 -2px 0 rgba(0, 0, 0, 0.18);
+            text-shadow: none;
         }
 
         .card-info {
-            padding: 10px 10px 12px;
+            padding: 10px 10px 14px;
             text-align: center;
             position: relative;
             z-index: 1;
         }
         .card-name {
             color: #fff;
-            font-size: 13px;
-            font-weight: 700;
+            font-size: 13.5px;
+            font-weight: 800;
             line-height: 1.25;
             letter-spacing: 0.3px;
-            min-height: 32px;
+            min-height: 34px;
             display: flex;
             align-items: center;
             justify-content: center;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
         }
         .card-level {
             display: inline-block;
-            margin: 4px 0 8px;
-            padding: 2px 10px;
-            background: rgba(0, 0, 0, 0.35);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 8px;
-            color: var(--text-secondary);
-            font-size: 10px;
+            margin: 6px 0 10px;
+            padding: 2px 12px;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.35));
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 10px;
+            color: #e2e8f0;
+            font-size: 10.5px;
+            font-weight: 600;
             font-family: 'Space Mono', monospace;
-            letter-spacing: 0.4px;
+            letter-spacing: 0.5px;
+            box-shadow:
+                0 2px 4px rgba(0, 0, 0, 0.35),
+                inset 0 1px 0 rgba(255, 255, 255, 0.12);
         }
         .card-bar {
             position: relative;
-            width: 100%;
-            height: 6px;
-            background: rgba(0, 0, 0, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 4px;
+            width: calc(100% - 4px);
+            margin: 0 auto;
+            height: 8px;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.4));
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 5px;
             overflow: hidden;
-            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.45);
+            box-shadow:
+                inset 0 2px 3px rgba(0, 0, 0, 0.55),
+                0 1px 0 rgba(255, 255, 255, 0.04);
         }
         .card-fill {
             height: 100%;
-            border-radius: 3px;
+            border-radius: 4px;
             transition: width 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+            position: relative;
         }
-        .ability-card.infectivity-card .card-fill { background: linear-gradient(90deg, #86efac, #16a34a); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 0 8px rgba(74, 222, 128, 0.55); }
-        .ability-card.severity-card    .card-fill { background: linear-gradient(90deg, #fde047, #d97706); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 0 8px rgba(251, 191, 36, 0.55); }
-        .ability-card.lethality-card   .card-fill { background: linear-gradient(90deg, #fca5a5, #b91c1c); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 0 8px rgba(248, 113, 113, 0.55); }
+        .card-fill::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 4px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0) 60%);
+        }
+        .ability-card.infectivity-card .card-fill { background: linear-gradient(90deg, #86efac, #16a34a); box-shadow: 0 0 10px rgba(74, 222, 128, 0.7); }
+        .ability-card.severity-card    .card-fill { background: linear-gradient(90deg, #fde047, #d97706); box-shadow: 0 0 10px rgba(251, 191, 36, 0.7); }
+        .ability-card.lethality-card   .card-fill { background: linear-gradient(90deg, #fca5a5, #b91c1c); box-shadow: 0 0 10px rgba(248, 113, 113, 0.7); }
 
 
         /* Upgrades */
@@ -3753,28 +3822,33 @@
             position: fixed;
             pointer-events: none;
             font-family: 'Space Mono', monospace;
-            font-size: 24px;
-            font-weight: 800;
+            font-size: 32px;
+            font-weight: 900;
             color: #fde047;
-            text-shadow: 0 0 12px rgba(253, 224, 71, 0.85),
-                         0 0 22px rgba(253, 224, 71, 0.45),
-                         0 2px 4px rgba(0, 0, 0, 0.55);
+            text-shadow:
+                0 0 14px rgba(253, 224, 71, 0.95),
+                0 0 28px rgba(253, 224, 71, 0.7),
+                0 0 48px rgba(253, 224, 71, 0.35),
+                0 2px 6px rgba(0, 0, 0, 0.7);
+            -webkit-text-stroke: 1.2px rgba(0, 0, 0, 0.55);
             transform: translate(-50%, 0);
             white-space: nowrap;
             z-index: 100;
-            animation: gain-text-rise 0.95s cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+            animation: gain-text-rise 1.15s cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
         }
         body.faction-resist .gain-text {
             color: #bfdbfe;
-            text-shadow: 0 0 12px rgba(96, 165, 250, 0.95),
-                         0 0 22px rgba(59, 130, 246, 0.55),
-                         0 2px 4px rgba(0, 0, 0, 0.55);
+            text-shadow:
+                0 0 14px rgba(96, 165, 250, 1),
+                0 0 28px rgba(59, 130, 246, 0.75),
+                0 0 48px rgba(59, 130, 246, 0.4),
+                0 2px 6px rgba(0, 0, 0, 0.7);
         }
         @keyframes gain-text-rise {
-            0%   { opacity: 0; transform: translate(-50%, 4px)  scale(0.6); }
-            18%  { opacity: 1; transform: translate(-50%, -8px) scale(1.15); }
-            35%  { opacity: 1; transform: translate(-50%, -20px) scale(1); }
-            100% { opacity: 0; transform: translate(-50%, -70px) scale(1); }
+            0%   { opacity: 0; transform: translate(-50%, 8px)   scale(0.5); }
+            14%  { opacity: 1; transform: translate(-50%, -14px) scale(1.25); }
+            28%  { opacity: 1; transform: translate(-50%, -30px) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -120px) scale(0.95); }
         }
 
         @keyframes home-virus-breathe {
@@ -9438,9 +9512,9 @@
                 el.className = 'gain-text';
                 el.textContent = text;
                 el.style.left = x + 'px';
-                el.style.top  = (y - 18) + 'px';
+                el.style.top  = (y - 30) + 'px';
                 document.body.appendChild(el);
-                setTimeout(() => el.remove(), 960);
+                setTimeout(() => el.remove(), 1180);
             }
 
             showMemeMessage() {
