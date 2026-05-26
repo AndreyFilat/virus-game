@@ -6833,6 +6833,9 @@
                 // Floating bubbles are disabled in the РКН reskin — the central
                 // home image is the only tap target.
                 this.spawnLoopActive = true;
+                // Clear the "tutorial in flight" gate so further home taps
+                // can be processed by collectFromHome.
+                this.tutorialCompleting = false;
             }
 
             runSpawnLoop() {
@@ -8622,6 +8625,7 @@
                     const prompt = document.getElementById('selectionPrompt');
                     if (prompt) prompt.style.display = 'none';
                     this.tutorialDone = true;
+                    this.tutorialCompleting = false;
                     this.afterTutorialSetup();
                 } else {
                     const cur = this.continents[continentId].infectionLevel || 0;
