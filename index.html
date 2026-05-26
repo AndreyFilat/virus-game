@@ -22,6 +22,22 @@
             --text-secondary: #8fa3b8;
             --shadow-glow: rgba(0, 255, 159, 0.3);
             --border: rgba(255, 255, 255, 0.1);
+
+            /* Faction palette — overridden by body.faction-rkn / .faction-resist.
+               --player-* is always the side the user is playing.
+               --enemy-*  is the opposing side. */
+            --rkn-rgb:    220, 38, 38;
+            --resist-rgb:  34, 197, 94;
+            --player-rgb: var(--rkn-rgb);
+            --enemy-rgb:  var(--resist-rgb);
+        }
+        body.faction-rkn {
+            --player-rgb: 220, 38, 38;
+            --enemy-rgb:   34, 197, 94;
+        }
+        body.faction-resist {
+            --player-rgb:  34, 197, 94;
+            --enemy-rgb:  220, 38, 38;
         }
         
         * {
@@ -2071,6 +2087,110 @@
             transition: opacity 0.35s ease;
         }
 
+        /* Faction-select screen — the very first screen on a fresh launch. */
+        .faction-select-screen {
+            overflow: hidden;
+            background:
+                radial-gradient(ellipse at 20% 30%, rgba(220, 38, 38, 0.28) 0%, transparent 55%),
+                radial-gradient(ellipse at 80% 70%, rgba(34, 197, 94, 0.24) 0%, transparent 55%),
+                radial-gradient(ellipse at 50% 50%, #160820 0%, #0a0b14 55%, #04050a 100%);
+            padding: 60px 20px 40px;
+            justify-content: flex-start;
+            gap: 20px;
+        }
+        .faction-title {
+            font-family: 'Space Mono', monospace;
+            font-size: 28px;
+            font-weight: 700;
+            color: #fef2f2;
+            letter-spacing: 3px;
+            text-align: center;
+            text-shadow:
+                0 0 18px rgba(248, 113, 113, 0.55),
+                0 0 32px rgba(74, 222, 128, 0.25);
+            margin-top: 30px;
+        }
+        .faction-subtitle {
+            color: #94a3b8;
+            font-size: 14px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            text-align: center;
+            margin-bottom: 6px;
+        }
+        .faction-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            width: 100%;
+            max-width: 360px;
+            margin: 6px auto 0;
+        }
+        .faction-card {
+            position: relative;
+            background: rgba(15, 22, 36, 0.78);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 18px 18px 18px 100px;
+            text-align: left;
+            cursor: pointer;
+            transition: transform 0.15s ease, border-color 0.2s, background 0.2s;
+            -webkit-tap-highlight-color: transparent;
+            min-height: 112px;
+        }
+        .faction-card .faction-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 78px;
+            height: 78px;
+            overflow: visible;
+        }
+        .faction-card .faction-name {
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            font-size: 19px;
+            color: #fff;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+        .faction-card .faction-desc {
+            font-size: 12.5px;
+            color: #94a3b8;
+            line-height: 1.4;
+        }
+        .faction-card.faction-rkn-card {
+            box-shadow: 0 0 22px rgba(220, 38, 38, 0.22), inset 0 0 12px rgba(220, 38, 38, 0.08);
+            border-color: rgba(220, 38, 38, 0.45);
+        }
+        .faction-card.faction-rkn-card:hover,
+        .faction-card.faction-rkn-card:active {
+            background: rgba(35, 12, 12, 0.92);
+            border-color: rgba(220, 38, 38, 0.85);
+            box-shadow: 0 0 32px rgba(220, 38, 38, 0.45), inset 0 0 18px rgba(220, 38, 38, 0.18);
+            transform: scale(0.99);
+        }
+        .faction-card.faction-resist-card {
+            box-shadow: 0 0 22px rgba(34, 197, 94, 0.22), inset 0 0 12px rgba(34, 197, 94, 0.08);
+            border-color: rgba(34, 197, 94, 0.45);
+        }
+        .faction-card.faction-resist-card:hover,
+        .faction-card.faction-resist-card:active {
+            background: rgba(8, 28, 18, 0.92);
+            border-color: rgba(34, 197, 94, 0.85);
+            box-shadow: 0 0 32px rgba(34, 197, 94, 0.45), inset 0 0 18px rgba(34, 197, 94, 0.18);
+            transform: scale(0.99);
+        }
+        .faction-hint {
+            color: #64748b;
+            font-size: 11.5px;
+            text-align: center;
+            padding: 0 20px;
+            margin-top: 8px;
+            line-height: 1.5;
+        }
+
         /* Cyber-noir backdrop for the Home screen — replaces the medical bg. */
         .start-screen {
             overflow: hidden;
@@ -4000,7 +4120,52 @@
         </div>
         
         <!-- Start Screen -->
-        <div class="screen start-screen active" id="startScreen">
+        <!-- Faction-select Screen (shown once on first launch) -->
+        <div class="screen faction-select-screen active" id="factionSelectScreen">
+            <h1 class="faction-title">КИБЕР-КОРАЛЛ</h1>
+            <p class="faction-subtitle">Выбери сторону</p>
+            <div class="faction-cards">
+                <button class="faction-card faction-rkn-card" data-faction="rkn">
+                    <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" class="faction-icon">
+                        <defs>
+                            <radialGradient id="fcRknG" cx=".5" cy=".5"><stop offset="0" stop-color="#dc2626" stop-opacity=".7"/><stop offset="1" stop-color="#dc2626" stop-opacity="0"/></radialGradient>
+                            <radialGradient id="fcRknH" cx=".4" cy=".3"><stop offset="0" stop-color="#fecaca"/><stop offset=".5" stop-color="#dc2626"/><stop offset="1" stop-color="#1a0303"/></radialGradient>
+                        </defs>
+                        <circle cx="40" cy="40" r="36" fill="url(#fcRknG)"/>
+                        <g stroke="#dc2626" stroke-width="1.5" fill="none" opacity=".85" stroke-linecap="round">
+                            <path d="M40 18 V8 M40 62 V72 M18 40 H8 M62 40 H72 M24 24 L16 16 M56 24 L64 16 M24 56 L16 64 M56 56 L64 64"/>
+                        </g>
+                        <g fill="#dc2626"><circle cx="40" cy="8" r="2"/><circle cx="40" cy="72" r="2"/><circle cx="8" cy="40" r="2"/><circle cx="72" cy="40" r="2"/><circle cx="16" cy="16" r="2"/><circle cx="64" cy="16" r="2"/><circle cx="16" cy="64" r="2"/><circle cx="64" cy="64" r="2"/></g>
+                        <polygon points="40,20 58,30 58,50 40,60 22,50 22,30" fill="url(#fcRknH)" stroke="#fecaca" stroke-width="1"/>
+                        <text x="40" y="44" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" font-weight="700" fill="#fef2f2">РКН</text>
+                    </svg>
+                    <div class="faction-name">РКН</div>
+                    <div class="faction-desc">Распространяй блокировки. Контролируй трафик. Глуши свободу.</div>
+                </button>
+                <button class="faction-card faction-resist-card" data-faction="resist">
+                    <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" class="faction-icon">
+                        <defs>
+                            <radialGradient id="fcRsG" cx=".5" cy=".5"><stop offset="0" stop-color="#22c55e" stop-opacity=".7"/><stop offset="1" stop-color="#22c55e" stop-opacity="0"/></radialGradient>
+                            <radialGradient id="fcRsH" cx=".4" cy=".3"><stop offset="0" stop-color="#dcfce7"/><stop offset=".5" stop-color="#22c55e"/><stop offset="1" stop-color="#052e16"/></radialGradient>
+                        </defs>
+                        <circle cx="40" cy="40" r="36" fill="url(#fcRsG)"/>
+                        <g stroke="#22c55e" stroke-width="1.5" fill="none" opacity=".85" stroke-linecap="round">
+                            <path d="M40 18 C 36 28 36 32 30 36 M40 18 C 44 28 44 32 50 36 M40 62 C 36 52 36 48 30 44 M40 62 C 44 52 44 48 50 44"/>
+                            <path d="M22 30 C 28 32 32 32 36 36 M58 30 C 52 32 48 32 44 36 M22 50 C 28 48 32 48 36 44 M58 50 C 52 48 48 48 44 44"/>
+                        </g>
+                        <g fill="#22c55e"><circle cx="40" cy="18" r="2.5"/><circle cx="40" cy="62" r="2.5"/><circle cx="22" cy="30" r="2"/><circle cx="58" cy="30" r="2"/><circle cx="22" cy="50" r="2"/><circle cx="58" cy="50" r="2"/></g>
+                        <circle cx="40" cy="40" r="11" fill="url(#fcRsH)" stroke="#dcfce7" stroke-width="1"/>
+                        <text x="40" y="44" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" font-weight="700" fill="#dcfce7">VPN</text>
+                    </svg>
+                    <div class="faction-name">Свобода</div>
+                    <div class="faction-desc">Растяни сеть обхода. Прокопай туннели. Сопротивляйся блокировкам.</div>
+                </button>
+            </div>
+            <p class="faction-hint">Выбор повлияет на цвета сети и сторону, за которую ты играешь</p>
+        </div>
+
+        <!-- Home Screen -->
+        <div class="screen start-screen" id="startScreen">
             <div class="cell-bg" aria-hidden="true">
                 <span class="organelle o1"></span>
                 <span class="organelle o2"></span>
@@ -5711,25 +5876,49 @@
                 });
             }
 
-            infectionState(continentId) {
+            // Returns { player, enemy } in 0..1, where player is the side the
+            // user is playing and enemy is the simulated opponent.
+            branchInfection(continentId) {
                 const c = this.game && this.game.continents && this.game.continents[continentId];
-                if (!c) return 0;
-                return Math.max(0, Math.min(1, (c.infectionLevel || 0) / 10));
+                if (!c) return { player: 0, enemy: 0 };
+                return {
+                    player: Math.max(0, Math.min(1, (c.infectionLevel || 0) / 10)),
+                    enemy:  Math.max(0, Math.min(1, (c.enemyLevel || 0) / 10))
+                };
             }
 
-            // Linearly interpolate between healthy-green and corrupted-red
-            // based on infection 0..1.
-            branchColor(inf, glow) {
+            // RGB tuples for the two factions. Player's side is whichever they
+            // chose; enemy is always the opposite.
+            playerRgb() {
+                return (this.game && this.game.faction === 'resist')
+                    ? [34, 197, 94]   : [220, 38, 38];
+            }
+            enemyRgb() {
+                return (this.game && this.game.faction === 'resist')
+                    ? [220, 38, 38]   : [34, 197, 94];
+            }
+            neutralRgb() { return [125, 211, 252]; }   // dim cyan when untouched
+
+            // Mix the two side strengths into one branch tint. The stronger
+            // side wins the visual; if both are present we blend toward the
+            // leader.
+            branchColor(state, glow) {
                 const a = glow ? 0.95 : 0.85;
-                if (inf <= 0) {
-                    // Healthy: cyan-teal
-                    return `rgba(74, 222, 128, ${a})`;
+                const { player, enemy } = state;
+                if (player <= 0 && enemy <= 0) {
+                    const [r, g, b] = this.neutralRgb();
+                    return `rgba(${r}, ${g}, ${b}, ${a * 0.55})`;
                 }
-                // Corrupted: red-orange
-                const r = Math.round(74  + (248 - 74)  * inf);
-                const g = Math.round(222 + (60  - 222) * inf);
-                const b = Math.round(128 + (60  - 128) * inf);
-                return `rgba(${r}, ${g}, ${b}, ${a})`;
+                const [pR, pG, pB] = this.playerRgb();
+                const [eR, eG, eB] = this.enemyRgb();
+                const total = player + enemy || 1;
+                const pShare = player / total;
+                const eShare = enemy  / total;
+                const intensity = Math.min(1, Math.max(player, enemy) + 0.25);
+                const r = Math.round(pR * pShare + eR * eShare);
+                const g = Math.round(pG * pShare + eG * eShare);
+                const b = Math.round(pB * pShare + eB * eShare);
+                return `rgba(${r}, ${g}, ${b}, ${a * intensity})`;
             }
 
             draw() {
@@ -5744,8 +5933,8 @@
 
                 // Each main branch + its descendants.
                 this.branches.forEach(b => {
-                    const inf = this.infectionState(b.id);
-                    this.drawBranchRec(ctx, b, 4.5, inf);
+                    const state = this.branchInfection(b.id);
+                    this.drawBranchRec(ctx, b, 4.5, state);
                 });
 
                 // Central seed node — РКН core.
@@ -5754,11 +5943,12 @@
                 ctx.restore();
             }
 
-            drawBranchRec(ctx, branch, thickness, inf) {
-                const color = this.branchColor(inf, true);
+            drawBranchRec(ctx, branch, thickness, state) {
+                const color = this.branchColor(state, true);
+                const total = Math.max(state.player, state.enemy);
                 // Outer glow pass
                 ctx.shadowColor = color;
-                ctx.shadowBlur = 14 + 6 * inf;
+                ctx.shadowBlur = 14 + 6 * total;
                 ctx.strokeStyle = color;
                 ctx.lineWidth = thickness;
                 ctx.lineCap = 'round';
@@ -5767,9 +5957,11 @@
                 ctx.lineTo(branch.tip.x,  branch.tip.y);
                 ctx.stroke();
 
-                // Inner bright pass
+                // Inner bright pass — whichever side leads paints the highlight.
                 ctx.shadowBlur = 0;
-                ctx.strokeStyle = inf > 0 ? 'rgba(254, 226, 226, 0.85)' : 'rgba(220, 252, 231, 0.7)';
+                ctx.strokeStyle = total > 0
+                    ? (state.player >= state.enemy ? 'rgba(254, 226, 226, 0.85)' : 'rgba(220, 252, 231, 0.85)')
+                    : 'rgba(220, 252, 231, 0.55)';
                 ctx.lineWidth = Math.max(0.7, thickness * 0.35);
                 ctx.beginPath();
                 ctx.moveTo(branch.root.x, branch.root.y);
@@ -5778,16 +5970,16 @@
 
                 if (branch.children && branch.children.length) {
                     branch.children.forEach(c =>
-                        this.drawBranchRec(ctx, c, Math.max(0.8, thickness * 0.62), inf)
+                        this.drawBranchRec(ctx, c, Math.max(0.8, thickness * 0.62), state)
                     );
                 } else {
-                    // Leaf node — small glowing dot
-                    this.drawLeafNode(ctx, branch.tip.x, branch.tip.y, inf);
+                    this.drawLeafNode(ctx, branch.tip.x, branch.tip.y, state);
                 }
             }
 
-            drawLeafNode(ctx, x, y, inf) {
-                const baseColor = this.branchColor(inf, true);
+            drawLeafNode(ctx, x, y, state) {
+                const baseColor = this.branchColor(state, true);
+                const total = Math.max(state.player, state.enemy);
                 const pulse = 0.85 + 0.15 * Math.sin(this.tick * 0.06 + (x + y) * 0.03);
                 ctx.save();
                 ctx.shadowColor = baseColor;
@@ -5797,7 +5989,9 @@
                 ctx.arc(x, y, 4 * pulse, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.shadowBlur = 0;
-                ctx.fillStyle = inf > 0 ? '#fef2f2' : '#dcfce7';
+                ctx.fillStyle = total > 0
+                    ? (state.player >= state.enemy ? '#fef2f2' : '#dcfce7')
+                    : '#dcfce7';
                 ctx.beginPath();
                 ctx.arc(x, y, 1.6, 0, Math.PI * 2);
                 ctx.fill();
@@ -5805,22 +5999,28 @@
             }
 
             drawSeed(ctx, x, y) {
-                // Glowing core hexagon — the РКН headquarters.
+                // Player-faction headquarters at the centre.
+                const isResist = this.game && this.game.faction === 'resist';
+                const glow  = isResist ? 'rgba( 34, 197,  94, 0.85)' : 'rgba(220, 38, 38, 0.85)';
+                const outer = isResist ? 'rgba(134, 239, 172, 0.95)' : 'rgba(248, 113, 113, 0.95)';
+                const inner = isResist ? 'rgba(  5,  46,  22, 0.95)' : 'rgba(127, 29, 29, 0.95)';
+                const text  = isResist ? 'rgba(220, 252, 231, 0.95)' : 'rgba(254, 226, 226, 0.95)';
+                const label = isResist ? 'VPN' : 'РКН';
                 ctx.save();
-                ctx.shadowColor = 'rgba(220, 38, 38, 0.85)';
+                ctx.shadowColor = glow;
                 ctx.shadowBlur = 28;
-                ctx.fillStyle = 'rgba(248, 113, 113, 0.95)';
+                ctx.fillStyle = outer;
                 this.hexPath(ctx, x, y, 14);
                 ctx.fill();
                 ctx.shadowBlur = 0;
-                ctx.fillStyle = 'rgba(127, 29, 29, 0.95)';
+                ctx.fillStyle = inner;
                 this.hexPath(ctx, x, y, 9);
                 ctx.fill();
-                ctx.fillStyle = 'rgba(254, 226, 226, 0.95)';
+                ctx.fillStyle = text;
                 ctx.font = 'bold 10px monospace';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillText('РКН', x, y + 0.5);
+                ctx.fillText(label, x, y + 0.5);
                 ctx.restore();
             }
 
@@ -5983,13 +6183,18 @@
 
                 // Continents — infection state shared by map + spread upgrades
                 this.continents = {
-                    'north-america':  { name: 'Северная Америка',  infectionLevel: 0, population: 580_000_000 },
-                    'south-america':  { name: 'Южная Америка',     infectionLevel: 0, population: 435_000_000 },
-                    'europe':         { name: 'Европа',            infectionLevel: 0, population: 745_000_000 },
-                    'africa':         { name: 'Африка',            infectionLevel: 0, population: 1_400_000_000 },
-                    'asia':           { name: 'Азия',              infectionLevel: 0, population: 4_700_000_000 },
-                    'australia':      { name: 'Австралия и Океания', infectionLevel: 0, population: 45_000_000 }
+                    'north-america':  { name: 'Северная Америка',  infectionLevel: 0, enemyLevel: 0, population: 580_000_000 },
+                    'south-america':  { name: 'Южная Америка',     infectionLevel: 0, enemyLevel: 0, population: 435_000_000 },
+                    'europe':         { name: 'Европа',            infectionLevel: 0, enemyLevel: 0, population: 745_000_000 },
+                    'africa':         { name: 'Африка',            infectionLevel: 0, enemyLevel: 0, population: 1_400_000_000 },
+                    'asia':           { name: 'Азия',              infectionLevel: 0, enemyLevel: 0, population: 4_700_000_000 },
+                    'australia':      { name: 'Австралия и Океания', infectionLevel: 0, enemyLevel: 0, population: 45_000_000 }
                 };
+
+                // Faction state — picked on the very first launch.
+                this.faction = null;          // 'rkn' | 'resist'
+                this.opponentTimer = null;
+                this.OPPONENT_TICK_MS = 7000; // every ~7 s the AI nibbles a continent
                 this._centroidCache = {};
 
                 // Map pan/zoom state. The map image and continent SVG share a
@@ -6586,13 +6791,17 @@
             
             init() {
                 this.loadState();
+                this.loadFaction();
                 this.bindEvents();
+                this.bindFactionPicker();
+                this.applyFactionTheme();
                 this.updateDNACounter();
                 this.cloneHelixToMap();
                 this.updateVirusArt();
                 this.renderVirusScreen();
                 this.updateDNARate();
                 this.startIncomeLoop();
+                this.startOpponentLoop();
                 if (!this.tutorialDone) {
                     document.body.classList.add('tutorial-active');
                     setTimeout(() => {
@@ -7310,6 +7519,194 @@
                 });
             }
 
+
+            // ----- Faction selection + theming ----------------------------
+
+            loadFaction() {
+                try {
+                    const saved = localStorage.getItem('vg_faction');
+                    if (saved === 'rkn' || saved === 'resist') {
+                        this.faction = saved;
+                    }
+                } catch (e) {}
+            }
+
+            saveFaction() {
+                try { localStorage.setItem('vg_faction', this.faction); } catch (e) {}
+            }
+
+            bindFactionPicker() {
+                document.querySelectorAll('.faction-card').forEach(btn => {
+                    this.tap(btn, () => {
+                        const f = btn.dataset.faction;
+                        if (f === 'rkn' || f === 'resist') this.chooseFaction(f);
+                    });
+                });
+            }
+
+            chooseFaction(faction) {
+                this.faction = faction;
+                this.saveFaction();
+                this.applyFactionTheme();
+                // Slide to Home.
+                const fs = document.getElementById('factionSelectScreen');
+                if (fs) fs.classList.remove('active');
+                const home = document.getElementById('startScreen');
+                if (home) home.classList.add('active');
+                document.querySelectorAll('.nav-btn').forEach(b => {
+                    b.classList.toggle('active', b.dataset.screen === 'startScreen');
+                });
+                // Re-render anything that depends on faction colours.
+                if (this.coralMap) this.coralMap.draw();
+                this.updateFactionCopy();
+            }
+
+            applyFactionTheme() {
+                document.body.classList.remove('faction-rkn', 'faction-resist');
+                if (this.faction === 'rkn' || this.faction === 'resist') {
+                    document.body.classList.add('faction-' + this.faction);
+                    // Skip the faction-select screen on future launches.
+                    const fs = document.getElementById('factionSelectScreen');
+                    if (fs && fs.classList.contains('active')) {
+                        fs.classList.remove('active');
+                        const home = document.getElementById('startScreen');
+                        if (home) home.classList.add('active');
+                    }
+                    this.recolorHomeNode();
+                    this.updateFactionCopy();
+                }
+            }
+
+            // Mutate the inline home-node SVG to match the chosen faction's
+            // colour scheme. The structure stays the same; only fills, stops,
+            // and the centre text change.
+            recolorHomeNode() {
+                const root = document.querySelector('.home-virus .home-node-svg');
+                if (!root) return;
+                const resist = this.faction === 'resist';
+                const palette = resist ? {
+                    haloStop0: 'rgba( 34, 197,  94, 0.55)', haloStop1: 'rgba( 34, 197,  94, 0.15)',
+                    outerStops: ['#dcfce7', '#86efac', '#15803d', '#052e16'],
+                    innerStops: ['#ffffff', '#bbf7d0', '#22c55e', '#052e16'],
+                    tendrilStops: ['rgba(190,242,100,0)', '#86efac', '#22c55e', 'rgba(5,46,22,0)'],
+                    rings: ['rgba(134,239,172,0.45)', 'rgba(134,239,172,0.22)', 'rgba(220,252,231,0.18)'],
+                    leafOuter: '#22c55e', leafInner: '#dcfce7',
+                    hexStroke: '#bbf7d0', innerStroke: '#dcfce7',
+                    label: 'VPN', labelFill: '#dcfce7'
+                } : {
+                    haloStop0: 'rgba(220, 38, 38, 0.55)', haloStop1: 'rgba(220, 38, 38, 0.15)',
+                    outerStops: ['#fecaca', '#f87171', '#7f1d1d', '#1a0303'],
+                    innerStops: ['#ffffff', '#fde047', '#dc2626', '#450a0a'],
+                    tendrilStops: ['rgba(253,224,71,0)', '#f87171', '#dc2626', 'rgba(26,3,3,0)'],
+                    rings: ['rgba(248,113,113,0.45)', 'rgba(248,113,113,0.22)', 'rgba(254,202,202,0.18)'],
+                    leafOuter: '#dc2626', leafInner: '#fef2f2',
+                    hexStroke: '#fecaca', innerStroke: '#fef2f2',
+                    label: 'РКН', labelFill: '#fef2f2'
+                };
+
+                const setStops = (gradId, stops) => {
+                    const g = root.querySelector('#' + gradId);
+                    if (!g) return;
+                    const allStops = g.querySelectorAll('stop');
+                    stops.forEach((color, i) => {
+                        if (allStops[i]) allStops[i].setAttribute('stop-color', color);
+                    });
+                };
+                const haloG = root.querySelector('#nodeHalo');
+                if (haloG) {
+                    const haloStops = haloG.querySelectorAll('stop');
+                    if (haloStops[0]) haloStops[0].setAttribute('stop-color', palette.haloStop0);
+                    if (haloStops[1]) haloStops[1].setAttribute('stop-color', palette.haloStop1);
+                }
+                setStops('nodeOuter',  palette.outerStops);
+                setStops('nodeInner',  palette.innerStops);
+                setStops('tendrilG',   palette.tendrilStops);
+
+                // Rings
+                const ringEls = root.querySelectorAll('circle[cx="100"][cy="100"][fill="none"]');
+                if (ringEls[0]) ringEls[0].setAttribute('stroke', palette.rings[0]);
+                if (ringEls[1]) ringEls[1].setAttribute('stroke', palette.rings[1]);
+                if (ringEls[2]) ringEls[2].setAttribute('stroke', palette.rings[2]);
+
+                // Tip nodes (the second group is the outer red, first is inner).
+                // We previously have 2 <g> blocks with 8 circles each — recolor.
+                const groups = root.querySelectorAll('g');
+                groups.forEach(g => {
+                    const fill = g.getAttribute('fill');
+                    if (fill === '#fef2f2' || fill === '#dcfce7') {
+                        g.setAttribute('fill', palette.leafInner);
+                    }
+                    if (fill === '#dc2626' || fill === '#22c55e') {
+                        g.setAttribute('fill', palette.leafOuter);
+                    }
+                });
+
+                // Hex outer + inner strokes
+                const polys = root.querySelectorAll('polygon');
+                if (polys[0]) polys[0].setAttribute('stroke', palette.hexStroke);
+                if (polys[2]) polys[2].setAttribute('stroke', palette.innerStroke);
+
+                // Label text
+                const text = root.querySelector('text');
+                if (text) {
+                    text.textContent = palette.label;
+                    text.setAttribute('fill', palette.labelFill);
+                }
+            }
+
+            updateFactionCopy() {
+                // Adjust the Home subtitle and (optional) page title for the
+                // chosen side. Most copy stays the same so we don't fork
+                // every string in the file.
+                const subtitle = document.querySelector('.start-screen .game-subtitle');
+                if (subtitle) {
+                    subtitle.textContent = this.faction === 'resist'
+                        ? 'Тапай по узлу — копи Сигнал'
+                        : 'Тапай по узлу — копи Влияние';
+                }
+                if (this.faction === 'resist') {
+                    document.title = 'Свобода: Кибер-Коралл';
+                } else if (this.faction === 'rkn') {
+                    document.title = 'РКН: Кибер-Коралл';
+                }
+            }
+
+            // ----- Opponent AI --------------------------------------------
+
+            startOpponentLoop() {
+                if (this.opponentTimer) return;
+                const tick = () => {
+                    this.opponentTimer = setTimeout(() => {
+                        this.opponentTick();
+                        tick();
+                    }, this.OPPONENT_TICK_MS + Math.random() * 2500);
+                };
+                tick();
+            }
+
+            opponentTick() {
+                if (!this.continents || !this.faction) return;
+                // Opponent prefers continents where it already has a foothold
+                // (so contested areas escalate) and otherwise picks at random.
+                const ids = Object.keys(this.continents);
+                let target = null;
+                let bestScore = -1;
+                ids.forEach(id => {
+                    const c = this.continents[id];
+                    const own = c.enemyLevel || 0;
+                    const them = c.infectionLevel || 0;
+                    if (own >= 10) return;
+                    // weight: existing foothold + a touch of randomness, minus
+                    // player dominance (it's harder to attack a stronghold).
+                    const score = own * 2 + Math.random() * 3 - them * 0.7;
+                    if (score > bestScore) { bestScore = score; target = id; }
+                });
+                if (!target) return;
+                const c = this.continents[target];
+                c.enemyLevel = Math.min(10, (c.enemyLevel || 0) + 1);
+                if (this.coralMap) this.coralMap.draw();
+                this.saveState && this.saveState();
+            }
 
             bindEvents() {
                 // Debug: reset progress (will be hidden later).
@@ -8749,6 +9146,7 @@
                     Object.entries(this.continents).forEach(([id, c]) => {
                         continentsData[id] = {
                             infectionLevel: c.infectionLevel || 0,
+                            enemyLevel: c.enemyLevel || 0,
                             population: c.population || 0,
                             infectionCityIdx: c.infectionCityIdx != null
                                 ? c.infectionCityIdx : null,
@@ -8795,6 +9193,7 @@
                             const c = this.continents[id];
                             if (!c) return;
                             if (typeof saved.infectionLevel === 'number') c.infectionLevel = saved.infectionLevel;
+                            if (typeof saved.enemyLevel === 'number') c.enemyLevel = saved.enemyLevel;
                             if (typeof saved.population === 'number') c.population = saved.population;
                             if (saved.infectionCityIdx != null) c.infectionCityIdx = saved.infectionCityIdx;
                             if (Array.isArray(saved.infectedCities) && saved.infectedCities.length) {
