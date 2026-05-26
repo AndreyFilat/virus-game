@@ -9362,10 +9362,6 @@
                 target.classList.add('tapped');
                 setTimeout(() => target.classList.remove('tapped'), 220);
 
-                setTimeout(() => {
-                    this.createPopEffect(cx, cy, `+${amount}`, 'macrophage');
-                }, 60);
-
                 // Meme toast on cooldown — fire-and-forget.
                 const now = Date.now();
                 if (now - (this.lastMemeAt || 0) >= this.memeCooldownMs) {
