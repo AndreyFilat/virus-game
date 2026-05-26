@@ -3849,6 +3849,10 @@
         .home-virus.compact-tapped .cb-char-default { opacity: 0; }
         .home-virus.tapped .cb-char-tapped,
         .home-virus.compact-tapped .cb-char-tapped { opacity: 1; }
+        /* When a portrait is in play, hide the БЛОК! label so the
+           character is the focal point. If both portraits 404, the inline
+           onerror removes .has-portrait and the label re-appears. */
+        .has-portrait .cb-label { display: none; }
         .home-virus.tapped {
             animation: home-virus-tap 0.5s cubic-bezier(0.34, 1.56, 0.4, 1);
         }
@@ -7680,9 +7684,24 @@
                     } else {
                         home.classList.remove('tutorial-done');
                     }
+                    this.markPortraitHost(home);
                 }
                 const slot = document.querySelector('.virus-character');
-                if (slot) slot.innerHTML = this.buildFactionButton('compact');
+                if (slot) {
+                    slot.innerHTML = this.buildFactionButton('compact');
+                    this.markPortraitHost(slot);
+                }
+            }
+
+            // Optimistically tag the button host as carrying a portrait when
+            // its SVG contains .cb-char images. If both portrait images fail
+            // to load, the inline `onerror` handler peels the class back off
+            // so the label re-appears.
+            markPortraitHost(host) {
+                delete host.dataset.charFailed;
+                const imgs = host.querySelectorAll('image.cb-char');
+                if (imgs.length) host.classList.add('has-portrait');
+                else host.classList.remove('has-portrait');
             }
 
             // Build the central button SVG for the current faction.
@@ -7766,18 +7785,30 @@
                         <clipPath id="cb_face_clip_${variant}">
                             <circle cx="110" cy="110" r="78"/>
                         </clipPath>` : '';
+                // Hide the broken-image icon when the PNGs haven't been
+                // committed yet — JS in rebuildFactionUI also drops the
+                // .has-portrait class on the host so the label reappears.
+                const onerr = "this.style.display='none';"
+                          + "var h=this.closest('.home-virus,.virus-character');"
+                          + "if(h){h.dataset.charFailed=(parseInt(h.dataset.charFailed||0)+1);"
+                          + "if(parseInt(h.dataset.charFailed)>=2)h.classList.remove('has-portrait');}";
                 const charLayer = hasChar ? `
                     <!-- Character portrait clipped to the button face -->
                     <g clip-path="url(#cb_face_clip_${variant})">
                         <image class="cb-char cb-char-default" href="${characters.defaultSrc}"
                                x="-6" y="22" width="232" height="290"
-                               preserveAspectRatio="xMidYMin slice"/>
+                               preserveAspectRatio="xMidYMin slice"
+                               onerror="${onerr}"/>
                         <image class="cb-char cb-char-tapped" href="${characters.tappedSrc}"
                                x="-6" y="22" width="232" height="290"
-                               preserveAspectRatio="xMidYMin slice"/>
+                               preserveAspectRatio="xMidYMin slice"
+                               onerror="${onerr}"/>
                     </g>` : '';
-                const labelLayer = hasChar ? '' : `
-                    <text x="110" y="${122 + (label.length > 3 ? 0 : 4)}" text-anchor="middle"
+                // Label is hidden via .has-portrait when a portrait is in
+                // play and visible; reappears automatically if the portrait
+                // is missing.
+                const labelLayer = `
+                    <text class="cb-label" x="110" y="${122 + (label.length > 3 ? 0 : 4)}" text-anchor="middle"
                           font-family="'Space Mono', 'JetBrains Mono', monospace"
                           font-size="${fontSize}" font-weight="900"
                           fill="#fff"
