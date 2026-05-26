@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#0d1421">
-    <title>Вирус — Эволюция</title>
+    <title>РКН: Кибер-Коралл</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -3552,14 +3552,26 @@
             width: 32%;
             max-width: 140px;
             height: auto;
-            z-index: 1;
-            pointer-events: none;
+            z-index: 2;
+            cursor: pointer;
             user-select: none;
+            -webkit-tap-highlight-color: transparent;
             filter: drop-shadow(0 12px 32px rgba(0, 0, 0, 0.55))
                     drop-shadow(0 0 28px rgba(74, 222, 128, 0.35));
             transform: translate(-50%, -50%) scale(1);
             animation: home-virus-breathe 6s ease-in-out infinite;
             will-change: transform;
+            transition: filter 0.18s ease;
+        }
+        .home-virus.tapped {
+            animation: home-virus-tap 0.22s ease-out;
+            filter: drop-shadow(0 12px 32px rgba(0, 0, 0, 0.55))
+                    drop-shadow(0 0 36px rgba(74, 222, 128, 0.95));
+        }
+        @keyframes home-virus-tap {
+            0%   { transform: translate(-50%, -50%) scale(1); }
+            45%  { transform: translate(-50%, -50%) scale(0.9); }
+            100% { transform: translate(-50%, -50%) scale(1); }
         }
 
         @keyframes home-virus-breathe {
@@ -3572,10 +3584,8 @@
             100% { transform: translate(-50%, -50%) scale(1)    rotate(0deg); }
         }
 
-        /* Hide the home virus during the tutorial (three fixed bubbles phase) */
-        body.tutorial-active .home-virus {
-            display: none;
-        }
+        /* During the tutorial we keep the home node visible since it is the
+           single tap target (bubbles are removed in the РКН reskin). */
 
         /* First-visit Home hint — text bubble above the virus */
         .home-hint {
@@ -3875,7 +3885,7 @@
     <div class="game-container">
         <!-- DNA Counter (always visible) -->
         <div class="dna-counter">
-            <div class="dna-icon">🧬</div>
+            <div class="dna-icon">⚡</div>
             <div class="dna-stack">
                 <div class="dna-count" id="dnaCount">0</div>
                 <div class="dna-rate" id="dnaRate" aria-hidden="true">
@@ -3896,25 +3906,12 @@
                 <span class="organelle o5"></span>
                 <span class="organelle o6"></span>
             </div>
-            <img class="home-virus" src="assets/virus_levels_png/virus_level_2.png" alt="" aria-hidden="true"/>
+            <img class="home-virus home-tap-target" id="homeTapTarget" src="assets/virus_levels_png/virus_level_2.png" alt="" role="button" tabindex="0"/>
             <div class="home-hint" id="homeHint" hidden>
-                <div class="home-hint-text">Защити вирус<br>от антител</div>
+                <div class="home-hint-text">Тапай по узлу<br>чтобы расти</div>
             </div>
             <div class="home-finger" id="homeFinger" hidden>👇</div>
-            <p class="game-subtitle">Лопай пузырьки — копи ДНК</p>
-
-            <div class="dna-bubbles" id="dnaBubbles">
-                <div class="dna-bubble" data-dna="10" data-art="macrophage">
-                    <img class="bubble-art" src="assets/macrophage_red.png" alt=""/>
-                </div>
-                <div class="dna-bubble" data-dna="15" data-art="macrophage">
-                    <img class="bubble-art" src="assets/macrophage_red.png" alt=""/>
-                    <div class="finger-hint hidden" id="fingerHint">👇</div>
-                </div>
-                <div class="dna-bubble" data-dna="12" data-art="macrophage">
-                    <img class="bubble-art" src="assets/macrophage_red.png" alt=""/>
-                </div>
-            </div>
+            <p class="game-subtitle">Тапай по узлу — копи Влияние</p>
         </div>
         
         <!-- Global World Map Screen -->
@@ -3922,7 +3919,7 @@
             <h2 class="world-map-title" hidden>Карта мира</h2>
             <div class="selection-prompt" id="selectionPrompt">
                 <div class="selection-title">Выберите континент</div>
-                <div class="selection-sub" id="selectionSub">Тапни по карте, чтобы разместить вирус</div>
+                <div class="selection-sub" id="selectionSub">Тапни по сети, чтобы разместить узел</div>
             </div>
             <div class="world-map-wrapper">
                 <canvas class="globe-canvas" id="globeCanvas"></canvas>
@@ -3991,7 +3988,7 @@
 
             <!-- DNA helix shown during placement flow -->
             <div class="map-helix-slot" id="mapHelixSlot"></div>
-            <div class="virus-created-label" id="virusCreatedLabel">Вирус создан</div>
+            <div class="virus-created-label" id="virusCreatedLabel">Узел установлен</div>
         </div>
 
         <!-- Map Screen -->
@@ -4014,11 +4011,11 @@
                         <div class="stat-value" id="spreadRate">+12%</div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-label">Страны</div>
+                        <div class="stat-label">Регионы</div>
                         <div class="stat-value" id="countryCount">1</div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-label">Летальность</div>
+                        <div class="stat-label">Разрушение</div>
                         <div class="stat-value" id="lethality">0.1%</div>
                     </div>
                 </div>
@@ -4039,23 +4036,23 @@
             <div class="virus-character-container">
                 <div class="virus-stats-col">
                     <div class="stat-line infectivity">
-                        <span class="stat-icon">🦠</span>
+                        <span class="stat-icon">📡</span>
                         <div class="stat-info">
-                            <div class="stat-name">Заразность</div>
+                            <div class="stat-name">Охват</div>
                             <div class="stat-num" id="statInfectivity">10%</div>
                         </div>
                     </div>
                     <div class="stat-line severity">
-                        <span class="stat-icon">🤒</span>
+                        <span class="stat-icon">🔒</span>
                         <div class="stat-info">
-                            <div class="stat-name">Тяжесть</div>
+                            <div class="stat-name">Давление</div>
                             <div class="stat-num" id="statSeverity">5%</div>
                         </div>
                     </div>
                     <div class="stat-line lethality">
-                        <span class="stat-icon">💀</span>
+                        <span class="stat-icon">⛓️</span>
                         <div class="stat-info">
-                            <div class="stat-name">Летальность</div>
+                            <div class="stat-name">Разрушение</div>
                             <div class="stat-num" id="statLethality">1%</div>
                         </div>
                     </div>
@@ -4067,13 +4064,13 @@
 
             <div class="ability-tabs" id="abilityTabs">
                 <button class="ability-tab active" data-tab="severity">
-                    <span class="tab-icon">🤒</span><span class="tab-text">Тяжесть</span>
+                    <span class="tab-icon">🔒</span><span class="tab-text">Давление</span>
                 </button>
                 <button class="ability-tab" data-tab="infectivity">
-                    <span class="tab-icon">🦠</span><span class="tab-text">Заразность</span>
+                    <span class="tab-icon">📡</span><span class="tab-text">Охват</span>
                 </button>
                 <button class="ability-tab" data-tab="lethality">
-                    <span class="tab-icon">💀</span><span class="tab-text">Летальность</span>
+                    <span class="tab-icon">⛓️</span><span class="tab-text">Разрушение</span>
                 </button>
             </div>
 
@@ -4258,7 +4255,7 @@
                         <ellipse cx="13.5" cy="13" rx="1.8" ry="2.6" fill="#fff" opacity="0.4"/>
                     </svg>
                 </span>
-                <span>Вирус</span>
+                <span>Сеть</span>
             </button>
         </nav>
     </div>
@@ -5534,22 +5531,22 @@
                 this.abilityLevels = {};
                 this.abilityCards = {
                     infectivity: [
-                        { id: 'air',     name: 'Воздух',        icon: '💨', max: 8, baseCost: 15, effect: { infectivity: 5 } },
-                        { id: 'water',   name: 'Вода',          icon: '💧', max: 8, baseCost: 22, effect: { infectivity: 6 } },
-                        { id: 'contact', name: 'Контакт',       icon: '🤝', max: 8, baseCost: 12, effect: { infectivity: 4 } },
-                        { id: 'insect',  name: 'Переносчики',   icon: '🦟', max: 6, baseCost: 30, effect: { infectivity: 6, severity: 1 } }
+                        { id: 'air',     name: 'DPI',           icon: '📡', max: 8, baseCost: 15, effect: { infectivity: 5 } },
+                        { id: 'water',   name: 'DNS-фильтр',    icon: '🌐', max: 8, baseCost: 22, effect: { infectivity: 6 } },
+                        { id: 'contact', name: 'Партнёры',      icon: '🤝', max: 8, baseCost: 12, effect: { infectivity: 4 } },
+                        { id: 'insect',  name: 'Боты',          icon: '🤖', max: 6, baseCost: 30, effect: { infectivity: 6, severity: 1 } }
                     ],
                     severity: [
-                        { id: 'fever',   name: 'Лихорадка',     icon: '🤒', max: 8, baseCost: 18, effect: { severity: 5 } },
-                        { id: 'cough',   name: 'Кашель',        icon: '🤧', max: 8, baseCost: 20, effect: { severity: 4, infectivity: 2 } },
-                        { id: 'headache',name: 'Мигрень',       icon: '😵', max: 6, baseCost: 28, effect: { severity: 5 } },
-                        { id: 'nausea',  name: 'Тошнота',       icon: '🤮', max: 6, baseCost: 24, effect: { severity: 4 } }
+                        { id: 'fever',   name: 'Замедление',    icon: '🐌', max: 8, baseCost: 18, effect: { severity: 5 } },
+                        { id: 'cough',   name: 'Капча-стена',   icon: '🛂', max: 8, baseCost: 20, effect: { severity: 4, infectivity: 2 } },
+                        { id: 'headache',name: 'Шейпинг',       icon: '📉', max: 6, baseCost: 28, effect: { severity: 5 } },
+                        { id: 'nausea',  name: 'SNI-блок',      icon: '🚫', max: 6, baseCost: 24, effect: { severity: 4 } }
                     ],
                     lethality: [
-                        { id: 'bleed',   name: 'Кровотечение',  icon: '🩸', max: 6, baseCost: 35, effect: { lethality: 5 } },
-                        { id: 'organ',   name: 'Орг. недост.',  icon: '☠️', max: 5, baseCost: 70, effect: { lethality: 7, severity: 2 } },
-                        { id: 'cardiac', name: 'Тахикардия',    icon: '🫀', max: 6, baseCost: 45, effect: { lethality: 6 } },
-                        { id: 'brain',   name: 'Энцефалит',     icon: '🧠', max: 5, baseCost: 55, effect: { lethality: 5, severity: 3 } }
+                        { id: 'bleed',   name: 'Реестр',        icon: '📜', max: 6, baseCost: 35, effect: { lethality: 5 } },
+                        { id: 'organ',   name: 'Падение',       icon: '💥', max: 5, baseCost: 70, effect: { lethality: 7, severity: 2 } },
+                        { id: 'cardiac', name: 'Хаос пакетов',  icon: '⚠️', max: 6, baseCost: 45, effect: { lethality: 6 } },
+                        { id: 'brain',   name: 'Тотальный блок',icon: '⛔', max: 5, baseCost: 55, effect: { lethality: 5, severity: 3 } }
                     ]
                 };
 
@@ -5612,8 +5609,8 @@
                       text: 'ВОЗ повышает уровень угрозы — мир ускоряет разработку вакцины.',
                       buff: { type: 'spread_speed_mult', value: 0.8 } },
                     { id: 'g_virology',   scope: 'global', type: 'positive', icon: '🧪',
-                      title: 'Прорыв в вирусологии',
-                      text: 'Утечка из лаборатории — вирус временно мутировал.',
+                      title: 'Прорыв в DPI',
+                      text: 'Утечка алгоритма — фильтры временно усилились.',
                       buff: { type: 'infectivity_mult',  value: 1.3 } },
                     { id: 'g_panic',      scope: 'global', type: 'positive', icon: '😱',
                       title: 'Мировая паника',
@@ -5656,13 +5653,13 @@
                       buff: { type: 'spread_speed_mult', value: 1.3 } },
                     { id: 'l_na_protest', scope: 'local', regionIds: ['north-america'], type: 'positive', icon: '📢',
                       title: 'Массовые протесты в США',
-                      text: 'Толпы на улицах — вирусу раздолье.',
+                      text: 'Толпы на улицах — сети есть где расти.',
                       buff: { type: 'infectivity_mult', value: 1.35 } },
 
                     // South America
                     { id: 'l_sa_sao_paulo', scope: 'local', regionIds: ['south-america'], type: 'positive', icon: '🤧',
                       title: 'Вспышка гриппа в Сан-Паулу',
-                      text: 'Сезон гриппа — у вируса меньше конкурентов в иммунной системе.',
+                      text: 'Падение независимых СМИ — у сети меньше противников.',
                       buff: { type: 'infectivity_mult', value: 1.3 } },
                     { id: 'l_sa_carnival',  scope: 'local', regionIds: ['south-america'], type: 'positive', icon: '🎉',
                       title: 'Карнавал в Рио',
@@ -5682,7 +5679,7 @@
                     // Africa
                     { id: 'l_af_drought', scope: 'local', regionIds: ['africa'], type: 'positive', icon: '🌵',
                       title: 'Засуха в Сахеле',
-                      text: 'Ослабленный организм лучше принимает вирус.',
+                      text: 'Слабая инфраструктура — сети легче укореняться.',
                       buff: { type: 'infectivity_mult', value: 1.35 } },
                     { id: 'l_af_aid',     scope: 'local', regionIds: ['africa'], type: 'negative', icon: '🆘',
                       title: 'Гуманитарная помощь',
@@ -5702,7 +5699,7 @@
                     // Australia
                     { id: 'l_au_isolation', scope: 'local', regionIds: ['australia'], type: 'negative', icon: '🏝️',
                       title: 'Изоляция Австралии',
-                      text: 'Закрытие границ — вирусу некуда переходить.',
+                      text: 'Свободный интернет — сеть не может пробиться.',
                       buff: { type: 'spread_speed_mult', value: 0.6 } },
                     { id: 'l_au_outback',   scope: 'local', regionIds: ['australia'], type: 'positive', icon: '☀️',
                       title: 'Жара в Аутбэке',
@@ -5760,15 +5757,13 @@
 
             afterTutorialSetup() {
                 document.body.classList.remove('tutorial-active');
-                const fixed = document.getElementById('dnaBubbles');
-                if (fixed) fixed.style.display = 'none';
                 const subtitle = document.querySelector('.start-screen .game-subtitle');
                 if (subtitle) subtitle.style.display = 'none';
                 this.rollDailyNews();
                 this.renderNewsFeed();
-                if (this.spawnLoopActive) return;
+                // Floating bubbles are disabled in the РКН reskin — the central
+                // home image is the only tap target.
                 this.spawnLoopActive = true;
-                this.runSpawnLoop();
             }
 
             runSpawnLoop() {
@@ -6078,7 +6073,7 @@
 
                     const costBadge = maxed
                         ? '<span class="card-cost-overlay maxed">MAX</span>'
-                        : `<span class="card-cost-overlay">🧬 ${cost}</span>`;
+                        : `<span class="card-cost-overlay">⚡ ${cost}</span>`;
 
                     const incNow  = this.getCardIncome(card, level);
                     const incNext = this.getCardIncome(card, Math.min(card.max, level + 1));
@@ -6211,7 +6206,7 @@
                     } else {
                         const affordable = this.dnaPoints >= cost;
                         disabled = !affordable;
-                        costHTML = `<div class="method-cost">🧬 ${cost}</div>`;
+                        costHTML = `<div class="method-cost">⚡ ${cost}</div>`;
                     }
                     if (disabled) btn.classList.add('disabled');
                     btn.innerHTML =
@@ -6464,10 +6459,11 @@
                     debugReset.addEventListener('touchend', fire, { passive: false });
                 }
 
-                // Home: DNA bubbles (regenerating)
-                document.querySelectorAll('#startScreen .dna-bubble').forEach(bubble => {
-                    this.tap(bubble, () => this.collectDNA(bubble));
-                });
+                // Home: tap the central node image to collect Влияние
+                const tapTarget = document.getElementById('homeTapTarget');
+                if (tapTarget) {
+                    this.tap(tapTarget, (e) => this.collectFromHome(tapTarget, e));
+                }
 
                 // Bottom nav
                 document.querySelectorAll('.nav-btn').forEach(btn => {
@@ -6745,7 +6741,7 @@
                     this.afterTutorialSetup();
                     // Wait for the city plate to finish its fade-out before
                     // showing the "Вирус размещён" toast.
-                    setTimeout(() => this.showToast('Вирус размещён', cityName, 'above-map'), 260);
+                    setTimeout(() => this.showToast('Узел установлен', cityName, 'above-map'), 260);
                     finish();
                     return;
                 }
@@ -6882,8 +6878,8 @@
             async shareInvite() {
                 const link = this.getInviteLink();
                 const data = {
-                    title: 'Вирус — Эволюция',
-                    text: 'Помоги мне распространить вирус — присоединяйся!',
+                    title: 'РКН: Кибер-Коралл',
+                    text: 'Помоги мне расширить сеть блокировок — присоединяйся!',
                     url: link
                 };
                 let ok = false;
@@ -7408,7 +7404,7 @@
                     const sub = document.getElementById('selectionSub');
                     if (sub && z > 1.05) {
                         sub.textContent = this.pickerMode === 'tutorial'
-                            ? 'Выбери город для размещения вируса'
+                            ? 'Выбери город для размещения узла'
                             : 'Выбери город для заражения';
                     }
                 }
@@ -8030,7 +8026,7 @@
                     lethality_mult:    'летальность',
                     severity_mult:     'тяжесть',
                     spread_speed_mult: 'скорость распр.',
-                    income_mult:       'доход ДНК',
+                    income_mult:       'доход Влияния',
                     upgrade_cost_mult: 'стоимость улучш.'
                 };
                 return `${sign}${pct}% ${labels[buff.type] || buff.type}`;
@@ -8164,6 +8160,44 @@
                 toast.innerHTML = `<img class="toast-icon-img" src="${this.getCurrentVirusImage()}" alt=""/><div class="toast-title">${title}</div>${sub ? `<div class="toast-sub">${sub}</div>` : ''}`;
                 document.body.appendChild(toast);
                 setTimeout(() => toast.remove(), 1700);
+            }
+
+            collectFromHome(target, event) {
+                if (this.tutorialCompleting) return;
+                if (!target) return;
+
+                const amount = Math.floor(Math.random() * 8) + 8;
+                const rect = target.getBoundingClientRect();
+                let cx = rect.left + rect.width / 2;
+                let cy = rect.top + rect.height / 2;
+                if (event && event.touches && event.touches[0]) {
+                    cx = event.touches[0].clientX;
+                    cy = event.touches[0].clientY;
+                } else if (event && event.clientX !== undefined) {
+                    cx = event.clientX;
+                    cy = event.clientY;
+                }
+
+                this.dnaPoints += amount;
+                this.updateDNACounter();
+                this.saveState();
+
+                target.classList.add('tapped');
+                setTimeout(() => target.classList.remove('tapped'), 220);
+
+                setTimeout(() => {
+                    this.createPopEffect(cx, cy, `+${amount}`, 'macrophage');
+                }, 60);
+
+                if (this.homeHintActive) this.hideHomeHint();
+
+                if (!this.tutorialDone) {
+                    this.popCount = (this.popCount || 0) + 1;
+                    if (this.popCount >= 3) {
+                        this.tutorialCompleting = true;
+                        setTimeout(() => this.enterSelectionMode(), 700);
+                    }
+                }
             }
 
             collectDNA(bubble) {
