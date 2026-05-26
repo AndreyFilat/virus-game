@@ -2071,13 +2071,29 @@
             transition: opacity 0.35s ease;
         }
 
-        /* Cellular ambience behind bubbles */
+        /* Cyber-noir backdrop for the Home screen — replaces the medical bg. */
         .start-screen {
             overflow: hidden;
-            background-image: url('assets/back.png');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
+            background:
+                radial-gradient(ellipse at 28% 22%, rgba(220, 38, 38, 0.22) 0%, transparent 55%),
+                radial-gradient(ellipse at 78% 78%, rgba(34, 197, 94, 0.16) 0%, transparent 55%),
+                radial-gradient(ellipse at 50% 50%, #160820 0%, #0a0b14 55%, #04050a 100%);
+        }
+        .start-screen::before {
+            /* Faint grid + scan lines — gives the cyber/server feel. */
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(74, 222, 128, 0.045) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(74, 222, 128, 0.045) 1px, transparent 1px),
+                linear-gradient(rgba(248, 113, 113, 0.05) 1px, transparent 1px);
+            background-size: 44px 44px, 44px 44px, 100% 3px;
+            background-position: 0 0, 0 0, 0 0;
+            opacity: 0.85;
+            pointer-events: none;
+            z-index: 0;
+            mix-blend-mode: screen;
         }
 
         .cell-bg {
@@ -2086,21 +2102,23 @@
             pointer-events: none;
             z-index: 0;
             overflow: hidden;
-            opacity: 0.45; /* soften organelles since back.png provides the cell ambience */
+            opacity: 0.55;
         }
 
         .organelle {
             position: absolute;
             border-radius: 50%;
             will-change: transform;
+            filter: blur(2px);
         }
 
-        .organelle.o1 { width: 230px; height: 230px; top: 4%;  left: -12%; background: radial-gradient(circle, rgba(168,85,247,0.34), rgba(168,85,247,0.14) 38%, transparent 70%); animation: org-drift-a 24s ease-in-out infinite; }
-        .organelle.o2 { width: 170px; height: 170px; top: 52%; right: -10%; background: radial-gradient(circle, rgba(74,222,128,0.24), transparent 70%); animation: org-drift-b 30s ease-in-out infinite; }
-        .organelle.o3 { width: 200px; height: 200px; top: 28%; left: 55%;  background: radial-gradient(circle, rgba(192,132,252,0.28), transparent 70%); animation: org-drift-c 26s ease-in-out infinite; }
-        .organelle.o4 { width: 140px; height: 140px; top: 72%; left: 6%;   background: radial-gradient(circle, rgba(168,85,247,0.26), transparent 65%); animation: org-drift-d 22s ease-in-out infinite; }
-        .organelle.o5 { width: 100px; height: 100px; top: 18%; left: 72%;  background: radial-gradient(circle, rgba(247,217,194,0.22), transparent 65%); animation: org-drift-e 28s ease-in-out infinite; }
-        .organelle.o6 { width: 150px; height: 150px; top: 80%; left: 56%;  background: radial-gradient(circle, rgba(74,222,128,0.20), transparent 65%); animation: org-drift-f 32s ease-in-out infinite; }
+        /* Drifting halos — red РКН + green resistance accents. */
+        .organelle.o1 { width: 240px; height: 240px; top: 4%;  left: -14%; background: radial-gradient(circle, rgba(220, 38, 38, 0.32), rgba(220, 38, 38, 0.12) 40%, transparent 70%); animation: org-drift-a 24s ease-in-out infinite; }
+        .organelle.o2 { width: 180px; height: 180px; top: 52%; right: -12%; background: radial-gradient(circle, rgba(34, 197, 94, 0.26), transparent 70%); animation: org-drift-b 30s ease-in-out infinite; }
+        .organelle.o3 { width: 210px; height: 210px; top: 24%; left: 58%;  background: radial-gradient(circle, rgba(248, 113, 113, 0.28), transparent 70%); animation: org-drift-c 26s ease-in-out infinite; }
+        .organelle.o4 { width: 150px; height: 150px; top: 70%; left: 6%;   background: radial-gradient(circle, rgba(74, 222, 128, 0.22), transparent 65%); animation: org-drift-d 22s ease-in-out infinite; }
+        .organelle.o5 { width: 110px; height: 110px; top: 16%; left: 70%;  background: radial-gradient(circle, rgba(253, 224, 71, 0.18), transparent 65%); animation: org-drift-e 28s ease-in-out infinite; }
+        .organelle.o6 { width: 160px; height: 160px; top: 80%; left: 56%;  background: radial-gradient(circle, rgba(220, 38, 38, 0.20), transparent 65%); animation: org-drift-f 32s ease-in-out infinite; }
 
         @keyframes org-drift-a { 0%, 100% { transform: translate(0, 0); } 33% { transform: translate(45px, 28px); } 66% { transform: translate(-22px, 52px); } }
         @keyframes org-drift-b { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(-40px, -42px); } }
@@ -3559,8 +3577,9 @@
 
         .virus-character .virus-art {
             width: 100%;
-            max-width: 100px;
+            max-width: 110px;
             height: auto;
+            overflow: visible;
         }
 
         .map-helix-slot .virus-art {
@@ -3575,24 +3594,31 @@
             position: absolute;
             left: 50%;
             top: 42%;
-            width: 32%;
-            max-width: 140px;
+            width: 68%;
+            max-width: 280px;
+            aspect-ratio: 1 / 1;
             height: auto;
             z-index: 2;
             cursor: pointer;
             user-select: none;
             -webkit-tap-highlight-color: transparent;
-            filter: drop-shadow(0 12px 32px rgba(0, 0, 0, 0.55))
-                    drop-shadow(0 0 28px rgba(74, 222, 128, 0.35));
+            filter: drop-shadow(0 14px 36px rgba(0, 0, 0, 0.7))
+                    drop-shadow(0 0 28px rgba(220, 38, 38, 0.55));
             transform: translate(-50%, -50%) scale(1);
             animation: home-virus-breathe 6s ease-in-out infinite;
             will-change: transform;
             transition: filter 0.18s ease;
         }
+        .home-node-svg {
+            display: block;
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+        }
         .home-virus.tapped {
             animation: home-virus-tap 0.22s ease-out;
-            filter: drop-shadow(0 12px 32px rgba(0, 0, 0, 0.55))
-                    drop-shadow(0 0 36px rgba(74, 222, 128, 0.95));
+            filter: drop-shadow(0 14px 36px rgba(0, 0, 0, 0.7))
+                    drop-shadow(0 0 44px rgba(248, 113, 113, 0.95));
         }
         @keyframes home-virus-tap {
             0%   { transform: translate(-50%, -50%) scale(1); }
@@ -3983,7 +4009,121 @@
                 <span class="organelle o5"></span>
                 <span class="organelle o6"></span>
             </div>
-            <img class="home-virus home-tap-target" id="homeTapTarget" src="assets/virus_levels_png/virus_level_2.png" alt="" role="button" tabindex="0"/>
+            <div class="home-virus home-tap-target" id="homeTapTarget" role="button" tabindex="0" aria-label="РКН узел">
+                <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" class="home-node-svg">
+                    <defs>
+                        <radialGradient id="nodeHalo" cx=".5" cy=".5">
+                            <stop offset="0"   stop-color="#dc2626" stop-opacity="0.55"/>
+                            <stop offset=".55" stop-color="#dc2626" stop-opacity="0.15"/>
+                            <stop offset="1"   stop-color="#dc2626" stop-opacity="0"/>
+                        </radialGradient>
+                        <radialGradient id="nodeOuter" cx=".4" cy=".3">
+                            <stop offset="0"   stop-color="#fecaca"/>
+                            <stop offset=".35" stop-color="#f87171"/>
+                            <stop offset=".75" stop-color="#7f1d1d"/>
+                            <stop offset="1"   stop-color="#1a0303"/>
+                        </radialGradient>
+                        <radialGradient id="nodeInner" cx=".4" cy=".3">
+                            <stop offset="0"   stop-color="#fff"/>
+                            <stop offset=".4"  stop-color="#fde047"/>
+                            <stop offset=".75" stop-color="#dc2626"/>
+                            <stop offset="1"   stop-color="#450a0a"/>
+                        </radialGradient>
+                        <linearGradient id="tendrilG" x1="0" y1=".5" x2="1" y2=".5">
+                            <stop offset="0"   stop-color="#fde047" stop-opacity="0"/>
+                            <stop offset=".2"  stop-color="#f87171"/>
+                            <stop offset=".55" stop-color="#dc2626"/>
+                            <stop offset="1"   stop-color="#1a0303" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+
+                    <!-- Outer halo + pulsing rings -->
+                    <circle cx="100" cy="100" r="95" fill="url(#nodeHalo)"/>
+                    <circle cx="100" cy="100" r="78" fill="none" stroke="rgba(248,113,113,0.45)" stroke-width="1"/>
+                    <circle cx="100" cy="100" r="88" fill="none" stroke="rgba(248,113,113,0.22)" stroke-width="1"/>
+                    <circle cx="100" cy="100" r="68" fill="none" stroke="rgba(254,202,202,0.18)" stroke-width="0.6" stroke-dasharray="3 4"/>
+
+                    <!-- 8 cyber-coral tendrils with sub-branches -->
+                    <g stroke="url(#tendrilG)" stroke-width="2.4" fill="none" stroke-linecap="round" opacity="0.9">
+                        <!-- top -->
+                        <path d="M100 80 C 100 60, 96 38, 92 18"/>
+                        <path d="M97 40 C 88 36, 80 30, 76 22"/>
+                        <path d="M93 30 C 100 24, 104 20, 110 12"/>
+                        <!-- top-right -->
+                        <path d="M114 86 C 134 78, 156 70, 178 58"/>
+                        <path d="M148 70 C 152 60, 156 54, 168 48"/>
+                        <path d="M150 72 C 158 76, 168 78, 174 80"/>
+                        <!-- right -->
+                        <path d="M120 100 C 140 100, 168 102, 188 110"/>
+                        <path d="M170 106 C 178 110, 184 116, 188 122"/>
+                        <!-- bottom-right -->
+                        <path d="M114 114 C 132 128, 152 144, 172 158"/>
+                        <path d="M148 134 C 158 134, 166 138, 172 144"/>
+                        <!-- bottom -->
+                        <path d="M100 120 C 100 140, 102 162, 104 184"/>
+                        <path d="M102 158 C 108 164, 116 168, 124 172"/>
+                        <!-- bottom-left -->
+                        <path d="M86 114 C 70 132, 50 148, 30 162"/>
+                        <path d="M52 138 C 46 142, 40 148, 36 156"/>
+                        <!-- left -->
+                        <path d="M80 100 C 60 100, 36 102, 14 110"/>
+                        <path d="M30 104 C 22 110, 16 114, 12 122"/>
+                        <!-- top-left -->
+                        <path d="M86 86 C 70 72, 50 58, 28 46"/>
+                        <path d="M50 62 C 42 58, 36 54, 30 48"/>
+                    </g>
+
+                    <!-- Glowing tip nodes on tendrils -->
+                    <g fill="#fef2f2">
+                        <circle cx="92" cy="18"  r="2.8"/><circle cx="178" cy="58"  r="2.8"/>
+                        <circle cx="188" cy="110" r="2.8"/><circle cx="172" cy="158" r="2.8"/>
+                        <circle cx="104" cy="184" r="2.8"/><circle cx="30"  cy="162" r="2.8"/>
+                        <circle cx="14"  cy="110" r="2.8"/><circle cx="28"  cy="46"  r="2.8"/>
+                    </g>
+                    <g fill="#dc2626" opacity="0.9">
+                        <circle cx="92" cy="18"  r="4.5"/><circle cx="178" cy="58"  r="4.5"/>
+                        <circle cx="188" cy="110" r="4.5"/><circle cx="172" cy="158" r="4.5"/>
+                        <circle cx="104" cy="184" r="4.5"/><circle cx="30"  cy="162" r="4.5"/>
+                        <circle cx="14"  cy="110" r="4.5"/><circle cx="28"  cy="46"  r="4.5"/>
+                    </g>
+
+                    <!-- Hex core: outer shell -->
+                    <polygon points="100,40 156,72 156,128 100,160 44,128 44,72"
+                             fill="url(#nodeOuter)" stroke="#fecaca" stroke-width="1.8"/>
+                    <polygon points="100,40 156,72 156,128 100,160 44,128 44,72"
+                             fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="0.6"/>
+
+                    <!-- Hex core: inner -->
+                    <polygon points="100,58 138,78 138,122 100,142 62,122 62,78"
+                             fill="url(#nodeInner)" stroke="#fef2f2" stroke-width="0.9"/>
+
+                    <!-- Core glow highlight -->
+                    <ellipse cx="84" cy="76" rx="14" ry="6" fill="#fff" opacity="0.55"/>
+
+                    <!-- Central RKN sigil -->
+                    <text x="100" y="108" text-anchor="middle"
+                          font-family="'JetBrains Mono', monospace"
+                          font-size="22" font-weight="700"
+                          fill="#fef2f2"
+                          style="letter-spacing:0.5px">РКН</text>
+
+                    <!-- Floating data sparkles -->
+                    <g fill="#fde047" opacity="0.85">
+                        <circle cx="64" cy="38"  r="1.4"/>
+                        <circle cx="142" cy="48" r="1.6"/>
+                        <circle cx="158" cy="92" r="1.2"/>
+                        <circle cx="50"  cy="118" r="1.4"/>
+                        <circle cx="68"  cy="162" r="1.2"/>
+                        <circle cx="142" cy="156" r="1.4"/>
+                    </g>
+                    <g fill="#86efac" opacity="0.6">
+                        <circle cx="38" cy="68"  r="1"/>
+                        <circle cx="168" cy="128" r="1"/>
+                        <circle cx="118" cy="172" r="1"/>
+                        <circle cx="72" cy="22"  r="0.9"/>
+                    </g>
+                </svg>
+            </div>
             <div class="home-hint" id="homeHint" hidden>
                 <div class="home-hint-text">Тапай по узлу<br>чтобы расти</div>
             </div>
@@ -4136,7 +4276,56 @@
                     </div>
                 </div>
                 <div class="virus-character">
-                    <img class="virus-art" src="assets/virus_levels_png/virus_level_2.png" alt=""/>
+                    <svg class="virus-art" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <defs>
+                            <radialGradient id="vaHalo" cx=".5" cy=".5">
+                                <stop offset="0" stop-color="#dc2626" stop-opacity="0.5"/>
+                                <stop offset="1" stop-color="#dc2626" stop-opacity="0"/>
+                            </radialGradient>
+                            <radialGradient id="vaOuter" cx=".4" cy=".3">
+                                <stop offset="0"   stop-color="#fecaca"/>
+                                <stop offset=".4"  stop-color="#dc2626"/>
+                                <stop offset="1"   stop-color="#1a0303"/>
+                            </radialGradient>
+                            <radialGradient id="vaInner" cx=".4" cy=".3">
+                                <stop offset="0"   stop-color="#fff"/>
+                                <stop offset=".4"  stop-color="#fde047"/>
+                                <stop offset="1"   stop-color="#7f1d1d"/>
+                            </radialGradient>
+                            <linearGradient id="vaTend" x1="0" y1=".5" x2="1" y2=".5">
+                                <stop offset="0" stop-color="#f87171" stop-opacity="0"/>
+                                <stop offset=".5" stop-color="#dc2626"/>
+                                <stop offset="1" stop-color="#1a0303" stop-opacity="0"/>
+                            </linearGradient>
+                        </defs>
+                        <circle cx="100" cy="100" r="90" fill="url(#vaHalo)"/>
+                        <circle cx="100" cy="100" r="78" fill="none" stroke="rgba(248,113,113,0.35)" stroke-width="1"/>
+                        <g stroke="url(#vaTend)" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.85">
+                            <path d="M100 80 C 100 56, 96 36, 92 22"/>
+                            <path d="M114 86 C 134 78, 156 70, 172 60"/>
+                            <path d="M120 100 C 142 100, 168 102, 184 110"/>
+                            <path d="M114 114 C 132 128, 152 144, 168 156"/>
+                            <path d="M100 120 C 100 144, 102 162, 104 180"/>
+                            <path d="M86 114 C 70 132, 50 148, 34 160"/>
+                            <path d="M80 100 C 60 100, 36 102, 18 110"/>
+                            <path d="M86 86 C 70 72, 50 58, 34 48"/>
+                        </g>
+                        <g fill="#dc2626" opacity="0.95">
+                            <circle cx="92" cy="22"  r="3.2"/><circle cx="172" cy="60"  r="3.2"/>
+                            <circle cx="184" cy="110" r="3.2"/><circle cx="168" cy="156" r="3.2"/>
+                            <circle cx="104" cy="180" r="3.2"/><circle cx="34" cy="160" r="3.2"/>
+                            <circle cx="18" cy="110" r="3.2"/><circle cx="34" cy="48"  r="3.2"/>
+                        </g>
+                        <polygon points="100,42 154,73 154,127 100,158 46,127 46,73"
+                                 fill="url(#vaOuter)" stroke="#fecaca" stroke-width="1.6"/>
+                        <polygon points="100,60 136,80 136,120 100,140 64,120 64,80"
+                                 fill="url(#vaInner)" stroke="#fef2f2" stroke-width="0.8"/>
+                        <ellipse cx="84" cy="78" rx="12" ry="5" fill="#fff" opacity="0.5"/>
+                        <text x="100" y="108" text-anchor="middle"
+                              font-family="'JetBrains Mono', monospace"
+                              font-size="20" font-weight="700"
+                              fill="#fef2f2">РКН</text>
+                    </svg>
                 </div>
             </div>
 
