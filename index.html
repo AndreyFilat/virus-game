@@ -3837,29 +3837,72 @@
             height: 100%;
             overflow: visible;
         }
-        /* Character portrait swap inside the РКН button: friendly by
-           default, angry while .tapped is set. */
-        .cb-char {
-            transition: opacity 0.16s ease;
-        }
-        .cb-char-tapped {
-            opacity: 0;
-        }
-        .home-virus.tapped .cb-char-default,
-        .home-virus.compact-tapped .cb-char-default { opacity: 0; }
-        .home-virus.tapped .cb-char-tapped,
-        .home-virus.compact-tapped .cb-char-tapped { opacity: 1; }
-        /* When a portrait is in play, hide the БЛОК! label so the
-           character is the focal point. If both portraits 404, the inline
-           onerror removes .has-portrait and the label re-appears. */
+        /* Character portrait inside the РКН button. The two portraits are
+           stacked: the friendly one is always fully opaque underneath, the
+           angry one sits on top and is simply toggled visible while the
+           button is pressed. No cross-fade → no red-face flash, no flicker. */
+        .cb-char-default { opacity: 1; }
+        .cb-char-tapped  { opacity: 0; }
+        .home-virus.tapped .cb-char-tapped { opacity: 1; }
+        /* When a portrait is in play, hide the БЛОК! label and the glossy
+           highlights so the character is clean and unobstructed. If both
+           portraits 404, the inline onerror removes .has-portrait and the
+           label + gloss re-appear. */
         .has-portrait .cb-label { display: none; }
+        .has-portrait .cb-gloss { display: none; }
+
+        /* Comic speech bubble that pops from the character on tap. */
+        .char-speech {
+            position: fixed;
+            pointer-events: none;
+            z-index: 101;
+            transform: translate(-50%, -50%) rotate(-6deg);
+            padding: 7px 14px;
+            background: #fff;
+            color: #b91c1c;
+            font-family: 'Space Mono', monospace;
+            font-weight: 900;
+            font-size: 17px;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+            border-radius: 14px;
+            border: 2.5px solid #7f1d1d;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
+            animation: char-speech-pop 0.9s cubic-bezier(0.2, 1.4, 0.4, 1) forwards;
+        }
+        body.faction-resist .char-speech {
+            color: #1d4ed8;
+            border-color: #1e3a8a;
+        }
+        .char-speech::after {
+            /* little tail pointing down-left toward the character */
+            content: '';
+            position: absolute;
+            left: 16px;
+            bottom: -9px;
+            width: 14px;
+            height: 14px;
+            background: #fff;
+            border-right: 2.5px solid #7f1d1d;
+            border-bottom: 2.5px solid #7f1d1d;
+            transform: rotate(45deg);
+        }
+        body.faction-resist .char-speech::after { border-color: #1e3a8a; }
+        @keyframes char-speech-pop {
+            0%   { opacity: 0; transform: translate(-50%, -40%) rotate(-6deg) scale(0.4); }
+            22%  { opacity: 1; transform: translate(-50%, -55%) rotate(-6deg) scale(1.12); }
+            40%  { opacity: 1; transform: translate(-50%, -50%) rotate(-6deg) scale(1); }
+            75%  { opacity: 1; transform: translate(-50%, -54%) rotate(-6deg) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -72%) rotate(-6deg) scale(0.95); }
+        }
+        /* Once the player has finished the tap tutorial the idle breathing
+           stops — but ONLY while the button is at rest. The press animation
+           below still runs because .tapped wins the cascade. */
+        .home-virus.tutorial-done:not(.tapped) {
+            animation: none;
+        }
         .home-virus.tapped {
             animation: home-virus-tap 0.5s cubic-bezier(0.34, 1.56, 0.4, 1);
-        }
-        /* Once the player has finished the tap tutorial the breathing
-           animation stops so the button stays calm. */
-        .home-virus.tutorial-done {
-            animation: none;
         }
         @keyframes home-virus-tap {
             0%   {
@@ -7793,14 +7836,16 @@
                           + "if(h){h.dataset.charFailed=(parseInt(h.dataset.charFailed||0)+1);"
                           + "if(parseInt(h.dataset.charFailed)>=2)h.classList.remove('has-portrait');}";
                 const charLayer = hasChar ? `
-                    <!-- Character portrait clipped to the button face -->
+                    <!-- Character portrait clipped to the button face.
+                         Both layers are stacked (no cross-fade) so the red
+                         face never flashes through during the swap. -->
                     <g clip-path="url(#cb_face_clip_${variant})">
                         <image class="cb-char cb-char-default" href="${characters.defaultSrc}"
-                               x="-6" y="22" width="232" height="290"
+                               x="-14" y="-2" width="248" height="310"
                                preserveAspectRatio="xMidYMin slice"
                                onerror="${onerr}"/>
                         <image class="cb-char cb-char-tapped" href="${characters.tappedSrc}"
-                               x="-6" y="22" width="232" height="290"
+                               x="-14" y="-2" width="248" height="310"
                                preserveAspectRatio="xMidYMin slice"
                                onerror="${onerr}"/>
                     </g>` : '';
@@ -7867,15 +7912,12 @@
                     <!-- Inner rim glow (light ring just inside the face edge) -->
                     <circle cx="110" cy="110" r="78" fill="url(#cb_inner_${variant})"/>${charLayer}
 
-                    <!-- Glossy specular highlight (top half) -->
-                    <ellipse cx="110" cy="80" rx="62" ry="34" fill="url(#cb_spec_${variant})"/>
-
-                    <!-- Crisp reflective dot top-left -->
-                    <ellipse cx="82"  cy="72" rx="22" ry="10" fill="#fff" opacity="0.5"  transform="rotate(-22 82 72)"/>
-                    <ellipse cx="82"  cy="72" rx="12" ry="5"  fill="#fff" opacity="0.85" transform="rotate(-22 82 72)"/>
-
-                    <!-- Small accent on the lower-right of the face -->
-                    <ellipse cx="146" cy="142" rx="14" ry="6" fill="#fff" opacity="0.18" transform="rotate(-22 146 142)"/>${labelLayer}
+                    <!-- Glossy highlights — hidden via .has-portrait so they
+                         don't wash over the character art. -->
+                    <ellipse class="cb-gloss" cx="110" cy="80" rx="62" ry="34" fill="url(#cb_spec_${variant})"/>
+                    <ellipse class="cb-gloss" cx="82"  cy="72" rx="22" ry="10" fill="#fff" opacity="0.5"  transform="rotate(-22 82 72)"/>
+                    <ellipse class="cb-gloss" cx="82"  cy="72" rx="12" ry="5"  fill="#fff" opacity="0.85" transform="rotate(-22 82 72)"/>
+                    <ellipse class="cb-gloss" cx="146" cy="142" rx="14" ry="6" fill="#fff" opacity="0.18" transform="rotate(-22 146 142)"/>${labelLayer}
 
                     <!-- Decorative sparkles around the button -->
                     <g fill="${p.sparkle}" opacity="0.85">
@@ -9717,6 +9759,19 @@
                 setTimeout(() => el.remove(), 1180);
             }
 
+            // Comic speech bubble that pops from the character on tap.
+            showCharacterSpeech(x, y) {
+                const phrase = this.faction === 'resist' ? 'Обойти!' : 'Запретить!';
+                const el = document.createElement('div');
+                el.className = 'char-speech';
+                el.textContent = phrase;
+                // Anchor to the upper-right of the button face.
+                el.style.left = (x + 70) + 'px';
+                el.style.top  = (y - 70) + 'px';
+                document.body.appendChild(el);
+                setTimeout(() => el.remove(), 900);
+            }
+
             showMemeMessage() {
                 if (!this.memeMessages || this.memeMessages.length === 0) return;
                 // Remove any meme toast still on screen so they don't stack.
@@ -9767,6 +9822,7 @@
                 setTimeout(() => target.classList.remove('tapped'), 520);
 
                 this.showGainText(cx, cy, '+' + amount);
+                this.showCharacterSpeech(cx, cy);
 
                 // Meme toast on cooldown — fire-and-forget.
                 const now = Date.now();
