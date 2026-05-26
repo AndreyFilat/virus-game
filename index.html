@@ -3837,6 +3837,18 @@
             height: 100%;
             overflow: visible;
         }
+        /* Character portrait swap inside the РКН button: friendly by
+           default, angry while .tapped is set. */
+        .cb-char {
+            transition: opacity 0.16s ease;
+        }
+        .cb-char-tapped {
+            opacity: 0;
+        }
+        .home-virus.tapped .cb-char-default,
+        .home-virus.compact-tapped .cb-char-default { opacity: 0; }
+        .home-virus.tapped .cb-char-tapped,
+        .home-virus.compact-tapped .cb-char-tapped { opacity: 1; }
         .home-virus.tapped {
             animation: home-virus-tap 0.5s cubic-bezier(0.34, 1.56, 0.4, 1);
         }
@@ -7677,19 +7689,25 @@
             // РКН → red БЛОК! button. Свобода → blue VPN button.
             buildFactionButton(variant) {
                 const cls = variant === 'compact' ? 'virus-art' : 'home-node-svg';
-                let label, palette;
+                let label, palette, characters = null;
                 if (this.faction === 'resist') {
                     label = 'VPN';
                     palette = this.factionPalette('resist');
                 } else if (this.faction === 'rkn') {
                     label = 'БЛОК!';
                     palette = this.factionPalette('rkn');
+                    // Friendly portrait by default, angry portrait while
+                    // the button is in its .tapped state.
+                    characters = {
+                        defaultSrc: 'assets/rkn_friendly.png',
+                        tappedSrc:  'assets/rkn_angry.png'
+                    };
                 } else {
                     // No faction yet — neutral tutorial button.
                     label = 'ТАП';
                     palette = this.factionPalette('neutral');
                 }
-                return this.renderCasualButton({ cls, variant, label, palette });
+                return this.renderCasualButton({ cls, variant, label, palette, characters });
             }
 
             factionPalette(faction) {
@@ -7740,9 +7758,30 @@
 
             // Render a casual mobile-game style 3D push button. Used by both
             // the home tap target and the compact slot on the Network screen.
-            renderCasualButton({ cls, variant, label, palette }) {
+            renderCasualButton({ cls, variant, label, palette, characters }) {
                 const p = palette;
                 const fontSize = label.length > 3 ? 38 : 44;
+                const hasChar = !!characters;
+                const charClip = hasChar ? `
+                        <clipPath id="cb_face_clip_${variant}">
+                            <circle cx="110" cy="110" r="78"/>
+                        </clipPath>` : '';
+                const charLayer = hasChar ? `
+                    <!-- Character portrait clipped to the button face -->
+                    <g clip-path="url(#cb_face_clip_${variant})">
+                        <image class="cb-char cb-char-default" href="${characters.defaultSrc}"
+                               x="-6" y="22" width="232" height="290"
+                               preserveAspectRatio="xMidYMin slice"/>
+                        <image class="cb-char cb-char-tapped" href="${characters.tappedSrc}"
+                               x="-6" y="22" width="232" height="290"
+                               preserveAspectRatio="xMidYMin slice"/>
+                    </g>` : '';
+                const labelLayer = hasChar ? '' : `
+                    <text x="110" y="${122 + (label.length > 3 ? 0 : 4)}" text-anchor="middle"
+                          font-family="'Space Mono', 'JetBrains Mono', monospace"
+                          font-size="${fontSize}" font-weight="900"
+                          fill="#fff"
+                          style="letter-spacing:${label.length > 3 ? '1' : '2'}px; paint-order: stroke; stroke: rgba(0,0,0,0.55); stroke-width: 2;">${label}</text>`;
                 return `<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="${cls}">
                     <defs>
                         <radialGradient id="cb_halo_${variant}" cx=".5" cy=".5">
@@ -7773,7 +7812,7 @@
                             <stop offset=".78" stop-color="${p.innerRim}" stop-opacity="0"/>
                             <stop offset=".94" stop-color="${p.innerRim}" stop-opacity="0.9"/>
                             <stop offset="1"   stop-color="${p.innerRim}" stop-opacity="0"/>
-                        </radialGradient>
+                        </radialGradient>${charClip}
                     </defs>
 
                     <!-- Soft halo glow -->
@@ -7795,7 +7834,7 @@
                     <circle cx="110" cy="110" r="78" fill="url(#cb_face_${variant})"/>
 
                     <!-- Inner rim glow (light ring just inside the face edge) -->
-                    <circle cx="110" cy="110" r="78" fill="url(#cb_inner_${variant})"/>
+                    <circle cx="110" cy="110" r="78" fill="url(#cb_inner_${variant})"/>${charLayer}
 
                     <!-- Glossy specular highlight (top half) -->
                     <ellipse cx="110" cy="80" rx="62" ry="34" fill="url(#cb_spec_${variant})"/>
@@ -7805,14 +7844,7 @@
                     <ellipse cx="82"  cy="72" rx="12" ry="5"  fill="#fff" opacity="0.85" transform="rotate(-22 82 72)"/>
 
                     <!-- Small accent on the lower-right of the face -->
-                    <ellipse cx="146" cy="142" rx="14" ry="6" fill="#fff" opacity="0.18" transform="rotate(-22 146 142)"/>
-
-                    <!-- Label -->
-                    <text x="110" y="${122 + (label.length > 3 ? 0 : 4)}" text-anchor="middle"
-                          font-family="'Space Mono', 'JetBrains Mono', monospace"
-                          font-size="${fontSize}" font-weight="900"
-                          fill="#fff"
-                          style="letter-spacing:${label.length > 3 ? '1' : '2'}px; paint-order: stroke; stroke: rgba(0,0,0,0.55); stroke-width: 2;">${label}</text>
+                    <ellipse cx="146" cy="142" rx="14" ry="6" fill="#fff" opacity="0.18" transform="rotate(-22 146 142)"/>${labelLayer}
 
                     <!-- Decorative sparkles around the button -->
                     <g fill="${p.sparkle}" opacity="0.85">
