@@ -6834,9 +6834,8 @@
                 // is their share. `mine` marks a city the player has captured
                 // for their faction, `hp` is its defensive pool against PvP.
                 this.cityState = {};            // idx -> { rkn, vpn, mine, hp }
-                this.PVP_ATTACK_COST = 120;     // Packets per player attack
-                this.PVP_FORTIFY_COST = 90;     // Packets to restore a held city's HP
-                this.PVP_CAPTURE_GAIN = 6;      // members that flip on a (re)capture
+                this.PVP_CAPTURE_COST = 120;    // Packets to occupy a city
+                this.PVP_CAPTURE_GAIN = 6;      // members your faction gains on (re)capture
                 this.ENEMY_ATK_BASE = 26;       // base incoming PvP damage
 
                 // Map pan/zoom state. The map image and continent SVG share a
@@ -7646,6 +7645,10 @@
             factionActionLabel() {
                 return this.faction === 'resist' ? 'Обойти' : 'Заблокировать';
             }
+            // Label for the city-capture button on the control plate.
+            factionCaptureLabel() {
+                return this.faction === 'resist' ? 'Разблокировать' : 'Заблокировать';
+            }
             factionActionIcon() {
                 return this.faction === 'resist' ? '🛡️' : '🛑';
             }
@@ -7887,71 +7890,51 @@
                 pcVpnTxt.textContent = `ВПН ${100 - rknPct}%`;
 
                 if (s.mine) {
+                    // A city you hold: show your remaining lives at it.
                     const maxHp = this.getHP();
                     const pct = maxHp > 0 ? Math.max(0, Math.min(100, s.hp / maxHp * 100)) : 0;
                     hpWrap.hidden = false;
+                    document.querySelector('#pcHp .pc-hp-label').textContent = '❤️ Жизни';
                     document.getElementById('pcHpFill').style.width = pct.toFixed(0) + '%';
                     document.getElementById('pcHpVal').textContent = `${Math.ceil(s.hp)}/${maxHp}`;
                     a1.hidden = true;
-                    a2.hidden = false;
-                    const canFortify = s.hp < maxHp && this.dnaPoints >= this.PVP_FORTIFY_COST;
-                    a2.textContent = `🛡 Укрепить · 📦 ${this.PVP_FORTIFY_COST}`;
-                    a2.disabled = !canFortify;
-                    a2.onclick = (e) => { e.preventDefault(); e.stopPropagation(); this.fortifyCity(idx); };
+                    a1.onclick = null;
+                    a2.hidden = true;
+                    a2.onclick = null;
                 } else {
+                    // A city not held by you: offer to capture it for a price.
                     hpWrap.hidden = true;
                     a2.hidden = true;
+                    a2.onclick = null;
                     a1.hidden = false;
-                    a1.textContent = `${this.factionActionLabel()} · 📦 ${this.PVP_ATTACK_COST}`;
-                    a1.disabled = this.dnaPoints < this.PVP_ATTACK_COST;
-                    a1.onclick = (e) => { e.preventDefault(); e.stopPropagation(); this.attackCity(idx); };
+                    a1.textContent = `${this.factionCaptureLabel()} · 📦 ${this.PVP_CAPTURE_COST}`;
+                    a1.disabled = this.dnaPoints < this.PVP_CAPTURE_COST;
+                    a1.onclick = (e) => { e.preventDefault(); e.stopPropagation(); this.captureCity(idx); };
                 }
             }
 
-            // Player attacks a city to swing control toward their faction.
-            // Reaching a majority captures it and grants a defensible hold.
-            attackCity(idx) {
-                if (this.dnaPoints < this.PVP_ATTACK_COST) {
-                    this.showToast('Не хватает Пакетов', `Нужно ${this.PVP_ATTACK_COST}`, 'above-map');
+            // Paying the price occupies the city for your faction and shifts
+            // control to you. The hold gains a defensive pool of lives (= HP).
+            captureCity(idx) {
+                if (this.dnaPoints < this.PVP_CAPTURE_COST) {
+                    this.showToast('Не хватает Пакетов', `Нужно ${this.PVP_CAPTURE_COST}`, 'above-map');
                     return;
                 }
                 const c = this.cities[idx];
                 const s = this.getCity(idx);
+                if (s.mine) return;
                 const mineKey = this.myFactionKey();
                 const enemyKey = this.enemyFactionKey();
-                this.dnaPoints -= this.PVP_ATTACK_COST;
+                this.dnaPoints -= this.PVP_CAPTURE_COST;
                 this.updateDNACounter();
 
-                const shift = Math.max(1, Math.round(this.getAttackPower() / 10));
-                const moved = Math.min(shift, s[enemyKey]);
-                s[enemyKey] -= moved;
-                s[mineKey] += shift;
-
-                if (s[mineKey] >= s[enemyKey] && !s.mine) {
-                    s.mine = true;
-                    s.hp = this.getHP();
-                    this.infectContinent(c[4], 5, idx); // keep infection progression
-                    this.showToast('Город под контролем', c[0], 'above-map');
-                } else {
-                    this.showToast('Атака проведена', `${c[0]} · контроль растёт`, 'above-map');
-                }
+                s.mine = true;
+                s.hp = this.getHP();
+                // Your faction takes a controlling share of the city.
+                s[mineKey] = Math.max(s[mineKey], s[enemyKey] + this.PVP_CAPTURE_GAIN);
+                this.infectContinent(c[4], 5, idx); // keep infection progression
+                this.showToast(this.faction === 'resist' ? 'Город разблокирован' : 'Город заблокирован', c[0], 'above-map');
                 if (this.coralMap) this.coralMap.draw();
-                this.refreshCityControlPlate();
-                this.saveState();
-            }
-
-            fortifyCity(idx) {
-                const s = this.getCity(idx);
-                const maxHp = this.getHP();
-                if (!s.mine || s.hp >= maxHp) return;
-                if (this.dnaPoints < this.PVP_FORTIFY_COST) {
-                    this.showToast('Не хватает Пакетов', `Нужно ${this.PVP_FORTIFY_COST}`, 'above-map');
-                    return;
-                }
-                this.dnaPoints -= this.PVP_FORTIFY_COST;
-                this.updateDNACounter();
-                s.hp = maxHp;
-                this.showToast('Оборона восстановлена', this.cities[idx][0], 'above-map');
                 this.refreshCityControlPlate();
                 this.saveState();
             }
