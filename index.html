@@ -3140,69 +3140,57 @@
         .base-stat .bs-ico { font-size: 13px; }
         .base-stat .bs-val { color: #93c5fd; }
 
-        /* ===== Vault cross-section ===== */
-        .vault {
-            max-width: 460px;
+        /* ===== Office building cross-section ===== */
+        .building {
+            max-width: 470px;
             width: 100%;
             margin: 0 auto;
-            border: 4px solid #050608;
-            border-radius: 10px;
+            border-radius: 14px 14px 8px 8px;
             overflow: hidden;
-            background: #050608;
-            box-shadow: 0 14px 34px rgba(0,0,0,0.6);
+            background: #4a3e30;
+            box-shadow: 0 18px 44px rgba(0,0,0,0.55);
         }
-        .vault-floor {
+        .bld-roof {
+            height: 22px;
+            background: linear-gradient(180deg, #8a6f4f 0%, #5e4a34 100%);
+            border-bottom: 4px solid #2f2417;
             position: relative;
-            display: flex;
-            height: 104px;
-            border-bottom: 5px solid #050608;
         }
-        .vault-floor:last-child { border-bottom: none; }
-
-        /* Elevator shaft running down the left edge */
-        .shaft {
-            position: relative;
-            flex: 0 0 34px;
-            width: 34px;
-            background:
-                repeating-linear-gradient(180deg, #1a1d24 0 6px, #12151b 6px 12px);
-            border-right: 3px solid #050608;
-        }
-        .shaft::before { /* cable */
+        .bld-roof::before {
             content: '';
             position: absolute;
-            left: 50%; top: 0; bottom: 0;
-            width: 2px;
-            transform: translateX(-50%);
-            background: linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0.04));
-        }
-        .shaft::after { /* side rails */
-            content: '';
-            position: absolute;
-            left: 3px; right: 3px; top: 0; bottom: 0;
-            border-left: 2px solid rgba(255,255,255,0.05);
-            border-right: 2px solid rgba(0,0,0,0.5);
-        }
-        .vault-floor:nth-child(3) .shaft .elevator-car { display: block; }
-        .elevator-car {
-            display: none;
-            position: absolute;
-            left: 4px; right: 4px; top: 50%;
-            height: 58px;
-            transform: translateY(-50%);
-            background: linear-gradient(180deg, #fde047, #b45309);
-            border: 2px solid #050608;
+            left: 14px; right: 14px; top: 6px; height: 6px;
             border-radius: 3px;
-            box-shadow: inset 0 2px 0 rgba(255,255,255,0.4), inset 0 -3px 0 rgba(0,0,0,0.4);
+            background: repeating-linear-gradient(90deg, #6b563d 0 14px, #5a4730 14px 22px);
         }
-
-        /* The room interior */
-        .room-scene {
+        .bld-floor {
+            display: flex;
+            border-bottom: 9px solid #5e4a34;
+            background: #5e4a34;
             position: relative;
-            flex: 1;
-            overflow: hidden;
         }
-        .room-scene > svg {
+        .bld-floor::after { /* concrete slab highlight under each floor */
+            content: '';
+            position: absolute;
+            left: 0; right: 0; bottom: -9px; height: 9px;
+            background: linear-gradient(180deg, #6e573d 0%, #44351f 100%);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.12);
+        }
+        .bld-floor:last-child { border-bottom: none; }
+        .bld-floor:last-child::after { display: none; }
+
+        .room {
+            position: relative;
+            flex: 1 1 50%;
+            width: 50%;
+            height: 158px;
+            overflow: hidden;
+            border-right: 5px solid #5e4a34;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .room:last-child { border-right: none; }
+        .room > svg {
             position: absolute;
             inset: 0;
             width: 100%;
@@ -3215,79 +3203,76 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            padding: 6px 8px 7px;
+            padding: 6px 7px 8px;
         }
         .room-topline {
             display: flex;
             align-items: flex-start;
             justify-content: space-between;
-            gap: 6px;
+            gap: 5px;
         }
         .room-tag {
             display: inline-flex;
             align-items: center;
-            gap: 5px;
-            max-width: 64%;
-            padding: 3px 8px;
-            background: rgba(5,7,12,0.72);
-            border: 1px solid rgba(255,255,255,0.12);
+            gap: 4px;
+            max-width: 74%;
+            padding: 3px 7px;
+            background: rgba(255,255,255,0.86);
             border-radius: 8px;
-            backdrop-filter: blur(2px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
         }
-        .room-tag .rt-ico { font-size: 13px; line-height: 1; }
+        .room-tag .rt-ico { font-size: 12px; line-height: 1; }
         .room-tag .rt-name {
-            font-size: 11.5px;
+            font-size: 10.5px;
             font-weight: 800;
-            color: #fff;
-            line-height: 1.1;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+            color: #2a2118;
+            line-height: 1.05;
         }
         .room-lvlchip {
             flex: 0 0 auto;
-            padding: 3px 7px;
-            background: rgba(5,7,12,0.72);
-            border: 1px solid rgba(255,255,255,0.12);
+            padding: 3px 6px;
+            background: rgba(42,33,24,0.82);
             border-radius: 8px;
             font-family: 'Space Mono', monospace;
-            font-size: 10px;
+            font-size: 9.5px;
             font-weight: 700;
-            color: #cbd5e1;
+            color: #fde9c8;
         }
         .room-botline {
             display: flex;
             align-items: flex-end;
             justify-content: space-between;
-            gap: 6px;
+            gap: 5px;
         }
         .room-effect {
             font-family: 'Space Mono', monospace;
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 700;
             color: #fff;
-            padding: 2px 7px;
-            background: rgba(5,7,12,0.6);
-            border-radius: 7px;
+            padding: 2px 6px;
+            background: rgba(20,16,11,0.6);
+            border-radius: 6px;
             text-shadow: 0 1px 2px rgba(0,0,0,0.9);
         }
         .room-btn {
             flex: 0 0 auto;
-            min-width: 78px;
-            padding: 7px 12px;
-            border: 2px solid rgba(5,7,12,0.5);
-            border-radius: 9px;
+            min-width: 62px;
+            padding: 7px 11px;
+            border: none;
+            border-radius: 10px;
             font-family: 'Space Mono', monospace;
-            font-size: 11.5px;
+            font-size: 11px;
             font-weight: 800;
             color: #06240f;
-            background: linear-gradient(180deg, #86efac, #16a34a);
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 3px 8px rgba(0,0,0,0.5);
+            background: linear-gradient(180deg, #a7f3c0, #16a34a);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.55), 0 3px 8px rgba(0,0,0,0.45);
             cursor: pointer;
             -webkit-tap-highlight-color: transparent;
         }
         .room-btn:active { transform: scale(0.95); }
         .room-btn:disabled {
-            background: linear-gradient(180deg, #64748b, #334155);
-            color: #cbd5e1;
+            background: linear-gradient(180deg, #94a3b8, #475569);
+            color: #e2e8f0;
             box-shadow: none;
             cursor: default;
         }
@@ -3297,17 +3282,17 @@
             animation: collectPulse 1s ease-in-out infinite;
         }
         @keyframes collectPulse {
-            0%,100% { box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 0 0 0 rgba(253,224,71,0.5); }
-            50%     { box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 0 0 6px rgba(253,224,71,0); }
+            0%,100% { box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 0 0 0 rgba(253,224,71,0.55); }
+            50%     { box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 0 0 7px rgba(253,224,71,0); }
         }
         .room-timer {
             flex: 0 0 auto;
             font-family: 'Space Mono', monospace;
-            font-size: 12px;
+            font-size: 11.5px;
             font-weight: 800;
             color: #fde047;
-            padding: 6px 10px;
-            background: rgba(5,7,12,0.7);
+            padding: 6px 9px;
+            background: rgba(20,16,11,0.72);
             border-radius: 9px;
             text-shadow: 0 1px 2px rgba(0,0,0,0.9);
         }
@@ -3320,8 +3305,12 @@
             transition: width 0.5s linear;
             z-index: 2;
         }
-        .vault-floor.ready .room-scene { box-shadow: inset 0 0 0 3px rgba(74,222,128,0.85); }
-        .vault-floor.upgrading .room-scene { box-shadow: inset 0 0 0 2px rgba(253,224,71,0.55); }
+        .room.ready::after {
+            content: '';
+            position: absolute; inset: 0;
+            box-shadow: inset 0 0 0 3px rgba(74,222,128,0.9);
+            pointer-events: none;
+        }
 
         .news-screen-title {
             font-family: 'Space Mono', monospace;
@@ -4851,7 +4840,7 @@
         <div class="screen base-screen" id="baseScreen">
             <h2 class="base-title">База</h2>
             <div class="base-stats" id="baseStats"></div>
-            <div class="vault" id="baseGrid"></div>
+            <div class="building" id="baseGrid"></div>
         </div>
 
         <!-- Level-up full-screen animation -->
@@ -10013,112 +10002,183 @@
                     `<div class="base-stat"><span class="bs-ico">📦</span><span class="bs-val">${this.roomIncomePerSec().toFixed(1)}</span>/сек</div>`;
             }
 
-            // Themed SVG cross-section interior for a room. Stylised, not
-            // pixel art — server racks / lab benches / screens etc. per stat.
-            buildRoomScene(id, level) {
-                const P = {
-                    income:   { wall1:'#1b2c4d', wall2:'#0c1526', floor:'#0a1120', glow:'#38bdf8', lite:'#7dd3fc' },
-                    research: { wall1:'#103632', wall2:'#07201d', floor:'#06201c', glow:'#2dd4bf', lite:'#5eead4' },
-                    attack:   { wall1:'#421823', wall2:'#240a10', floor:'#1c070c', glow:'#f87171', lite:'#fca5a5' },
-                    contrib:  { wall1:'#41330f', wall2:'#221c08', floor:'#1d1707', glow:'#fbbf24', lite:'#fde047' },
-                    defense:  { wall1:'#2d1a45', wall2:'#160c26', floor:'#130a22', glow:'#a78bfa', lite:'#c4b5fd' },
-                    hp:       { wall1:'#411536', wall2:'#240a1d', floor:'#200818', glow:'#f472b6', lite:'#f9a8d4' }
-                }[id] || { wall1:'#1b2c4d', wall2:'#0c1526', floor:'#0a1120', glow:'#38bdf8', lite:'#7dd3fc' };
-                const g = `g_${id}`;
-
-                // Hanging ceiling lights — a few evenly spaced.
-                let lights = '';
-                for (let i = 0; i < 5; i++) {
-                    const x = 38 + i * 60;
-                    lights += `<line x1="${x}" y1="8" x2="${x}" y2="15" stroke="#000" stroke-width="1.5" opacity="0.5"/>
-                        <ellipse cx="${x}" cy="17" rx="7" ry="3" fill="${P.lite}" opacity="0.9"/>
-                        <ellipse cx="${x}" cy="26" rx="34" ry="20" fill="${P.lite}" opacity="0.10"/>`;
-                }
-
-                // Stat-specific equipment.
-                let props = '';
-                if (id === 'income') {
-                    for (let r = 0; r < 4; r++) {
-                        const x = 22 + r * 58;
-                        let dots = '';
-                        for (let d = 0; d < 6; d++) {
-                            const on = (r + d) % 3 !== 0;
-                            dots += `<rect x="${x+6}" y="${44+d*8}" width="30" height="4" rx="1" fill="${on ? P.glow : '#1f2937'}" opacity="${on?0.9:0.6}"/>`;
-                        }
-                        props += `<rect x="${x}" y="38" width="44" height="56" rx="2" fill="#0e1726" stroke="#000" stroke-width="1.5"/>${dots}`;
-                    }
-                } else if (id === 'research') {
-                    props += `<rect x="20" y="62" width="120" height="32" rx="2" fill="#0c2a26" stroke="#000" stroke-width="1.5"/>`;
-                    [40,70,100].forEach((x,i) => {
-                        props += `<path d="M${x} 58 l-5 -14 h10 z" fill="${P.glow}" opacity="0.85" stroke="#000" stroke-width="1"/>
-                            <ellipse cx="${x}" cy="50" rx="3" ry="2" fill="${P.lite}"/>`;
-                    });
-                    props += `<rect x="170" y="40" width="110" height="40" rx="3" fill="#06201c" stroke="#000" stroke-width="2"/>
-                        <path d="M178 70 q26 -28 52 -10 t44 -6" fill="none" stroke="${P.glow}" stroke-width="2"/>`;
-                } else if (id === 'attack') {
-                    props += `<rect x="24" y="32" width="150" height="50" rx="3" fill="#1a070c" stroke="#000" stroke-width="2"/>`;
-                    // network map of nodes + links
-                    const nodes = [[55,48],[95,68],[135,44],[110,72],[70,76]];
-                    nodes.forEach((n,i) => { if(i) props += `<line x1="${nodes[0][0]}" y1="${nodes[0][1]}" x2="${n[0]}" y2="${n[1]}" stroke="${P.glow}" stroke-width="1.4" opacity="0.7"/>`; });
-                    nodes.forEach(n => props += `<circle cx="${n[0]}" cy="${n[1]}" r="4" fill="${P.lite}"/>`);
-                    props += `<rect x="200" y="56" width="92" height="38" rx="2" fill="#1a070c" stroke="#000" stroke-width="1.5"/>
-                        <rect x="208" y="64" width="76" height="5" rx="2" fill="${P.glow}"/>
-                        <rect x="208" y="74" width="50" height="5" rx="2" fill="${P.glow}" opacity="0.6"/>`;
-                } else if (id === 'contrib') {
-                    for (let s = 0; s < 3; s++) {
-                        const x = 24 + s * 56;
-                        props += `<rect x="${x}" y="40" width="46" height="54" rx="2" fill="#2a2208" stroke="#000" stroke-width="1.5"/>`;
-                        for (let b = 0; b < 3; b++)
-                            props += `<rect x="${x+5}" y="${46+b*16}" width="36" height="12" rx="1.5" fill="${P.glow}" opacity="${0.5+b*0.15}"/>`;
-                    }
-                    props += `<rect x="206" y="66" width="88" height="28" rx="2" fill="#2a2208" stroke="#000" stroke-width="1.5"/>`;
-                } else if (id === 'defense') {
-                    for (let c = 0; c < 4; c++) {
-                        const x = 22 + c * 44;
-                        props += `<rect x="${x}" y="42" width="34" height="52" rx="2" fill="#1c1033" stroke="#000" stroke-width="1.5"/>
-                            <rect x="${x+5}" y="48" width="24" height="3" fill="${P.glow}" opacity="0.7"/>
-                            <rect x="${x+5}" y="56" width="24" height="3" fill="${P.glow}" opacity="0.5"/>
-                            <circle cx="${x+17}" cy="74" r="3" fill="${P.lite}"/>`;
-                    }
-                    props += `<path d="M250 44 l24 8 v16 q0 16 -24 24 q-24 -8 -24 -24 v-16 z" fill="#1c1033" stroke="${P.glow}" stroke-width="2"/>
-                        <path d="M239 64 l8 8 l16 -16" fill="none" stroke="${P.lite}" stroke-width="3" stroke-linecap="round"/>`;
-                } else if (id === 'hp') {
-                    for (let m = 0; m < 4; m++) {
-                        const x = 22 + m * 50;
-                        props += `<rect x="${x}" y="42" width="40" height="30" rx="2" fill="#2a0a22" stroke="#000" stroke-width="1.5"/>
-                            <rect x="${x+5}" y="47" width="30" height="4" rx="2" fill="${P.glow}"/>
-                            <rect x="${x+5}" y="55" width="20" height="4" rx="2" fill="${P.lite}" opacity="0.7"/>
-                            <rect x="${x+17}" y="72" width="6" height="10" fill="#1a0614"/>`;
-                    }
-                    props += `<path d="M250 50 q12 -10 22 2 q10 -12 22 -2 q4 14 -22 26 q-26 -12 -22 -26 z" fill="${P.glow}" opacity="0.85"/>`;
-                }
-
-                // A little worker silhouette near the floor.
-                const wx = 150;
-                const worker = `<g opacity="0.92">
-                    <circle cx="${wx}" cy="80" r="5" fill="#0b0f17"/>
-                    <rect x="${wx-5}" y="84" width="10" height="14" rx="3" fill="#0b0f17"/>
-                    <rect x="${wx-4}" y="86" width="8" height="9" rx="2" fill="${P.glow}" opacity="0.5"/>
+            // ---- Casual office-interior art helpers ----
+            _person(x, footY, c) {
+                const skin = c.skin || '#f2c79b';
+                const shirt = c.shirt || '#3b82f6';
+                const hair = c.hair || '#3a2a1a';
+                const hy = footY - 30;
+                return `<g>
+                    <ellipse cx="${x}" cy="${footY + 1}" rx="12" ry="3.5" fill="#000" opacity="0.16"/>
+                    <rect x="${x - 9}" y="${footY - 24}" width="18" height="25" rx="9" fill="${shirt}"/>
+                    <rect x="${x - 9}" y="${footY - 6}" width="18" height="7" fill="${shirt}" opacity="0.55"/>
+                    <circle cx="${x}" cy="${hy}" r="8" fill="${skin}"/>
+                    <path d="M${x - 8} ${hy - 1} a8 8 0 0 1 16 0 q-8 -6 -16 0 z" fill="${hair}"/>
                 </g>`;
+            }
+            _sitter(x, deskY, c) {
+                const skin = c.skin || '#f2c79b';
+                const shirt = c.shirt || '#3b82f6';
+                const hair = c.hair || '#2a1c12';
+                const hy = deskY - 22;
+                return `<g>
+                    <rect x="${x - 8}" y="${deskY - 16}" width="16" height="18" rx="7" fill="${shirt}"/>
+                    <circle cx="${x}" cy="${hy}" r="7" fill="${skin}"/>
+                    <path d="M${x - 7} ${hy} a7 7 0 0 1 14 0 q-7 -6 -14 0 z" fill="${hair}"/>
+                </g>`;
+            }
+            _plant(x, floorY) {
+                return `<g>
+                    <path d="M${x - 8} ${floorY - 11} h16 l-2 13 h-12 z" fill="#d2773a"/>
+                    <rect x="${x - 9}" y="${floorY - 13}" width="18" height="4" rx="2" fill="#e88a4c"/>
+                    <ellipse cx="${x}" cy="${floorY - 20}" rx="6" ry="12" fill="#2f9e54"/>
+                    <ellipse cx="${x - 7}" cy="${floorY - 17}" rx="6" ry="10" fill="#37b262" transform="rotate(-22 ${x - 7} ${floorY - 17})"/>
+                    <ellipse cx="${x + 7}" cy="${floorY - 17}" rx="6" ry="10" fill="#3bbf69" transform="rotate(22 ${x + 7} ${floorY - 17})"/>
+                </g>`;
+            }
+            _window(x, y, w, h) {
+                return `<g>
+                    <rect x="${x - 3}" y="${y - 3}" width="${w + 6}" height="${h + 6}" rx="4" fill="#e9eef5"/>
+                    <linearGradient id="sky_${x}_${y}" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#bfe6ff"/><stop offset="100%" stop-color="#7cc4f0"/>
+                    </linearGradient>
+                    <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="2" fill="url(#sky_${x}_${y})"/>
+                    <rect x="${x + w * 0.12}" y="${y + h * 0.45}" width="${w * 0.18}" height="${h * 0.55}" fill="#9bb7cc" opacity="0.8"/>
+                    <rect x="${x + w * 0.38}" y="${y + h * 0.28}" width="${w * 0.2}" height="${h * 0.72}" fill="#84a3bb" opacity="0.85"/>
+                    <rect x="${x + w * 0.66}" y="${y + h * 0.5}" width="${w * 0.2}" height="${h * 0.5}" fill="#9bb7cc" opacity="0.8"/>
+                    <circle cx="${x + w * 0.8}" cy="${y + h * 0.22}" r="${h * 0.13}" fill="#fff3c0"/>
+                    <line x1="${x + w / 2}" y1="${y}" x2="${x + w / 2}" y2="${y + h}" stroke="#e9eef5" stroke-width="2"/>
+                    <line x1="${x}" y1="${y + h / 2}" x2="${x + w}" y2="${y + h / 2}" stroke="#e9eef5" stroke-width="2"/>
+                </g>`;
+            }
 
-                return `<svg viewBox="0 0 320 104" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            // Detailed, casual office interior per room.
+            buildRoomScene(id, level) {
+                const T = {
+                    income:   { wall1:'#dbe7fb', wall2:'#b9cdf0', floor:'#39435a', floor2:'#2b3346', accent:'#3b82f6', glow:'#60a5fa' },
+                    research: { wall1:'#dcf5ec', wall2:'#bce8da', floor:'#2f6f63', floor2:'#235349', accent:'#14b8a6', glow:'#2dd4bf' },
+                    attack:   { wall1:'#fbe0e0', wall2:'#f3c0c0', floor:'#4a2230', floor2:'#371824', accent:'#ef4444', glow:'#f87171' },
+                    contrib:  { wall1:'#fdeccb', wall2:'#f6d79b', floor:'#a9743c', floor2:'#8a5d2f', accent:'#f59e0b', glow:'#fbbf24' },
+                    defense:  { wall1:'#e7e0fb', wall2:'#cfc2f2', floor:'#3a3357', floor2:'#2c2643', accent:'#8b5cf6', glow:'#a78bfa' },
+                    hp:       { wall1:'#fbe1ef', wall2:'#f5c2dd', floor:'#9a4f74', floor2:'#7c3d5d', accent:'#ec4899', glow:'#f472b6' }
+                }[id] || {};
+                const g = `r_${id}`;
+                const FLOOR_Y = 118;
+
+                // Shared shell: ceiling light, wall gradient, baseboard, floor.
+                let s = `<svg viewBox="0 0 200 158" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                     <defs>
                         <linearGradient id="${g}w" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stop-color="${P.wall1}"/>
-                            <stop offset="100%" stop-color="${P.wall2}"/>
+                            <stop offset="0%" stop-color="${T.wall1}"/><stop offset="100%" stop-color="${T.wall2}"/>
                         </linearGradient>
+                        <linearGradient id="${g}f" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="${T.floor}"/><stop offset="100%" stop-color="${T.floor2}"/>
+                        </linearGradient>
+                        <radialGradient id="${g}l" cx="50%" cy="0%" r="80%">
+                            <stop offset="0%" stop-color="#fff7e0" stop-opacity="0.55"/><stop offset="100%" stop-color="#fff7e0" stop-opacity="0"/>
+                        </radialGradient>
                     </defs>
-                    <rect x="0" y="0" width="320" height="104" fill="url(#${g}w)"/>
-                    <rect x="0" y="0" width="320" height="13" fill="#05080e"/>
-                    <rect x="0" y="13" width="320" height="3" fill="#000" opacity="0.5"/>
-                    <rect x="0" y="94" width="320" height="10" fill="${P.floor}"/>
-                    <rect x="0" y="94" width="320" height="2" fill="#000" opacity="0.6"/>
-                    ${[0,1,2,3,4,5,6,7].map(i=>`<line x1="${i*46}" y1="94" x2="${i*46-10}" y2="104" stroke="#000" stroke-width="1" opacity="0.4"/>`).join('')}
-                    ${lights}
-                    ${props}
-                    ${worker}
-                    <rect x="0" y="0" width="320" height="104" fill="url(#${g}w)" opacity="0" />
-                </svg>`;
+                    <rect x="0" y="0" width="200" height="158" fill="url(#${g}w)"/>
+                    <rect x="0" y="0" width="200" height="158" fill="url(#${g}l)"/>
+                    <rect x="0" y="0" width="200" height="9" fill="#f4eee2"/>
+                    <rect x="0" y="9" width="200" height="2" fill="#000" opacity="0.12"/>
+                    <rect x="70" y="9" width="60" height="6" rx="3" fill="#fffbe8"/>
+                    <rect x="76" y="10" width="48" height="3" rx="1.5" fill="${T.glow}" opacity="0.5"/>
+                    <rect x="0" y="${FLOOR_Y}" width="200" height="${158 - FLOOR_Y}" fill="url(#${g}f)"/>
+                    <rect x="0" y="${FLOOR_Y}" width="200" height="2" fill="#000" opacity="0.22"/>`;
+                // Floor perspective lines
+                for (let i = 1; i < 7; i++) {
+                    const x = i * 30;
+                    s += `<line x1="${x}" y1="${FLOOR_Y}" x2="${x + 14}" y2="158" stroke="#000" stroke-width="1" opacity="0.12"/>`;
+                }
+
+                if (id === 'income') {
+                    s += this._window(16, 24, 40, 30);
+                    // server racks
+                    for (let r = 0; r < 3; r++) {
+                        const x = 92 + r * 32;
+                        s += `<rect x="${x}" y="58" width="26" height="60" rx="3" fill="#1f2738" stroke="#11161f" stroke-width="2"/>`;
+                        for (let d = 0; d < 6; d++) {
+                            const on = (r + d) % 4 !== 0;
+                            s += `<rect x="${x + 4}" y="${64 + d * 8}" width="18" height="4" rx="1.5" fill="${on ? T.glow : '#39455c'}"/>`;
+                            if (on) s += `<circle cx="${x + 24 - 2}" cy="${66 + d * 8}" r="1.4" fill="#86efac"/>`;
+                        }
+                    }
+                    s += this._person(64, FLOOR_Y, { shirt: T.accent, hair: '#5b3a1e' });
+                    s += `<rect x="56" y="92" width="16" height="11" rx="2" fill="#1f2738"/><rect x="57" y="93" width="14" height="8" rx="1" fill="${T.glow}" opacity="0.8"/>`;
+                    s += this._plant(184, FLOOR_Y);
+                } else if (id === 'research') {
+                    s += this._window(150, 22, 38, 30);
+                    // lab bench + flasks
+                    s += `<rect x="18" y="96" width="92" height="10" rx="2" fill="#c9d9d2"/><rect x="22" y="106" width="84" height="12" fill="#9fb6ad"/>`;
+                    [34, 54, 74].forEach((fx, i) => {
+                        s += `<path d="M${fx - 6} ${96} l2 -16 h8 l2 16 z" fill="rgba(255,255,255,0.5)" stroke="#5fae9f" stroke-width="1.4"/>
+                            <path d="M${fx - 4} ${96} l1 -8 h6 l1 8 z" fill="${i % 2 ? '#34d399' : T.glow}" opacity="0.85"/>
+                            <circle cx="${fx + (i ? 2 : -2)}" cy="${86 - i * 2}" r="1.6" fill="${T.glow}" opacity="0.8"/>`;
+                    });
+                    // whiteboard
+                    s += `<rect x="120" y="60" width="62" height="40" rx="3" fill="#fbfdff" stroke="#cdd6e0" stroke-width="2"/>
+                        <path d="M128 88 q10 -22 20 -6 t24 -10" fill="none" stroke="${T.accent}" stroke-width="2"/>
+                        <line x1="128" y1="70" x2="150" y2="70" stroke="#94a3b8" stroke-width="1.6"/>
+                        <line x1="128" y1="76" x2="160" y2="76" stroke="#cbd5e1" stroke-width="1.6"/>`;
+                    s += this._sitter(96, 100, { shirt: T.accent, hair: '#2a1c12' });
+                    s += this._plant(16, FLOOR_Y);
+                } else if (id === 'attack') {
+                    // big wall map screen
+                    s += `<rect x="14" y="22" width="96" height="58" rx="4" fill="#241016" stroke="#120709" stroke-width="2"/>`;
+                    const nodes = [[36,40],[70,32],[92,52],[58,60],[44,66]];
+                    nodes.forEach((n, i) => { if (i) s += `<line x1="${nodes[0][0]}" y1="${nodes[0][1]}" x2="${n[0]}" y2="${n[1]}" stroke="${T.glow}" stroke-width="1.4" opacity="0.75"/>`; });
+                    nodes.forEach((n, i) => s += `<circle cx="${n[0]}" cy="${n[1]}" r="${i ? 3 : 4.5}" fill="${i ? T.glow : '#fff'}"/>`);
+                    s += `<rect x="22" y="70" width="40" height="4" rx="2" fill="${T.glow}" opacity="0.6"/>`;
+                    // analyst desk with dual monitors
+                    s += `<rect x="120" y="92" width="64" height="9" rx="2" fill="#3a2a30"/><rect x="124" y="101" width="56" height="13" fill="#2c2027"/>`;
+                    s += `<rect x="124" y="68" width="26" height="20" rx="2" fill="#241016" stroke="#120709" stroke-width="1.5"/><rect x="127" y="71" width="20" height="14" fill="${T.glow}" opacity="0.7"/>`;
+                    s += `<rect x="154" y="70" width="26" height="20" rx="2" fill="#241016" stroke="#120709" stroke-width="1.5"/><rect x="157" y="73" width="20" height="14" fill="${T.glow}" opacity="0.55"/>`;
+                    s += this._sitter(152, 92, { shirt: T.accent, hair: '#1c1c22' });
+                    s += this._plant(184, FLOOR_Y);
+                } else if (id === 'contrib') {
+                    s += this._window(150, 22, 38, 30);
+                    // reception desk
+                    s += `<path d="M28 118 v-26 h56 v26 z" fill="#b9803f"/><rect x="24" y="86" width="64" height="8" rx="2" fill="#d49a55"/>`;
+                    s += `<rect x="34" y="74" width="20" height="14" rx="2" fill="#fff" stroke="#d6b483" stroke-width="1.4"/><line x1="37" y1="79" x2="51" y2="79" stroke="${T.accent}" stroke-width="1.4"/><line x1="37" y1="83" x2="48" y2="83" stroke="#c9a875" stroke-width="1.4"/>`;
+                    // clerk handing a key
+                    s += this._person(64, FLOOR_Y, { shirt: T.accent, hair: '#3a2a1a' });
+                    s += `<circle cx="100" cy="96" r="3.5" fill="#fcd34d" stroke="#b45309" stroke-width="1"/><rect x="100" y="95" width="9" height="2" fill="#fcd34d"/>`;
+                    // filing shelves
+                    s += `<rect x="116" y="60" width="34" height="42" rx="2" fill="#9a6a34" stroke="#6f4a22" stroke-width="1.5"/>`;
+                    for (let b = 0; b < 3; b++) s += `<rect x="120" y="${64 + b * 13}" width="26" height="9" rx="1.5" fill="${b % 2 ? T.glow : '#e8c98f'}" opacity="0.9"/>`;
+                    s += this._plant(184, FLOOR_Y);
+                } else if (id === 'defense') {
+                    s += this._window(18, 24, 36, 28);
+                    // big shield emblem on wall
+                    s += `<path d="M150 30 l22 7 v15 q0 16 -22 24 q-22 -8 -22 -24 v-15 z" fill="#2c2347" stroke="${T.glow}" stroke-width="2.5"/>
+                        <path d="M140 52 l7 7 l15 -16" fill="none" stroke="${T.glow}" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>`;
+                    // locked cabinets
+                    for (let c = 0; c < 3; c++) {
+                        const x = 70 + c * 26;
+                        s += `<rect x="${x}" y="74" width="22" height="44" rx="2" fill="#2c2347" stroke="#1c1733" stroke-width="1.5"/>
+                            <rect x="${x + 4}" y="80" width="14" height="3" fill="${T.glow}" opacity="0.7"/>
+                            <rect x="${x + 4}" y="88" width="14" height="3" fill="${T.glow}" opacity="0.45"/>
+                            <circle cx="${x + 11}" cy="104" r="2.5" fill="#fcd34d"/>`;
+                    }
+                    s += this._person(44, FLOOR_Y, { shirt: T.accent, hair: '#1c1c22' });
+                    s += this._plant(184, FLOOR_Y);
+                } else if (id === 'hp') {
+                    s += this._window(150, 22, 38, 30);
+                    // open office: two desks with chat-bubble monitors
+                    [[40, 96], [96, 96]].forEach(([dx, dy], i) => {
+                        s += `<rect x="${dx - 18}" y="${dy}" width="46" height="8" rx="2" fill="#7c3d5d"/><rect x="${dx - 14}" y="${dy + 8}" width="38" height="12" fill="#642f49"/>`;
+                        s += `<rect x="${dx - 12}" y="${dy - 22}" width="24" height="18" rx="2" fill="#2a0a22" stroke="#150510" stroke-width="1.5"/><rect x="${dx - 9}" y="${dy - 19}" width="18" height="12" rx="1" fill="${T.glow}" opacity="0.75"/>`;
+                        s += this._sitter(dx + 4, dy, { shirt: i ? '#fb7185' : T.accent, hair: i ? '#3a2a1a' : '#1c1c22' });
+                    });
+                    // floating chat bubbles
+                    s += `<g opacity="0.92"><rect x="118" y="58" width="26" height="16" rx="6" fill="#fff"/><path d="M124 74 l-3 6 l8 -5 z" fill="#fff"/><circle cx="125" cy="66" r="1.6" fill="${T.accent}"/><circle cx="131" cy="66" r="1.6" fill="${T.accent}"/><circle cx="137" cy="66" r="1.6" fill="${T.accent}"/></g>
+                        <g opacity="0.85"><rect x="150" y="74" width="22" height="14" rx="6" fill="${T.glow}"/><path d="M156 88 l3 5 l-7 -4 z" fill="${T.glow}"/></g>`;
+                    s += this._plant(184, FLOOR_Y);
+                }
+
+                s += `</svg>`;
+                return s;
             }
 
             renderBaseScreen() {
@@ -10126,7 +10186,8 @@
                 const grid = document.getElementById('baseGrid');
                 if (!grid) return;
                 const now = Date.now();
-                grid.innerHTML = this.roomOrder.map(id => {
+
+                const roomHTML = (id) => {
                     const room = this.rooms[id];
                     const def = this.roomDefs[id];
                     const maxed = room.level >= this.MAX_ROOM_LEVEL;
@@ -10142,7 +10203,6 @@
                         cls = 'ready';
                         control = `<button class="room-btn collect" data-collect="${id}">Готово ✓</button>`;
                     } else if (upgrading) {
-                        cls = 'upgrading';
                         const left = room.endsAt - now;
                         const pct = room.duration ? (1 - left / room.duration) * 100 : 0;
                         control = `<div class="room-timer">⏳ ${this.fmtDuration(left)}</div>` +
@@ -10151,23 +10211,29 @@
                         control = `<button class="room-btn" data-upgrade="${id}" ${affordable ? '' : 'disabled'}>📦 ${cost}</button>`;
                     }
 
-                    return `<div class="vault-floor ${cls}" data-room="${id}">
-                        <div class="shaft"><div class="elevator-car"></div></div>
-                        <div class="room-scene">
-                            ${this.buildRoomScene(id, room.level)}
-                            <div class="room-overlay">
-                                <div class="room-topline">
-                                    <span class="room-tag"><span class="rt-ico">${def.icon}</span><span class="rt-name">${this.roomName(id)}</span></span>
-                                    <span class="room-lvlchip">ур.${room.level}</span>
-                                </div>
-                                <div class="room-botline">
-                                    <span class="room-effect">${this.roomEffectText(id)}</span>
-                                    ${control}
-                                </div>
+                    return `<div class="room ${cls}" data-room="${id}">
+                        ${this.buildRoomScene(id, room.level)}
+                        <div class="room-overlay">
+                            <div class="room-topline">
+                                <span class="room-tag"><span class="rt-ico">${def.icon}</span><span class="rt-name">${this.roomName(id)}</span></span>
+                                <span class="room-lvlchip">ур.${room.level}</span>
+                            </div>
+                            <div class="room-botline">
+                                <span class="room-effect">${this.roomEffectText(id)}</span>
+                                ${control}
                             </div>
                         </div>
                     </div>`;
-                }).join('');
+                };
+
+                // 3 floors, 2 rooms each.
+                let html = '<div class="bld-roof"></div>';
+                for (let f = 0; f < 3; f++) {
+                    const a = this.roomOrder[f * 2];
+                    const b = this.roomOrder[f * 2 + 1];
+                    html += `<div class="bld-floor">${roomHTML(a)}${roomHTML(b)}</div>`;
+                }
+                grid.innerHTML = html;
 
                 // Wire buttons (delegation-free, fresh each render).
                 grid.querySelectorAll('[data-upgrade]').forEach(btn => {
