@@ -4037,6 +4037,38 @@
         .city-plate.visible .plate-action:not([hidden]) { pointer-events: auto; }
         .city-plate .plate-action:active { transform: scale(0.96); }
         .city-plate .plate-action[hidden] { display: none; }
+        .city-plate .plate-action.plate-action-2 {
+            background: linear-gradient(170deg, #ff7a7a 0%, #ef4444 55%, #b91c1c 100%);
+            color: #2a0606;
+            border-color: rgba(254, 202, 202, 0.85);
+            box-shadow: 0 6px 14px rgba(0,0,0,0.45), 0 0 16px rgba(239,68,68,0.35), inset 0 1px 0 rgba(255,255,255,0.4);
+        }
+        .city-plate .plate-action[disabled] { opacity: 0.5; cursor: default; }
+
+        /* ----- City control + defense ----- */
+        .plate-control { margin-top: 8px; }
+        .plate-control[hidden] { display: none; }
+        .pc-bar {
+            display: flex; width: 150px; height: 9px; margin: 0 auto;
+            border-radius: 6px; overflow: hidden;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.06);
+        }
+        .pc-seg { height: 100%; transition: width 0.3s ease; }
+        .pc-rkn { background: linear-gradient(90deg, #f87171, #dc2626); }
+        .pc-vpn { background: linear-gradient(90deg, #38bdf8, #2563eb); }
+        .pc-legend {
+            display: flex; justify-content: space-between; width: 150px; margin: 4px auto 0;
+            font-family: 'Space Mono', monospace; font-size: 9.5px; font-weight: 700;
+        }
+        .pc-leg-rkn { color: #fca5a5; }
+        .pc-leg-vpn { color: #7dd3fc; }
+        .pc-hp { display: flex; align-items: center; gap: 6px; width: 150px; margin: 6px auto 0; }
+        .pc-hp[hidden] { display: none; }
+        .pc-hp-label { font-size: 9px; color: #fca5a5; white-space: nowrap; }
+        .pc-hp-bar { flex: 1 1 auto; height: 6px; border-radius: 4px; background: rgba(255,255,255,0.1); overflow: hidden; }
+        .pc-hp-fill { height: 100%; background: linear-gradient(90deg, #f472b6, #ec4899); transition: width 0.3s ease; }
+        .pc-hp-val { font-family: 'Space Mono', monospace; font-size: 9px; color: #fff; white-space: nowrap; }
         /* Little tail/arrow pointing to the city dot below. */
         .city-plate .plate-tail {
             position: absolute;
@@ -4962,7 +4994,23 @@
                  city dot on the globe. Position is updated each frame in JS. -->
             <div class="city-plate" id="cityPlate" hidden>
                 <div class="plate-name" id="plateName"></div>
+                <div class="plate-control" id="plateControl" hidden>
+                    <div class="pc-bar">
+                        <div class="pc-seg pc-rkn" id="pcRkn"></div>
+                        <div class="pc-seg pc-vpn" id="pcVpn"></div>
+                    </div>
+                    <div class="pc-legend">
+                        <span class="pc-leg-rkn" id="pcRknTxt">РКН 0%</span>
+                        <span class="pc-leg-vpn" id="pcVpnTxt">ВПН 0%</span>
+                    </div>
+                    <div class="pc-hp" id="pcHp" hidden>
+                        <span class="pc-hp-label">❤️ Оборона</span>
+                        <div class="pc-hp-bar"><div class="pc-hp-fill" id="pcHpFill"></div></div>
+                        <span class="pc-hp-val" id="pcHpVal"></span>
+                    </div>
+                </div>
                 <button class="plate-action" id="plateAction" hidden>Распространить</button>
+                <button class="plate-action plate-action-2" id="plateAction2" hidden></button>
                 <div class="plate-tail"></div>
             </div>
 
@@ -6775,6 +6823,16 @@
                 this.OPPONENT_TICK_MS = 7000; // every ~7 s the AI nibbles a continent
                 this._centroidCache = {};
 
+                // ===== Per-city control + PvP (local simulation) =====
+                // Each city holds simulated РКН/ВПН "member" counts; control %
+                // is their share. `mine` marks a city the player has captured
+                // for their faction, `hp` is its defensive pool against PvP.
+                this.cityState = {};            // idx -> { rkn, vpn, mine, hp }
+                this.PVP_ATTACK_COST = 120;     // Packets per player attack
+                this.PVP_FORTIFY_COST = 90;     // Packets to restore a held city's HP
+                this.PVP_CAPTURE_GAIN = 6;      // members that flip on a (re)capture
+                this.ENEMY_ATK_BASE = 26;       // base incoming PvP damage
+
                 // Map pan/zoom state. The map image and continent SVG share a
                 // 1050×700 viewBox; transforms apply to .world-map-pan.
                 this.mapView = { zoom: 1, tx: 0, ty: 0 };
@@ -7744,16 +7802,183 @@
                 if (!c) return;
                 this.mapSelectedCityIdx = idx;
                 if (this.globe) this.globe.setSelectedCity(idx);
-                // Any city the player has already infected (the original
-                // anchor or any city added via within-continent spread) is
-                // treated identically — no spread button.
-                const continent = this.continents[c[4]];
-                const isInfected = continent && continent.infectedCities
-                                   && continent.infectedCities.has(idx);
-                this.showCityPlate(idx, c[0],
-                    isInfected ? null : this.factionActionLabel(),
-                    isInfected ? null : () => this.showSpreadModal()
-                );
+                this.openCityControl(idx);
+            }
+
+            // ===== Per-city control + PvP =====
+            myFactionKey() { return this.faction === 'resist' ? 'vpn' : 'rkn'; }
+            enemyFactionKey() { return this.faction === 'resist' ? 'rkn' : 'vpn'; }
+
+            // Deterministic baseline member split per city so every city shows
+            // a populated, stable control bar on first view.
+            cityBaseMembers(idx) {
+                let s = (idx + 1) * 2654435761 >>> 0;
+                const rnd = () => { s = (s * 1103515245 + 12345) >>> 0; return s / 4294967296; };
+                const total = 8 + Math.floor(rnd() * 26);     // 8..33 members
+                const rknShare = 0.25 + rnd() * 0.5;          // 25%..75% РКН
+                const rkn = Math.max(1, Math.round(total * rknShare));
+                const vpn = Math.max(1, total - rkn);
+                return { rkn, vpn };
+            }
+            getCity(idx) {
+                if (!this.cityState[idx]) {
+                    const base = this.cityBaseMembers(idx);
+                    this.cityState[idx] = { rkn: base.rkn, vpn: base.vpn, mine: false, hp: 0 };
+                }
+                return this.cityState[idx];
+            }
+            cityControl(idx) {
+                const s = this.getCity(idx);
+                const total = (s.rkn + s.vpn) || 1;
+                return { rkn: s.rkn / total * 100, vpn: s.vpn / total * 100 };
+            }
+
+            openCityControl(idx) {
+                const c = this.cities[idx];
+                if (!c) return;
+                const plate = document.getElementById('cityPlate');
+                const nameEl = document.getElementById('plateName');
+                if (!plate || !nameEl) return;
+                this._plateCityIdx = idx;
+                nameEl.textContent = c[0];
+                this.refreshCityControlPlate();
+                plate.hidden = false;
+                requestAnimationFrame(() => plate.classList.add('visible'));
+                document.body.classList.add('plate-open');
+                this._updatePlatePos();
+                if (!this._plateTrackerActive) {
+                    this._plateTrackerActive = true;
+                    const tick = () => {
+                        if (!this._plateTrackerActive) return;
+                        this._updatePlatePos();
+                        this._plateRAF = requestAnimationFrame(tick);
+                    };
+                    this._plateRAF = requestAnimationFrame(tick);
+                }
+            }
+
+            // (Re)render the control bar / HP / action buttons of the open plate.
+            refreshCityControlPlate() {
+                const idx = this._plateCityIdx;
+                if (idx == null) return;
+                const s = this.getCity(idx);
+                const ctrl = this.cityControl(idx);
+                const control = document.getElementById('plateControl');
+                const pcRkn = document.getElementById('pcRkn');
+                const pcVpn = document.getElementById('pcVpn');
+                const pcRknTxt = document.getElementById('pcRknTxt');
+                const pcVpnTxt = document.getElementById('pcVpnTxt');
+                const hpWrap = document.getElementById('pcHp');
+                const a1 = document.getElementById('plateAction');
+                const a2 = document.getElementById('plateAction2');
+                if (!control || !a1 || !a2) return;
+
+                control.hidden = false;
+                const rknPct = Math.round(ctrl.rkn);
+                pcRkn.style.width = ctrl.rkn.toFixed(1) + '%';
+                pcVpn.style.width = ctrl.vpn.toFixed(1) + '%';
+                pcRknTxt.textContent = `РКН ${rknPct}%`;
+                pcVpnTxt.textContent = `ВПН ${100 - rknPct}%`;
+
+                if (s.mine) {
+                    const maxHp = this.getHP();
+                    const pct = maxHp > 0 ? Math.max(0, Math.min(100, s.hp / maxHp * 100)) : 0;
+                    hpWrap.hidden = false;
+                    document.getElementById('pcHpFill').style.width = pct.toFixed(0) + '%';
+                    document.getElementById('pcHpVal').textContent = `${Math.ceil(s.hp)}/${maxHp}`;
+                    a1.hidden = true;
+                    a2.hidden = false;
+                    const canFortify = s.hp < maxHp && this.dnaPoints >= this.PVP_FORTIFY_COST;
+                    a2.textContent = `🛡 Укрепить · 📦 ${this.PVP_FORTIFY_COST}`;
+                    a2.disabled = !canFortify;
+                    a2.onclick = (e) => { e.preventDefault(); e.stopPropagation(); this.fortifyCity(idx); };
+                } else {
+                    hpWrap.hidden = true;
+                    a2.hidden = true;
+                    a1.hidden = false;
+                    a1.textContent = `${this.factionActionLabel()} · 📦 ${this.PVP_ATTACK_COST}`;
+                    a1.disabled = this.dnaPoints < this.PVP_ATTACK_COST;
+                    a1.onclick = (e) => { e.preventDefault(); e.stopPropagation(); this.attackCity(idx); };
+                }
+            }
+
+            // Player attacks a city to swing control toward their faction.
+            // Reaching a majority captures it and grants a defensible hold.
+            attackCity(idx) {
+                if (this.dnaPoints < this.PVP_ATTACK_COST) {
+                    this.showToast('Не хватает Пакетов', `Нужно ${this.PVP_ATTACK_COST}`, 'above-map');
+                    return;
+                }
+                const c = this.cities[idx];
+                const s = this.getCity(idx);
+                const mineKey = this.myFactionKey();
+                const enemyKey = this.enemyFactionKey();
+                this.dnaPoints -= this.PVP_ATTACK_COST;
+                this.updateDNACounter();
+
+                const shift = Math.max(1, Math.round(this.getAttackPower() / 10));
+                const moved = Math.min(shift, s[enemyKey]);
+                s[enemyKey] -= moved;
+                s[mineKey] += shift;
+
+                if (s[mineKey] >= s[enemyKey] && !s.mine) {
+                    s.mine = true;
+                    s.hp = this.getHP();
+                    this.infectContinent(c[4], 5, idx); // keep infection progression
+                    this.showToast('Город под контролем', c[0], 'above-map');
+                } else {
+                    this.showToast('Атака проведена', `${c[0]} · контроль растёт`, 'above-map');
+                }
+                if (this.coralMap) this.coralMap.draw();
+                this.refreshCityControlPlate();
+                this.saveState();
+            }
+
+            fortifyCity(idx) {
+                const s = this.getCity(idx);
+                const maxHp = this.getHP();
+                if (!s.mine || s.hp >= maxHp) return;
+                if (this.dnaPoints < this.PVP_FORTIFY_COST) {
+                    this.showToast('Не хватает Пакетов', `Нужно ${this.PVP_FORTIFY_COST}`, 'above-map');
+                    return;
+                }
+                this.dnaPoints -= this.PVP_FORTIFY_COST;
+                this.updateDNACounter();
+                s.hp = maxHp;
+                this.showToast('Оборона восстановлена', this.cities[idx][0], 'above-map');
+                this.refreshCityControlPlate();
+                this.saveState();
+            }
+
+            // Incoming PvP from the enemy faction against a random held city.
+            // HP (pool) and Defense Power (mitigation) decide how many attacks
+            // a city survives before the player loses control of it.
+            enemyAttackOnPlayer() {
+                const held = Object.keys(this.cityState).filter(i => this.cityState[i].mine);
+                if (!held.length) return;
+                const idx = +held[Math.floor(Math.random() * held.length)];
+                const c = this.cities[idx];
+                if (!c) return;
+                const s = this.getCity(idx);
+                const enemyLvl = (this.continents[c[4]] && this.continents[c[4]].enemyLevel) || 0;
+                const incoming = this.ENEMY_ATK_BASE + enemyLvl * 6;
+                const dmg = Math.max(1, incoming - this.getDefensePower());
+                s.hp -= dmg;
+                if (s.hp <= 0) {
+                    s.hp = 0;
+                    s.mine = false;
+                    const mineKey = this.myFactionKey();
+                    const enemyKey = this.enemyFactionKey();
+                    const flip = Math.min(s[mineKey], this.PVP_CAPTURE_GAIN);
+                    s[mineKey] = Math.max(1, s[mineKey] - flip);
+                    s[enemyKey] += this.PVP_CAPTURE_GAIN;
+                    this.showToast('Город потерян!', `${c[0]} перешёл к противнику`, 'above-map');
+                } else {
+                    this.showToast('Атака на ваш город', `${c[0]} · −${dmg} обороны`, 'above-map');
+                }
+                if (this._plateCityIdx === idx) this.refreshCityControlPlate();
+                if (this.coralMap) this.coralMap.draw();
+                this.saveState();
             }
 
             clearMapSelection() {
@@ -7771,6 +7996,11 @@
                 if (!plate || !nameEl || !actionEl) return;
                 this._plateCityIdx = cityIdx;
                 nameEl.textContent = name;
+                // Picker/tutorial plate: hide the PvP control section + 2nd button.
+                const ctrlEl = document.getElementById('plateControl');
+                const action2El = document.getElementById('plateAction2');
+                if (ctrlEl) ctrlEl.hidden = true;
+                if (action2El) { action2El.hidden = true; action2El.onclick = null; }
                 if (actionLabel) {
                     actionEl.textContent = actionLabel;
                     actionEl.hidden = false;
@@ -8247,6 +8477,9 @@
                 c.enemyLevel = Math.min(10, (c.enemyLevel || 0) + 1);
                 if (this.coralMap) this.coralMap.draw();
                 this.saveState && this.saveState();
+                // The enemy faction also launches a PvP raid on a city the
+                // player holds (roughly every other opponent tick).
+                if (Math.random() < 0.5) this.enemyAttackOnPlayer();
             }
 
             bindEvents() {
@@ -9711,6 +9944,7 @@
                         gameStartTime: this.gameStartTime,
                         lastTickAt: this.lastTickAt || Date.now(),
                         continents: continentsData,
+                        cityState: this.cityState,
                         newsByDay: this.newsByDay,
                         activeBuffs: this.activeBuffs
                     };
@@ -9730,6 +9964,7 @@
                     }
                     if (data.techResearched) this.techResearched = data.techResearched;
                     if (data.techActive) this.techActive = data.techActive;
+                    if (data.cityState) this.cityState = data.cityState;
                     if (data.rooms) {
                         this.roomOrder.forEach(id => {
                             const s = data.rooms[id];
