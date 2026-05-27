@@ -3335,6 +3335,57 @@
             50%     { box-shadow: inset 0 0 14px 2px rgba(74,222,128,0.7), inset 0 0 0 3px rgba(74,222,128,0.95); }
         }
 
+        /* ===== Locked room (gray mask + unlock) ===== */
+        .room .room-dim {
+            position: absolute; inset: 0;
+            filter: grayscale(1) brightness(0.42) contrast(0.85);
+        }
+        .room-lock {
+            position: absolute; inset: 0;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            gap: 7px;
+            background: rgba(28,32,40,0.62);
+            z-index: 5;
+        }
+        .room-lock .lock-ico {
+            font-size: 24px;
+            filter: drop-shadow(0 2px 3px rgba(0,0,0,0.6));
+            opacity: 0.92;
+        }
+        .room-lock .lock-name {
+            font-size: 11.5px; font-weight: 800; color: #e8eaf0;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+            text-align: center; padding: 0 8px; line-height: 1.15;
+        }
+        .lock-btn {
+            padding: 7px 14px; border: none; border-radius: 10px;
+            font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 800;
+            color: #06240f;
+            background: linear-gradient(180deg, #a7f3c0, #16a34a);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.55), 0 3px 8px rgba(0,0,0,0.45);
+            cursor: pointer; -webkit-tap-highlight-color: transparent;
+        }
+        .lock-btn:active { transform: scale(0.95); }
+
+        /* Reveal animation when a room is unlocked */
+        .room.revealing > svg { animation: roomReveal 0.6s cubic-bezier(0.2,0.9,0.25,1.2) both; transform-origin: 50% 70%; }
+        @keyframes roomReveal {
+            0%   { transform: scale(0.4); opacity: 0; }
+            55%  { transform: scale(1.06); opacity: 1; }
+            100% { transform: scale(1); }
+        }
+        .room-flash {
+            position: absolute; inset: 0; z-index: 6; pointer-events: none;
+            background: radial-gradient(circle at 50% 60%, rgba(255,255,255,0.95), rgba(167,243,192,0.5) 35%, transparent 70%);
+            animation: roomFlash 0.75s ease-out forwards;
+        }
+        @keyframes roomFlash {
+            0%   { opacity: 0; transform: scale(0.3); }
+            25%  { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(1.5); }
+        }
+
         /* ===== Room detail sheet ===== */
         .room-sheet-backdrop {
             position: absolute;
@@ -7041,11 +7092,11 @@
                     hp:       { rkn: 'PR-отдел',            vpn: 'Чаты пользователей',     icon: '❤️',
                                 desc: 'HP — резерв прочности', stat: 'hp' }
                 };
-                // Per-room runtime state. The income room starts at level 1
-                // so there's a trickle of packets from the start.
+                // Per-room runtime state. Every room starts locked; the
+                // player unlocks them instantly (a fee, no idle timer).
                 this.rooms = {};
                 this.roomOrder.forEach(id => {
-                    this.rooms[id] = { level: id === 'income' ? 1 : 0, endsAt: 0, duration: 0 };
+                    this.rooms[id] = { level: 0, endsAt: 0, duration: 0, unlocked: false };
                 });
                 this.roomTickTimer = null;
                 this.openRoom = null;
@@ -9794,6 +9845,7 @@
                             this.rooms[id].level    = Math.max(0, Math.min(this.MAX_ROOM_LEVEL, s.level || 0));
                             this.rooms[id].endsAt    = s.endsAt   || 0;
                             this.rooms[id].duration  = s.duration || 0;
+                            this.rooms[id].unlocked  = !!s.unlocked;
                         });
                     }
                     if (typeof data.tutorialDone === 'boolean') this.tutorialDone = data.tutorialDone;
@@ -10042,8 +10094,34 @@
             // seconds at low levels up to 8h near the top.
             roomDuration(id) {
                 const lvl = this.rooms[id].level;
-                const ms = 15000 * Math.pow(1.105, lvl); // 15s → grows
+                // Fast early game: a few seconds at low levels, ramping up
+                // to the 8h cap around level ~80.
+                const ms = 4000 * Math.pow(1.12, lvl);
                 return Math.min(8 * 3600 * 1000, Math.round(ms));
+            }
+            // Instant unlock fee (in Packets) for a room — first one free.
+            roomUnlockCost(id) {
+                const i = this.roomOrder.indexOf(id);
+                return [0, 150, 400, 900, 1800, 3500][i] || 0;
+            }
+            unlockRoom(id) {
+                const room = this.rooms[id];
+                if (!room || room.unlocked) return;
+                const cost = this.roomUnlockCost(id);
+                if (this.dnaPoints < cost) {
+                    this.showToast('Не хватает Пакетов', `Нужно ${cost}`, 'above-map');
+                    return;
+                }
+                this.dnaPoints -= cost;
+                this.updateDNACounter();
+                room.unlocked = true;
+                room.level = 1;            // opens already working at level 1
+                room.endsAt = 0;
+                room.duration = 0;
+                this.updateDNARate();
+                this.renderBaseStats();
+                this.saveState();
+                this.updateRoomTile(id, true);   // play reveal animation
             }
             // Derived stat value from a room's level (display only for now).
             roomEffectText(id, levelOverride) {
@@ -10098,15 +10176,50 @@
 
             // Refresh a single room tile (class + scene) without rebuilding
             // the whole building — keeps the other rooms' animations running.
-            updateRoomTile(id) {
-                const el = document.querySelector(`.room[data-room="${id}"]`);
-                if (!el) return;
+            // Inner HTML of a room tile — locked mask or the live interior.
+            roomTileInner(id) {
                 const room = this.rooms[id];
+                if (!room.unlocked) {
+                    const cost = this.roomUnlockCost(id);
+                    const label = cost > 0 ? `Открыть · 📦 ${cost}` : 'Открыть';
+                    return `<div class="room-dim">${this.buildRoomScene(id, 1)}</div>
+                        <div class="room-lock">
+                            <div class="lock-ico">🔒</div>
+                            <div class="lock-name">${this.roomName(id)}</div>
+                            <button class="lock-btn" data-unlock="${id}">${label}</button>
+                        </div>`;
+                }
+                return this.buildRoomScene(id, room.level);
+            }
+            roomTileClass(id) {
+                const room = this.rooms[id];
+                if (!room.unlocked) return 'room locked';
                 const ready = room.endsAt && Date.now() >= room.endsAt;
                 const busy = room.endsAt && !ready;
-                el.className = 'room' + (ready ? ' ready' : (busy ? ' busy' : ''));
-                el.innerHTML = this.buildRoomScene(id, room.level);
-                this.tap(el, () => this.openRoomSheet(id));
+                return 'room' + (ready ? ' ready' : (busy ? ' busy' : ''));
+            }
+            wireRoomTile(el) {
+                const id = el.dataset.room;
+                if (this.rooms[id].unlocked) {
+                    this.tap(el, () => this.openRoomSheet(id));
+                } else {
+                    const btn = el.querySelector('[data-unlock]');
+                    if (btn) this.tap(btn, () => this.unlockRoom(id));
+                }
+            }
+            updateRoomTile(id, reveal) {
+                const el = document.querySelector(`.room[data-room="${id}"]`);
+                if (!el) return;
+                el.className = this.roomTileClass(id);
+                el.innerHTML = this.roomTileInner(id);
+                this.wireRoomTile(el);
+                if (reveal) {
+                    el.classList.add('revealing');
+                    const flash = document.createElement('div');
+                    flash.className = 'room-flash';
+                    el.appendChild(flash);
+                    setTimeout(() => { el.classList.remove('revealing'); flash.remove(); }, 750);
+                }
             }
 
             // Called every second from the income loop. Does NOT rebuild the
@@ -10445,17 +10558,8 @@
                 const grid = document.getElementById('baseGrid');
                 if (!grid) return;
 
-                const roomHTML = (id) => {
-                    const room = this.rooms[id];
-                    const now2 = Date.now();
-                    const ready = room.endsAt && now2 >= room.endsAt;
-                    const upgrading = room.endsAt && !ready;
-                    const cls = ready ? 'ready' : (upgrading ? 'busy' : '');
-                    // Rooms are clean — no labels/buttons. Detail opens on tap.
-                    return `<div class="room ${cls}" data-room="${id}">
-                        ${this.buildRoomScene(id, room.level)}
-                    </div>`;
-                };
+                const roomHTML = (id) =>
+                    `<div class="${this.roomTileClass(id)}" data-room="${id}">${this.roomTileInner(id)}</div>`;
 
                 // 3 floors, 2 rooms each.
                 let html = '<div class="bld-roof"></div>';
@@ -10466,10 +10570,7 @@
                 }
                 grid.innerHTML = html;
 
-                // Tap a room to open its detail sheet.
-                grid.querySelectorAll('.room').forEach(el => {
-                    this.tap(el, () => this.openRoomSheet(el.dataset.room));
-                });
+                grid.querySelectorAll('.room').forEach(el => this.wireRoomTile(el));
             }
 
             tickPassiveIncome() {
