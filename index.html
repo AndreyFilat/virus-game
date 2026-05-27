@@ -10154,21 +10154,6 @@
                 this.updateDNACounter();
                 room.duration = this.roomDuration(id);
                 room.endsAt = Date.now() + room.duration;
-                room._ready = false;
-                this.saveState();
-                this.updateRoomTile(id);
-                if (this.openRoom === id) this.renderRoomSheet(id);
-            }
-
-            collectRoom(id) {
-                const room = this.rooms[id];
-                if (!room || !room.endsAt || Date.now() < room.endsAt) return;
-                room.level = Math.min(this.MAX_ROOM_LEVEL, room.level + 1);
-                room.endsAt = 0;
-                room.duration = 0;
-                room._ready = false;
-                this.updateDNARate();
-                this.renderBaseStats();
                 this.saveState();
                 this.updateRoomTile(id);
                 if (this.openRoom === id) this.renderRoomSheet(id);
@@ -10194,9 +10179,7 @@
             roomTileClass(id) {
                 const room = this.rooms[id];
                 if (!room.unlocked) return 'room locked';
-                const ready = room.endsAt && Date.now() >= room.endsAt;
-                const busy = room.endsAt && !ready;
-                return 'room' + (ready ? ' ready' : (busy ? ' busy' : ''));
+                return 'room' + (room.endsAt ? ' busy' : '');
             }
             wireRoomTile(el) {
                 const id = el.dataset.room;
@@ -10229,10 +10212,16 @@
                 const active = document.getElementById('baseScreen').classList.contains('active');
                 this.roomOrder.forEach(id => {
                     const room = this.rooms[id];
-                    const ready = !!(room.endsAt && Date.now() >= room.endsAt);
-                    if (ready !== !!room._ready) {
-                        room._ready = ready;
-                        if (active) this.updateRoomTile(id);
+                    // Auto-complete a finished upgrade — no manual collect.
+                    if (room.endsAt && Date.now() >= room.endsAt) {
+                        room.level = Math.min(this.MAX_ROOM_LEVEL, room.level + 1);
+                        room.endsAt = 0;
+                        room.duration = 0;
+                        this.updateDNARate();
+                        this.renderBaseStats();
+                        this.saveState();
+                        if (active) this.updateRoomTile(id, true);
+                        if (this.openRoom === id) this.renderRoomSheet(id);
                     }
                 });
                 if (this.openRoom) this.renderRoomSheet(this.openRoom);
@@ -10268,8 +10257,7 @@
                 const room = this.rooms[id];
                 const def = this.roomDefs[id];
                 const maxed = room.level >= this.MAX_ROOM_LEVEL;
-                const ready = room.endsAt && Date.now() >= room.endsAt;
-                const busy = room.endsAt && !ready;
+                const busy = !!room.endsAt;
                 const cost = this.roomCost(id);
                 const affordable = this.dnaPoints >= cost;
 
@@ -10281,10 +10269,8 @@
                 let action, progress = '';
                 if (maxed) {
                     action = `<button class="rs-action" disabled>Максимальный уровень</button>`;
-                } else if (ready) {
-                    action = `<button class="rs-action collect" data-collect="${id}">Забрать улучшение ✓</button>`;
                 } else if (busy) {
-                    const left = room.endsAt - Date.now();
+                    const left = Math.max(0, room.endsAt - Date.now());
                     const pct = room.duration ? (1 - left / room.duration) * 100 : 0;
                     progress = `<div class="rs-progress-wrap"><div class="rs-progress-bar" style="width:${pct.toFixed(1)}%"></div></div>`;
                     action = `<button class="rs-action busy" disabled>⏳ Идёт улучшение · ${this.fmtDuration(left)}</button>`;
@@ -10310,7 +10296,6 @@
                 const wire = (sel, fn) => { const b = body.querySelector(sel); if (b) this.tap(b, fn); };
                 wire('[data-close]', () => this.closeRoomSheet());
                 wire('[data-upgrade]', () => this.startRoomUpgrade(id));
-                wire('[data-collect]', () => this.collectRoom(id));
             }
 
             fmtDuration(ms) {
