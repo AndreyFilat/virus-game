@@ -8386,6 +8386,10 @@
             }
 
             switchScreen(id) {
+                // Always dismiss the room detail sheet so its backdrop can't
+                // linger over another screen and swallow taps.
+                if (this.openRoom) this.closeRoomSheet();
+
                 document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
                 const target = document.getElementById(id);
                 if (target) target.classList.add('active');
