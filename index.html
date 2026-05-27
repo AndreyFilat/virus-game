@@ -3140,115 +3140,188 @@
         .base-stat .bs-ico { font-size: 13px; }
         .base-stat .bs-val { color: #93c5fd; }
 
-        .base-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            max-width: 440px;
-            margin: 0 auto;
+        /* ===== Vault cross-section ===== */
+        .vault {
+            max-width: 460px;
             width: 100%;
-        }
-        .room-card {
-            position: relative;
-            background: linear-gradient(170deg, #1c2540 0%, #10162a 100%);
-            border: 2px solid rgba(96,165,250,0.35);
-            border-radius: 16px;
-            padding: 12px 12px 14px;
-            overflow: hidden;
-            box-shadow:
-                0 8px 20px rgba(0,0,0,0.5),
-                inset 0 2px 0 rgba(255,255,255,0.08),
-                inset 0 -3px 0 rgba(0,0,0,0.4);
-            cursor: pointer;
-            transition: transform 0.15s ease, border-color 0.2s;
-            -webkit-tap-highlight-color: transparent;
-        }
-        body.faction-rkn .room-card { border-color: rgba(248,113,113,0.35); }
-        .room-card:active { transform: scale(0.97); }
-        .room-card.upgrading { border-color: rgba(253,224,71,0.6); }
-        .room-card.ready     { border-color: rgba(74,222,128,0.85); }
-        .room-card.locked    { opacity: 0.5; }
-        .room-head {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 6px;
-        }
-        .room-ico {
-            width: 38px; height: 38px;
-            flex: 0 0 38px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 22px;
-            background: radial-gradient(circle at 40% 30%, rgba(147,197,253,0.4), rgba(30,58,138,0.6));
+            margin: 0 auto;
+            border: 4px solid #050608;
             border-radius: 10px;
-            border: 1px solid rgba(255,255,255,0.12);
+            overflow: hidden;
+            background: #050608;
+            box-shadow: 0 14px 34px rgba(0,0,0,0.6);
         }
-        body.faction-rkn .room-ico { background: radial-gradient(circle at 40% 30%, rgba(252,165,165,0.4), rgba(127,29,29,0.6)); }
-        .room-name {
-            font-size: 12.5px;
+        .vault-floor {
+            position: relative;
+            display: flex;
+            height: 104px;
+            border-bottom: 5px solid #050608;
+        }
+        .vault-floor:last-child { border-bottom: none; }
+
+        /* Elevator shaft running down the left edge */
+        .shaft {
+            position: relative;
+            flex: 0 0 34px;
+            width: 34px;
+            background:
+                repeating-linear-gradient(180deg, #1a1d24 0 6px, #12151b 6px 12px);
+            border-right: 3px solid #050608;
+        }
+        .shaft::before { /* cable */
+            content: '';
+            position: absolute;
+            left: 50%; top: 0; bottom: 0;
+            width: 2px;
+            transform: translateX(-50%);
+            background: linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0.04));
+        }
+        .shaft::after { /* side rails */
+            content: '';
+            position: absolute;
+            left: 3px; right: 3px; top: 0; bottom: 0;
+            border-left: 2px solid rgba(255,255,255,0.05);
+            border-right: 2px solid rgba(0,0,0,0.5);
+        }
+        .vault-floor:nth-child(3) .shaft .elevator-car { display: block; }
+        .elevator-car {
+            display: none;
+            position: absolute;
+            left: 4px; right: 4px; top: 50%;
+            height: 58px;
+            transform: translateY(-50%);
+            background: linear-gradient(180deg, #fde047, #b45309);
+            border: 2px solid #050608;
+            border-radius: 3px;
+            box-shadow: inset 0 2px 0 rgba(255,255,255,0.4), inset 0 -3px 0 rgba(0,0,0,0.4);
+        }
+
+        /* The room interior */
+        .room-scene {
+            position: relative;
+            flex: 1;
+            overflow: hidden;
+        }
+        .room-scene > svg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        .room-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 6px 8px 7px;
+        }
+        .room-topline {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 6px;
+        }
+        .room-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            max-width: 64%;
+            padding: 3px 8px;
+            background: rgba(5,7,12,0.72);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 8px;
+            backdrop-filter: blur(2px);
+        }
+        .room-tag .rt-ico { font-size: 13px; line-height: 1; }
+        .room-tag .rt-name {
+            font-size: 11.5px;
             font-weight: 800;
             color: #fff;
-            line-height: 1.15;
+            line-height: 1.1;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.8);
         }
-        .room-lvl {
+        .room-lvlchip {
+            flex: 0 0 auto;
+            padding: 3px 7px;
+            background: rgba(5,7,12,0.72);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 8px;
             font-family: 'Space Mono', monospace;
             font-size: 10px;
-            color: #93c5fd;
-            margin-top: 1px;
+            font-weight: 700;
+            color: #cbd5e1;
         }
-        .room-desc {
-            font-size: 10.5px;
-            color: #94a3b8;
-            line-height: 1.3;
-            min-height: 27px;
-            margin-bottom: 8px;
+        .room-botline {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 6px;
         }
         .room-effect {
             font-family: 'Space Mono', monospace;
             font-size: 11px;
             font-weight: 700;
-            color: #86efac;
-            margin-bottom: 8px;
+            color: #fff;
+            padding: 2px 7px;
+            background: rgba(5,7,12,0.6);
+            border-radius: 7px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.9);
         }
         .room-btn {
-            width: 100%;
-            padding: 8px;
-            border: none;
-            border-radius: 10px;
+            flex: 0 0 auto;
+            min-width: 78px;
+            padding: 7px 12px;
+            border: 2px solid rgba(5,7,12,0.5);
+            border-radius: 9px;
             font-family: 'Space Mono', monospace;
             font-size: 11.5px;
             font-weight: 800;
             color: #06240f;
             background: linear-gradient(180deg, #86efac, #16a34a);
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 3px 8px rgba(22,163,74,0.4);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 3px 8px rgba(0,0,0,0.5);
             cursor: pointer;
             -webkit-tap-highlight-color: transparent;
         }
+        .room-btn:active { transform: scale(0.95); }
         .room-btn:disabled {
-            background: linear-gradient(180deg, #475569, #1e293b);
-            color: #94a3b8;
+            background: linear-gradient(180deg, #64748b, #334155);
+            color: #cbd5e1;
             box-shadow: none;
             cursor: default;
         }
         .room-btn.collect {
             background: linear-gradient(180deg, #fde047, #d97706);
             color: #3a1c03;
+            animation: collectPulse 1s ease-in-out infinite;
+        }
+        @keyframes collectPulse {
+            0%,100% { box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 0 0 0 rgba(253,224,71,0.5); }
+            50%     { box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 0 0 6px rgba(253,224,71,0); }
         }
         .room-timer {
+            flex: 0 0 auto;
             font-family: 'Space Mono', monospace;
             font-size: 12px;
-            font-weight: 700;
+            font-weight: 800;
             color: #fde047;
-            text-align: center;
-            padding: 7px;
+            padding: 6px 10px;
+            background: rgba(5,7,12,0.7);
+            border-radius: 9px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.9);
         }
         .room-progress {
             position: absolute;
             left: 0; bottom: 0;
-            height: 3px;
+            height: 4px;
             background: linear-gradient(90deg, #fde047, #f97316);
+            box-shadow: 0 0 8px rgba(253,224,71,0.7);
             transition: width 0.5s linear;
+            z-index: 2;
         }
+        .vault-floor.ready .room-scene { box-shadow: inset 0 0 0 3px rgba(74,222,128,0.85); }
+        .vault-floor.upgrading .room-scene { box-shadow: inset 0 0 0 2px rgba(253,224,71,0.55); }
 
         .news-screen-title {
             font-family: 'Space Mono', monospace;
@@ -4778,7 +4851,7 @@
         <div class="screen base-screen" id="baseScreen">
             <h2 class="base-title">База</h2>
             <div class="base-stats" id="baseStats"></div>
-            <div class="base-grid" id="baseGrid"></div>
+            <div class="vault" id="baseGrid"></div>
         </div>
 
         <!-- Level-up full-screen animation -->
@@ -9940,6 +10013,114 @@
                     `<div class="base-stat"><span class="bs-ico">📦</span><span class="bs-val">${this.roomIncomePerSec().toFixed(1)}</span>/сек</div>`;
             }
 
+            // Themed SVG cross-section interior for a room. Stylised, not
+            // pixel art — server racks / lab benches / screens etc. per stat.
+            buildRoomScene(id, level) {
+                const P = {
+                    income:   { wall1:'#1b2c4d', wall2:'#0c1526', floor:'#0a1120', glow:'#38bdf8', lite:'#7dd3fc' },
+                    research: { wall1:'#103632', wall2:'#07201d', floor:'#06201c', glow:'#2dd4bf', lite:'#5eead4' },
+                    attack:   { wall1:'#421823', wall2:'#240a10', floor:'#1c070c', glow:'#f87171', lite:'#fca5a5' },
+                    contrib:  { wall1:'#41330f', wall2:'#221c08', floor:'#1d1707', glow:'#fbbf24', lite:'#fde047' },
+                    defense:  { wall1:'#2d1a45', wall2:'#160c26', floor:'#130a22', glow:'#a78bfa', lite:'#c4b5fd' },
+                    hp:       { wall1:'#411536', wall2:'#240a1d', floor:'#200818', glow:'#f472b6', lite:'#f9a8d4' }
+                }[id] || { wall1:'#1b2c4d', wall2:'#0c1526', floor:'#0a1120', glow:'#38bdf8', lite:'#7dd3fc' };
+                const g = `g_${id}`;
+
+                // Hanging ceiling lights — a few evenly spaced.
+                let lights = '';
+                for (let i = 0; i < 5; i++) {
+                    const x = 38 + i * 60;
+                    lights += `<line x1="${x}" y1="8" x2="${x}" y2="15" stroke="#000" stroke-width="1.5" opacity="0.5"/>
+                        <ellipse cx="${x}" cy="17" rx="7" ry="3" fill="${P.lite}" opacity="0.9"/>
+                        <ellipse cx="${x}" cy="26" rx="34" ry="20" fill="${P.lite}" opacity="0.10"/>`;
+                }
+
+                // Stat-specific equipment.
+                let props = '';
+                if (id === 'income') {
+                    for (let r = 0; r < 4; r++) {
+                        const x = 22 + r * 58;
+                        let dots = '';
+                        for (let d = 0; d < 6; d++) {
+                            const on = (r + d) % 3 !== 0;
+                            dots += `<rect x="${x+6}" y="${44+d*8}" width="30" height="4" rx="1" fill="${on ? P.glow : '#1f2937'}" opacity="${on?0.9:0.6}"/>`;
+                        }
+                        props += `<rect x="${x}" y="38" width="44" height="56" rx="2" fill="#0e1726" stroke="#000" stroke-width="1.5"/>${dots}`;
+                    }
+                } else if (id === 'research') {
+                    props += `<rect x="20" y="62" width="120" height="32" rx="2" fill="#0c2a26" stroke="#000" stroke-width="1.5"/>`;
+                    [40,70,100].forEach((x,i) => {
+                        props += `<path d="M${x} 58 l-5 -14 h10 z" fill="${P.glow}" opacity="0.85" stroke="#000" stroke-width="1"/>
+                            <ellipse cx="${x}" cy="50" rx="3" ry="2" fill="${P.lite}"/>`;
+                    });
+                    props += `<rect x="170" y="40" width="110" height="40" rx="3" fill="#06201c" stroke="#000" stroke-width="2"/>
+                        <path d="M178 70 q26 -28 52 -10 t44 -6" fill="none" stroke="${P.glow}" stroke-width="2"/>`;
+                } else if (id === 'attack') {
+                    props += `<rect x="24" y="32" width="150" height="50" rx="3" fill="#1a070c" stroke="#000" stroke-width="2"/>`;
+                    // network map of nodes + links
+                    const nodes = [[55,48],[95,68],[135,44],[110,72],[70,76]];
+                    nodes.forEach((n,i) => { if(i) props += `<line x1="${nodes[0][0]}" y1="${nodes[0][1]}" x2="${n[0]}" y2="${n[1]}" stroke="${P.glow}" stroke-width="1.4" opacity="0.7"/>`; });
+                    nodes.forEach(n => props += `<circle cx="${n[0]}" cy="${n[1]}" r="4" fill="${P.lite}"/>`);
+                    props += `<rect x="200" y="56" width="92" height="38" rx="2" fill="#1a070c" stroke="#000" stroke-width="1.5"/>
+                        <rect x="208" y="64" width="76" height="5" rx="2" fill="${P.glow}"/>
+                        <rect x="208" y="74" width="50" height="5" rx="2" fill="${P.glow}" opacity="0.6"/>`;
+                } else if (id === 'contrib') {
+                    for (let s = 0; s < 3; s++) {
+                        const x = 24 + s * 56;
+                        props += `<rect x="${x}" y="40" width="46" height="54" rx="2" fill="#2a2208" stroke="#000" stroke-width="1.5"/>`;
+                        for (let b = 0; b < 3; b++)
+                            props += `<rect x="${x+5}" y="${46+b*16}" width="36" height="12" rx="1.5" fill="${P.glow}" opacity="${0.5+b*0.15}"/>`;
+                    }
+                    props += `<rect x="206" y="66" width="88" height="28" rx="2" fill="#2a2208" stroke="#000" stroke-width="1.5"/>`;
+                } else if (id === 'defense') {
+                    for (let c = 0; c < 4; c++) {
+                        const x = 22 + c * 44;
+                        props += `<rect x="${x}" y="42" width="34" height="52" rx="2" fill="#1c1033" stroke="#000" stroke-width="1.5"/>
+                            <rect x="${x+5}" y="48" width="24" height="3" fill="${P.glow}" opacity="0.7"/>
+                            <rect x="${x+5}" y="56" width="24" height="3" fill="${P.glow}" opacity="0.5"/>
+                            <circle cx="${x+17}" cy="74" r="3" fill="${P.lite}"/>`;
+                    }
+                    props += `<path d="M250 44 l24 8 v16 q0 16 -24 24 q-24 -8 -24 -24 v-16 z" fill="#1c1033" stroke="${P.glow}" stroke-width="2"/>
+                        <path d="M239 64 l8 8 l16 -16" fill="none" stroke="${P.lite}" stroke-width="3" stroke-linecap="round"/>`;
+                } else if (id === 'hp') {
+                    for (let m = 0; m < 4; m++) {
+                        const x = 22 + m * 50;
+                        props += `<rect x="${x}" y="42" width="40" height="30" rx="2" fill="#2a0a22" stroke="#000" stroke-width="1.5"/>
+                            <rect x="${x+5}" y="47" width="30" height="4" rx="2" fill="${P.glow}"/>
+                            <rect x="${x+5}" y="55" width="20" height="4" rx="2" fill="${P.lite}" opacity="0.7"/>
+                            <rect x="${x+17}" y="72" width="6" height="10" fill="#1a0614"/>`;
+                    }
+                    props += `<path d="M250 50 q12 -10 22 2 q10 -12 22 -2 q4 14 -22 26 q-26 -12 -22 -26 z" fill="${P.glow}" opacity="0.85"/>`;
+                }
+
+                // A little worker silhouette near the floor.
+                const wx = 150;
+                const worker = `<g opacity="0.92">
+                    <circle cx="${wx}" cy="80" r="5" fill="#0b0f17"/>
+                    <rect x="${wx-5}" y="84" width="10" height="14" rx="3" fill="#0b0f17"/>
+                    <rect x="${wx-4}" y="86" width="8" height="9" rx="2" fill="${P.glow}" opacity="0.5"/>
+                </g>`;
+
+                return `<svg viewBox="0 0 320 104" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <defs>
+                        <linearGradient id="${g}w" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="${P.wall1}"/>
+                            <stop offset="100%" stop-color="${P.wall2}"/>
+                        </linearGradient>
+                    </defs>
+                    <rect x="0" y="0" width="320" height="104" fill="url(#${g}w)"/>
+                    <rect x="0" y="0" width="320" height="13" fill="#05080e"/>
+                    <rect x="0" y="13" width="320" height="3" fill="#000" opacity="0.5"/>
+                    <rect x="0" y="94" width="320" height="10" fill="${P.floor}"/>
+                    <rect x="0" y="94" width="320" height="2" fill="#000" opacity="0.6"/>
+                    ${[0,1,2,3,4,5,6,7].map(i=>`<line x1="${i*46}" y1="94" x2="${i*46-10}" y2="104" stroke="#000" stroke-width="1" opacity="0.4"/>`).join('')}
+                    ${lights}
+                    ${props}
+                    ${worker}
+                    <rect x="0" y="0" width="320" height="104" fill="url(#${g}w)" opacity="0" />
+                </svg>`;
+            }
+
             renderBaseScreen() {
                 this.renderBaseStats();
                 const grid = document.getElementById('baseGrid');
@@ -9954,33 +10135,37 @@
                     const cost = this.roomCost(id);
                     const affordable = this.dnaPoints >= cost;
 
-                    let footer, cls = '';
+                    let control, cls = '';
                     if (maxed) {
-                        footer = `<button class="room-btn" disabled>MAX</button>`;
+                        control = `<button class="room-btn" disabled>MAX</button>`;
                     } else if (ready) {
                         cls = 'ready';
-                        footer = `<button class="room-btn collect" data-collect="${id}">Готово ✓</button>`;
+                        control = `<button class="room-btn collect" data-collect="${id}">Готово ✓</button>`;
                     } else if (upgrading) {
                         cls = 'upgrading';
                         const left = room.endsAt - now;
                         const pct = room.duration ? (1 - left / room.duration) * 100 : 0;
-                        footer = `<div class="room-timer">${this.fmtDuration(left)}</div>` +
-                                 `<div class="room-progress" style="width:${pct.toFixed(1)}%"></div>`;
+                        control = `<div class="room-timer">⏳ ${this.fmtDuration(left)}</div>` +
+                                  `<div class="room-progress" style="width:${pct.toFixed(1)}%"></div>`;
                     } else {
-                        footer = `<button class="room-btn" data-upgrade="${id}" ${affordable ? '' : 'disabled'}>📦 ${cost}</button>`;
+                        control = `<button class="room-btn" data-upgrade="${id}" ${affordable ? '' : 'disabled'}>📦 ${cost}</button>`;
                     }
 
-                    return `<div class="room-card ${cls}" data-room="${id}">
-                        <div class="room-head">
-                            <div class="room-ico">${def.icon}</div>
-                            <div>
-                                <div class="room-name">${this.roomName(id)}</div>
-                                <div class="room-lvl">Ур. ${room.level}/${this.MAX_ROOM_LEVEL}</div>
+                    return `<div class="vault-floor ${cls}" data-room="${id}">
+                        <div class="shaft"><div class="elevator-car"></div></div>
+                        <div class="room-scene">
+                            ${this.buildRoomScene(id, room.level)}
+                            <div class="room-overlay">
+                                <div class="room-topline">
+                                    <span class="room-tag"><span class="rt-ico">${def.icon}</span><span class="rt-name">${this.roomName(id)}</span></span>
+                                    <span class="room-lvlchip">ур.${room.level}</span>
+                                </div>
+                                <div class="room-botline">
+                                    <span class="room-effect">${this.roomEffectText(id)}</span>
+                                    ${control}
+                                </div>
                             </div>
                         </div>
-                        <div class="room-desc">${def.desc}</div>
-                        <div class="room-effect">${this.roomEffectText(id)}</div>
-                        ${footer}
                     </div>`;
                 }).join('');
 
