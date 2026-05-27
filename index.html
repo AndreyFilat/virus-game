@@ -3321,11 +3321,112 @@
             transition: width 0.5s linear;
             z-index: 2;
         }
+        /* Clean rooms: only a gentle glow when an upgrade is ready to collect */
         .room.ready::after {
             content: '';
             position: absolute; inset: 0;
-            box-shadow: inset 0 0 0 3px rgba(74,222,128,0.9);
+            box-shadow: inset 0 0 0 3px rgba(74,222,128,0.85);
             pointer-events: none;
+            animation: roomReadyGlow 2.4s ease-in-out infinite;
+            z-index: 4;
+        }
+        @keyframes roomReadyGlow {
+            0%,100% { box-shadow: inset 0 0 0 3px rgba(74,222,128,0.35); }
+            50%     { box-shadow: inset 0 0 14px 2px rgba(74,222,128,0.7), inset 0 0 0 3px rgba(74,222,128,0.95); }
+        }
+
+        /* ===== Room detail sheet ===== */
+        .room-sheet-backdrop {
+            position: absolute;
+            inset: 0;
+            z-index: 60;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            background: rgba(4,6,12,0.55);
+            opacity: 0;
+            transition: opacity 0.25s ease;
+        }
+        .room-sheet-backdrop.show { opacity: 1; }
+        .room-sheet {
+            width: 100%;
+            max-width: 470px;
+            background: linear-gradient(180deg, #1b2030 0%, #11151f 100%);
+            border-radius: 18px 18px 0 0;
+            border-top: 3px solid var(--room-accent, #3b82f6);
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.6);
+            padding: 14px 16px calc(86px + env(safe-area-inset-bottom, 0px));
+            transform: translateY(110%);
+            transition: transform 0.32s cubic-bezier(0.2,0.85,0.25,1);
+        }
+        .room-sheet-backdrop.show .room-sheet { transform: translateY(0); }
+        .rs-grab {
+            width: 40px; height: 4px; border-radius: 2px;
+            background: rgba(255,255,255,0.25);
+            margin: 0 auto 12px;
+        }
+        .rs-head { display: flex; align-items: center; gap: 11px; margin-bottom: 10px; }
+        .rs-ico {
+            width: 46px; height: 46px; flex: 0 0 46px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 26px; border-radius: 12px;
+            background: rgba(255,255,255,0.07);
+            border: 1px solid var(--room-accent, #3b82f6);
+        }
+        .rs-titles { flex: 1; min-width: 0; }
+        .rs-name { font-size: 16px; font-weight: 800; color: #fff; line-height: 1.15; }
+        .rs-lvl {
+            font-family: 'Space Mono', monospace;
+            font-size: 11px; font-weight: 700;
+            color: var(--room-accent, #3b82f6);
+            margin-top: 2px;
+        }
+        .rs-close {
+            flex: 0 0 auto;
+            width: 30px; height: 30px; border-radius: 9px;
+            border: none; background: rgba(255,255,255,0.08);
+            color: #cbd5e1; font-size: 16px; line-height: 1;
+            cursor: pointer; -webkit-tap-highlight-color: transparent;
+        }
+        .rs-desc { font-size: 12.5px; color: #94a3b8; line-height: 1.4; margin-bottom: 10px; }
+        .rs-stat {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 9px 12px; margin-bottom: 8px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 11px;
+        }
+        .rs-stat .rs-k { font-size: 11.5px; color: #94a3b8; font-weight: 600; }
+        .rs-stat .rs-v {
+            font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 800; color: #fff;
+        }
+        .rs-stat .rs-v.next { color: #86efac; }
+        .rs-progress-wrap {
+            height: 8px; border-radius: 4px; overflow: hidden;
+            background: rgba(255,255,255,0.08); margin: 4px 0 12px;
+        }
+        .rs-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #fde047, #f97316);
+            transition: width 0.5s linear;
+        }
+        .rs-action {
+            width: 100%; padding: 14px; border: none; border-radius: 13px;
+            font-family: 'Space Mono', monospace; font-size: 14px; font-weight: 800;
+            color: #06240f; background: linear-gradient(180deg, #a7f3c0, #16a34a);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 4px 12px rgba(22,163,74,0.4);
+            cursor: pointer; -webkit-tap-highlight-color: transparent;
+        }
+        .rs-action:active { transform: scale(0.98); }
+        .rs-action:disabled {
+            background: linear-gradient(180deg, #64748b, #334155);
+            color: #e2e8f0; box-shadow: none; cursor: default;
+        }
+        .rs-action.collect {
+            background: linear-gradient(180deg, #fde047, #d97706); color: #3a1c03;
+        }
+        .rs-action.busy {
+            background: rgba(253,224,71,0.14); color: #fde047; cursor: default;
+            box-shadow: inset 0 0 0 1px rgba(253,224,71,0.4);
         }
 
         .news-screen-title {
@@ -4857,6 +4958,11 @@
             <h2 class="base-title">База</h2>
             <div class="base-stats" id="baseStats"></div>
             <div class="building" id="baseGrid"></div>
+        </div>
+
+        <!-- Room detail sheet (opens on tapping a room) -->
+        <div class="room-sheet-backdrop" id="roomSheet" hidden>
+            <div class="room-sheet" id="roomSheetBody"></div>
         </div>
 
         <!-- Level-up full-screen animation -->
@@ -6941,6 +7047,7 @@
                     this.rooms[id] = { level: id === 'income' ? 1 : 0, endsAt: 0, duration: 0 };
                 });
                 this.roomTickTimer = null;
+                this.openRoom = null;
 
                 // Player's starting continent — set on first tutorial infection.
                 // Used to filter local news events.
@@ -9934,10 +10041,10 @@
                 return Math.min(8 * 3600 * 1000, Math.round(ms));
             }
             // Derived stat value from a room's level (display only for now).
-            roomEffectText(id) {
-                const lvl = this.rooms[id].level;
+            roomEffectText(id, levelOverride) {
+                const lvl = (levelOverride !== undefined) ? levelOverride : this.rooms[id].level;
                 switch (id) {
-                    case 'income':   return `+${(this.roomIncomePerSec()).toFixed(1)} пак/сек`;
+                    case 'income':   return `+${(lvl * 0.5).toFixed(1)} пак/сек`;
                     case 'research': return `−${Math.min(60, lvl * 0.6).toFixed(0)}% времени`;
                     case 'attack':   return `ATK ${lvl * 8}`;
                     case 'contrib':  return `+${(lvl * 2)}%/ч вклад`;
@@ -9964,8 +10071,10 @@
                 this.updateDNACounter();
                 room.duration = this.roomDuration(id);
                 room.endsAt = Date.now() + room.duration;
+                room._ready = false;
                 this.saveState();
-                this.renderBaseScreen();
+                this.updateRoomTile(id);
+                if (this.openRoom === id) this.renderRoomSheet(id);
             }
 
             collectRoom(id) {
@@ -9974,28 +10083,116 @@
                 room.level = Math.min(this.MAX_ROOM_LEVEL, room.level + 1);
                 room.endsAt = 0;
                 room.duration = 0;
+                room._ready = false;
                 this.updateDNARate();
+                this.renderBaseStats();
                 this.saveState();
-                this.renderBaseScreen();
+                this.updateRoomTile(id);
+                if (this.openRoom === id) this.renderRoomSheet(id);
             }
 
-            // Called every second from the income loop — auto-collects any
-            // finished upgrades and refreshes timers if the screen is open.
+            // Refresh a single room tile (class + scene) without rebuilding
+            // the whole building — keeps the other rooms' animations running.
+            updateRoomTile(id) {
+                const el = document.querySelector(`.room[data-room="${id}"]`);
+                if (!el) return;
+                const room = this.rooms[id];
+                const ready = room.endsAt && Date.now() >= room.endsAt;
+                const busy = room.endsAt && !ready;
+                el.className = 'room' + (ready ? ' ready' : (busy ? ' busy' : ''));
+                el.innerHTML = this.buildRoomScene(id, room.level);
+                this.tap(el, () => this.openRoomSheet(id));
+            }
+
+            // Called every second from the income loop. Does NOT rebuild the
+            // SVGs (so animations stay continuous) — only flips the ready glow
+            // when an upgrade finishes and refreshes the open sheet's timer.
             tickRooms() {
-                let changed = false;
+                const active = document.getElementById('baseScreen').classList.contains('active');
                 this.roomOrder.forEach(id => {
                     const room = this.rooms[id];
-                    if (room.endsAt && Date.now() >= room.endsAt) {
-                        room.level = Math.min(this.MAX_ROOM_LEVEL, room.level + 1);
-                        room.endsAt = 0;
-                        room.duration = 0;
-                        changed = true;
+                    const ready = !!(room.endsAt && Date.now() >= room.endsAt);
+                    if (ready !== !!room._ready) {
+                        room._ready = ready;
+                        if (active) this.updateRoomTile(id);
                     }
                 });
-                if (changed) { this.updateDNARate(); this.saveState(); }
-                if (document.getElementById('baseScreen').classList.contains('active')) {
-                    this.renderBaseScreen();
+                if (this.openRoom) this.renderRoomSheet(this.openRoom);
+            }
+
+            // ----- Room detail sheet -----
+            openRoomSheet(id) {
+                this.openRoom = id;
+                const back = document.getElementById('roomSheet');
+                back.style.setProperty('--room-accent', this.roomAccent(id));
+                this.renderRoomSheet(id);
+                back.hidden = false;
+                void back.offsetWidth;
+                back.classList.add('show');
+                if (!back._wired) {
+                    back._wired = true;
+                    back.addEventListener('click', (e) => {
+                        if (e.target === back) this.closeRoomSheet();
+                    });
                 }
+            }
+
+            closeRoomSheet() {
+                this.openRoom = null;
+                const back = document.getElementById('roomSheet');
+                back.classList.remove('show');
+                setTimeout(() => { if (!this.openRoom) back.hidden = true; }, 280);
+            }
+
+            renderRoomSheet(id) {
+                const body = document.getElementById('roomSheetBody');
+                if (!body) return;
+                const room = this.rooms[id];
+                const def = this.roomDefs[id];
+                const maxed = room.level >= this.MAX_ROOM_LEVEL;
+                const ready = room.endsAt && Date.now() >= room.endsAt;
+                const busy = room.endsAt && !ready;
+                const cost = this.roomCost(id);
+                const affordable = this.dnaPoints >= cost;
+
+                let statRows = `<div class="rs-stat"><span class="rs-k">Сейчас</span><span class="rs-v">${this.roomEffectText(id)}</span></div>`;
+                if (!maxed) {
+                    statRows += `<div class="rs-stat"><span class="rs-k">След. уровень</span><span class="rs-v next">${this.roomEffectText(id, room.level + 1)}</span></div>`;
+                }
+
+                let action, progress = '';
+                if (maxed) {
+                    action = `<button class="rs-action" disabled>Максимальный уровень</button>`;
+                } else if (ready) {
+                    action = `<button class="rs-action collect" data-collect="${id}">Забрать улучшение ✓</button>`;
+                } else if (busy) {
+                    const left = room.endsAt - Date.now();
+                    const pct = room.duration ? (1 - left / room.duration) * 100 : 0;
+                    progress = `<div class="rs-progress-wrap"><div class="rs-progress-bar" style="width:${pct.toFixed(1)}%"></div></div>`;
+                    action = `<button class="rs-action busy" disabled>⏳ Идёт улучшение · ${this.fmtDuration(left)}</button>`;
+                } else {
+                    action = `<button class="rs-action" data-upgrade="${id}" ${affordable ? '' : 'disabled'}>Улучшить · 📦 ${cost}</button>`;
+                }
+
+                body.innerHTML = `
+                    <div class="rs-grab"></div>
+                    <div class="rs-head">
+                        <div class="rs-ico">${def.icon}</div>
+                        <div class="rs-titles">
+                            <div class="rs-name">${this.roomName(id)}</div>
+                            <div class="rs-lvl">Уровень ${room.level} / ${this.MAX_ROOM_LEVEL}</div>
+                        </div>
+                        <button class="rs-close" data-close>✕</button>
+                    </div>
+                    <div class="rs-desc">${def.desc}</div>
+                    ${statRows}
+                    ${progress}
+                    ${action}`;
+
+                const wire = (sel, fn) => { const b = body.querySelector(sel); if (b) this.tap(b, fn); };
+                wire('[data-close]', () => this.closeRoomSheet());
+                wire('[data-upgrade]', () => this.startRoomUpgrade(id));
+                wire('[data-collect]', () => this.collectRoom(id));
             }
 
             fmtDuration(ms) {
@@ -10032,7 +10229,7 @@
                     <ellipse cx="${x}" cy="${floorY - 20}" rx="6" ry="12" fill="#2f9e54"/>
                     <ellipse cx="${x - 7}" cy="${floorY - 17}" rx="6" ry="10" fill="#37b262" transform="rotate(-22 ${x - 7} ${floorY - 17})"/>
                     <ellipse cx="${x + 7}" cy="${floorY - 17}" rx="6" ry="10" fill="#3bbf69" transform="rotate(22 ${x + 7} ${floorY - 17})"/>
-                    <animateTransform attributeName="transform" type="rotate" values="-1 ${x} ${floorY};1.5 ${x} ${floorY};-1 ${x} ${floorY}" dur="4.5s" repeatCount="indefinite" additive="sum"/>
+                    <animateTransform attributeName="transform" type="rotate" values="-1 ${x} ${floorY};1.2 ${x} ${floorY};-1 ${x} ${floorY}" dur="7s" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" repeatCount="indefinite" additive="sum"/>
                 </g>`;
             }
             _window(x, y, w, h) {
@@ -10049,7 +10246,7 @@
                     <circle cx="${x + w * 0.8}" cy="${y + h * 0.22}" r="${h * 0.12}" fill="#fff3c0"/>
                     <g fill="#fff" opacity="0.85">
                         <ellipse cx="${x + w * 0.3}" cy="${y + h * 0.25}" rx="6" ry="3"/>
-                        <animateTransform attributeName="transform" type="translate" from="-6 0" to="${w + 6} 0" dur="14s" repeatCount="indefinite"/>
+                        <animateTransform attributeName="transform" type="translate" from="-6 0" to="${w + 6} 0" dur="30s" repeatCount="indefinite"/>
                     </g>
                     <line x1="${x + w / 2}" y1="${y}" x2="${x + w / 2}" y2="${y + h}" stroke="#eef3f8" stroke-width="2"/>
                     <line x1="${x}" y1="${y + h / 2}" x2="${x + w}" y2="${y + h / 2}" stroke="#eef3f8" stroke-width="2"/>
@@ -10058,7 +10255,7 @@
             // a softly blinking indicator LED
             _led(x, y, color, dur, begin) {
                 return `<rect x="${x}" y="${y}" width="4" height="4" rx="1" fill="${color}">
-                    <animate attributeName="opacity" values="1;0.25;1" dur="${dur}s" begin="${begin}s" repeatCount="indefinite"/></rect>`;
+                    <animate attributeName="opacity" values="1;0.45;1" dur="${Math.max(2.6, dur)}s" begin="${begin}s" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" repeatCount="indefinite"/></rect>`;
             }
 
             // Detailed, animated office interior per room (no characters).
@@ -10088,13 +10285,13 @@
                     </defs>
                     <rect x="0" y="0" width="200" height="150" fill="url(#${g}w)"/>
                     <rect x="0" y="0" width="200" height="150" fill="url(#${g}l)">
-                        <animate attributeName="opacity" values="0.85;1;0.85" dur="5s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="0.85;1;0.85" dur="9s" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" repeatCount="indefinite"/>
                     </rect>
                     <rect x="0" y="32" width="200" height="2" fill="#000" opacity="0.05"/>
                     <rect x="0" y="0" width="200" height="9" fill="#f4eee2"/>
                     <rect x="0" y="9" width="200" height="2" fill="#000" opacity="0.12"/>
                     <rect x="68" y="9" width="64" height="6" rx="3" fill="#fffbe8"/>
-                    <rect x="74" y="10" width="52" height="3" rx="1.5" fill="${T.glow}"><animate attributeName="opacity" values="0.45;0.75;0.45" dur="3s" repeatCount="indefinite"/></rect>
+                    <rect x="74" y="10" width="52" height="3" rx="1.5" fill="${T.glow}"><animate attributeName="opacity" values="0.5;0.8;0.5" dur="6s" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" repeatCount="indefinite"/></rect>
                     <rect x="0" y="${FLOOR_Y}" width="200" height="${150 - FLOOR_Y}" fill="url(#${g}f)"/>
                     <rect x="0" y="${FLOOR_Y}" width="200" height="2" fill="#000" opacity="0.22"/>
                     <rect x="0" y="${FLOOR_Y + 2}" width="200" height="3" fill="#fff" opacity="0.06"/>`;
@@ -10119,7 +10316,7 @@
                         const fx = x + 15, fy = 49;
                         s += `<g><circle cx="${fx}" cy="${fy}" r="6" fill="#0f1623" stroke="#11161f" stroke-width="1"/>
                             <g><path d="M${fx} ${fy} l4 -5 a5 5 0 0 1 1 5 z" fill="${T.glow}"/><path d="M${fx} ${fy} l-4 5 a5 5 0 0 1 -1 -5 z" fill="${T.glow}"/><path d="M${fx} ${fy} l5 4 a5 5 0 0 1 -5 1 z" fill="${T.glow}" opacity="0.8"/>
-                            <animateTransform attributeName="transform" type="rotate" from="0 ${fx} ${fy}" to="360 ${fx} ${fy}" dur="${0.9 + r * 0.3}s" repeatCount="indefinite"/></g></g>`;
+                            <animateTransform attributeName="transform" type="rotate" from="0 ${fx} ${fy}" to="360 ${fx} ${fy}" dur="${6 + r * 1.5}s" repeatCount="indefinite"/></g></g>`;
                     }
                     s += this._plant(186, FLOOR_Y);
                 } else if (id === 'research') {
@@ -10137,14 +10334,14 @@
                             <path d="M${fx - 4} ${98} l1.5 -9 h5 l1.5 9 z" fill="${liq}" opacity="0.9"/>`;
                         for (let bI = 0; bI < 2; bI++) {
                             s += `<circle cx="${fx + (bI ? 2 : -2)}" cy="94" r="1.4" fill="#fff" opacity="0.8">
-                                <animate attributeName="cy" values="94;82;94" dur="${1.8 + bI * 0.6}s" begin="${i * 0.4 + bI * 0.5}s" repeatCount="indefinite"/>
-                                <animate attributeName="opacity" values="0;0.9;0" dur="${1.8 + bI * 0.6}s" begin="${i * 0.4 + bI * 0.5}s" repeatCount="indefinite"/></circle>`;
+                                <animate attributeName="cy" values="94;82;94" dur="${3.6 + bI * 0.8}s" begin="${i * 0.4 + bI * 0.5}s" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" repeatCount="indefinite"/>
+                                <animate attributeName="opacity" values="0;0.9;0" dur="${3.6 + bI * 0.8}s" begin="${i * 0.4 + bI * 0.5}s" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" repeatCount="indefinite"/></circle>`;
                         }
                     });
                     // monitor with animated waveform
                     s += `<rect x="120" y="58" width="64" height="42" rx="3" fill="#06231f" stroke="#0c3a33" stroke-width="2"/>
                         <polyline points="124,82 134,72 144,86 154,66 164,80 180,70" fill="none" stroke="${T.glow}" stroke-width="2">
-                        <animate attributeName="points" values="124,82 134,72 144,86 154,66 164,80 180,70;124,76 134,86 144,70 154,82 164,68 180,80;124,82 134,72 144,86 154,66 164,80 180,70" dur="2.5s" repeatCount="indefinite"/></polyline>
+                        <animate attributeName="points" values="124,82 134,72 144,86 154,66 164,80 180,70;124,76 134,86 144,70 154,82 164,68 180,80;124,82 134,72 144,86 154,66 164,80 180,70" dur="5s" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" repeatCount="indefinite"/></polyline>
                         <line x1="124" y1="92" x2="180" y2="92" stroke="${T.glow}" stroke-width="1" opacity="0.4"/>`;
                     s += this._plant(126, FLOOR_Y);
                 } else if (id === 'attack') {
@@ -10154,21 +10351,21 @@
                     nodes.forEach((n, i) => {
                         if (i) {
                             s += `<line x1="${nodes[0][0]}" y1="${nodes[0][1]}" x2="${n[0]}" y2="${n[1]}" stroke="${T.glow}" stroke-width="1.3" opacity="0.6"/>`;
-                            s += `<circle r="2" fill="#fff"><animateMotion path="M${nodes[0][0]} ${nodes[0][1]} L${n[0]} ${n[1]}" dur="${1.5 + i * 0.4}s" repeatCount="indefinite"/></circle>`;
+                            s += `<circle r="2" fill="#fff"><animateMotion path="M${nodes[0][0]} ${nodes[0][1]} L${n[0]} ${n[1]}" dur="${3.6 + i * 0.7}s" repeatCount="indefinite"/></circle>`;
                         }
                     });
                     nodes.forEach((n, i) => s += `<circle cx="${n[0]}" cy="${n[1]}" r="${i ? 3 : 4.5}" fill="${i ? T.glow : '#fff'}"/>`);
                     // radar sweep in corner of screen
                     s += `<g><circle cx="96" cy="36" r="12" fill="none" stroke="${T.glow}" stroke-width="0.8" opacity="0.5"/>
                         <path d="M96 36 L96 24 A12 12 0 0 1 106 30 Z" fill="${T.glow}" opacity="0.35">
-                        <animateTransform attributeName="transform" type="rotate" from="0 96 36" to="360 96 36" dur="3s" repeatCount="indefinite"/></path></g>`;
+                        <animateTransform attributeName="transform" type="rotate" from="0 96 36" to="360 96 36" dur="7s" repeatCount="indefinite"/></path></g>`;
                     // desk with dual monitors, scrolling bars
                     s += `<rect x="118" y="92" width="68" height="9" rx="2" fill="#3a2a30"/><rect x="122" y="101" width="60" height="15" fill="#2c2027"/>`;
                     [[122,66],[154,66]].forEach(([mx,my], k) => {
                         s += `<rect x="${mx}" y="${my}" width="28" height="22" rx="2" fill="#241016" stroke="#120709" stroke-width="1.5"/>`;
                         for (let bI = 0; bI < 3; bI++)
                             s += `<rect x="${mx + 3}" y="${my + 4 + bI * 5}" width="22" height="3" rx="1.5" fill="${T.glow}" opacity="${0.7 - bI * 0.15}">
-                                <animate attributeName="width" values="${10 + bI * 4};22;${10 + bI * 4}" dur="${2 + k + bI * 0.3}s" repeatCount="indefinite"/></rect>`;
+                                <animate attributeName="width" values="${10 + bI * 4};22;${10 + bI * 4}" dur="${4.5 + k + bI * 0.6}s" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" repeatCount="indefinite"/></rect>`;
                     });
                     s += this._plant(186, FLOOR_Y);
                 } else if (id === 'contrib') {
@@ -10183,7 +10380,7 @@
                     // stamped papers (stamp goes down)
                     s += `<rect x="60" y="78" width="16" height="11" rx="1" fill="#fff" stroke="#d6b483" stroke-width="1"/><line x1="63" y1="82" x2="73" y2="82" stroke="${T.accent}" stroke-width="1.2"/>
                         <g><rect x="65" y="62" width="6" height="8" rx="1" fill="#7c4a1e"/><rect x="63" y="69" width="10" height="3" rx="1" fill="${T.accent}"/>
-                        <animateTransform attributeName="transform" type="translate" values="0 0;0 8;0 8;0 0" keyTimes="0;0.3;0.5;1" dur="2.4s" repeatCount="indefinite"/></g>`;
+                        <animateTransform attributeName="transform" type="translate" values="0 0;0 8;0 8;0 0" keyTimes="0;0.3;0.5;1" calcMode="spline" keySplines="0.42 0 0.58 1;0 0 1 1;0.42 0 0.58 1" dur="4.6s" repeatCount="indefinite"/></g>`;
                     // filing shelves with binders
                     s += `<rect x="116" y="56" width="40" height="60" rx="2" fill="#9a6a34" stroke="#6f4a22" stroke-width="1.6"/>`;
                     for (let row = 0; row < 3; row++)
@@ -10196,7 +10393,7 @@
                     s += `<g>
                         <path d="M150 28 l24 8 v16 q0 17 -24 26 q-24 -9 -24 -26 v-16 z" fill="#2c2347" stroke="${T.glow}" stroke-width="2.5"/>
                         <path d="M150 28 l24 8 v16 q0 17 -24 26 q-24 -9 -24 -26 v-16 z" fill="none" stroke="${T.glow}" stroke-width="2.5">
-                            <animate attributeName="opacity" values="0.3;1;0.3" dur="2.2s" repeatCount="indefinite"/></path>
+                            <animate attributeName="opacity" values="0.3;1;0.3" dur="4.2s" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" repeatCount="indefinite"/></path>
                         <path d="M139 50 l8 8 l16 -17" fill="none" stroke="${T.glow}" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></g>`;
                     // locked cabinets with blinking lock LEDs
                     for (let c = 0; c < 3; c++) {
@@ -10210,7 +10407,7 @@
                     // panning security camera
                     s += `<g><rect x="92" y="34" width="4" height="6" fill="#3a3357"/>
                         <g><rect x="84" y="40" width="20" height="9" rx="3" fill="#3a3357" stroke="#1c1733" stroke-width="1"/><circle cx="86" cy="44" r="2.5" fill="${T.glow}"/>
-                        <animateTransform attributeName="transform" type="rotate" values="-18 94 42;18 94 42;-18 94 42" dur="5s" repeatCount="indefinite"/></g></g>`;
+                        <animateTransform attributeName="transform" type="rotate" values="-12 94 42;12 94 42;-12 94 42" dur="8s" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" repeatCount="indefinite"/></g></g>`;
                     s += this._plant(186, FLOOR_Y);
                 } else if (id === 'hp') {
                     s += this._window(150, 20, 38, 30);
@@ -10225,12 +10422,12 @@
                     [[120,70,'#fff'],[150,80,T.glow],[134,60,'#fff']].forEach(([bx,by,c], i) => {
                         s += `<g><rect x="${bx}" y="${by}" width="24" height="15" rx="6" fill="${c}"/><path d="M${bx+5} ${by+15} l-2 5 l6 -4 z" fill="${c}"/>
                             <circle cx="${bx+6}" cy="${by+7}" r="1.5" fill="${T.accent}"/><circle cx="${bx+12}" cy="${by+7}" r="1.5" fill="${T.accent}"/><circle cx="${bx+18}" cy="${by+7}" r="1.5" fill="${T.accent}"/>
-                            <animateTransform attributeName="transform" type="translate" values="0 4;0 -6;0 4" dur="${3 + i}s" repeatCount="indefinite"/>
-                            <animate attributeName="opacity" values="0.55;1;0.55" dur="${3 + i}s" repeatCount="indefinite"/></g>`;
+                            <animateTransform attributeName="transform" type="translate" values="0 4;0 -6;0 4" dur="${5 + i}s" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" repeatCount="indefinite"/>
+                            <animate attributeName="opacity" values="0.55;1;0.55" dur="${5 + i}s" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" repeatCount="indefinite"/></g>`;
                     });
                     // pulsing heart
                     s += `<g transform="translate(138 52)"><path d="M-12 -8 q6 -7 12 0 q6 -7 12 0 q2 8 -12 17 q-14 -9 -12 -17 z" fill="${T.glow}">
-                        <animateTransform attributeName="transform" type="scale" values="1;1.15;1" dur="1.1s" repeatCount="indefinite"/></path></g>`;
+                        <animateTransform attributeName="transform" type="scale" values="1;1.12;1" dur="2.4s" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" repeatCount="indefinite"/></path></g>`;
                     s += this._plant(184, FLOOR_Y);
                 }
 
@@ -10242,44 +10439,16 @@
                 this.renderBaseStats();
                 const grid = document.getElementById('baseGrid');
                 if (!grid) return;
-                const now = Date.now();
 
                 const roomHTML = (id) => {
                     const room = this.rooms[id];
-                    const def = this.roomDefs[id];
-                    const maxed = room.level >= this.MAX_ROOM_LEVEL;
-                    const upgrading = !!room.endsAt;
-                    const ready = upgrading && now >= room.endsAt;
-                    const cost = this.roomCost(id);
-                    const affordable = this.dnaPoints >= cost;
-
-                    let control, cls = '';
-                    if (maxed) {
-                        control = `<button class="room-btn" disabled>MAX</button>`;
-                    } else if (ready) {
-                        cls = 'ready';
-                        control = `<button class="room-btn collect" data-collect="${id}">Готово ✓</button>`;
-                    } else if (upgrading) {
-                        const left = room.endsAt - now;
-                        const pct = room.duration ? (1 - left / room.duration) * 100 : 0;
-                        control = `<div class="room-timer">⏳ ${this.fmtDuration(left)}</div>` +
-                                  `<div class="room-progress" style="width:${pct.toFixed(1)}%"></div>`;
-                    } else {
-                        control = `<button class="room-btn" data-upgrade="${id}" ${affordable ? '' : 'disabled'}>📦 ${cost}</button>`;
-                    }
-
+                    const now2 = Date.now();
+                    const ready = room.endsAt && now2 >= room.endsAt;
+                    const upgrading = room.endsAt && !ready;
+                    const cls = ready ? 'ready' : (upgrading ? 'busy' : '');
+                    // Rooms are clean — no labels/buttons. Detail opens on tap.
                     return `<div class="room ${cls}" data-room="${id}">
                         ${this.buildRoomScene(id, room.level)}
-                        <div class="room-overlay">
-                            <div class="room-topline">
-                                <span class="room-tag" style="--room-accent:${this.roomAccent(id)}"><span class="rt-ico">${def.icon}</span><span class="rt-name">${this.roomName(id)}</span></span>
-                                <span class="room-lvlchip">ур.${room.level}</span>
-                            </div>
-                            <div class="room-botline">
-                                <span class="room-effect">${this.roomEffectText(id)}</span>
-                                ${control}
-                            </div>
-                        </div>
                     </div>`;
                 };
 
@@ -10292,12 +10461,9 @@
                 }
                 grid.innerHTML = html;
 
-                // Wire buttons (delegation-free, fresh each render).
-                grid.querySelectorAll('[data-upgrade]').forEach(btn => {
-                    this.tap(btn, () => this.startRoomUpgrade(btn.dataset.upgrade));
-                });
-                grid.querySelectorAll('[data-collect]').forEach(btn => {
-                    this.tap(btn, () => this.collectRoom(btn.dataset.collect));
+                // Tap a room to open its detail sheet.
+                grid.querySelectorAll('.room').forEach(el => {
+                    this.tap(el, () => this.openRoomSheet(el.dataset.room));
                 });
             }
 
