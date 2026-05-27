@@ -3097,6 +3097,159 @@
             overflow-y: auto;
         }
 
+        /* ===== Base screen ===== */
+        .base-screen {
+            padding: 46px 12px 86px;
+            align-items: stretch;
+            justify-content: flex-start;
+            overflow-y: auto;
+            background:
+                radial-gradient(ellipse at 50% 0%, rgba(59,130,246,0.12), transparent 60%),
+                linear-gradient(180deg, #0b1020 0%, #05070e 100%);
+        }
+        .base-title {
+            font-family: 'Space Mono', monospace;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .base-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+        .base-stat {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 10px;
+            background: rgba(20, 28, 45, 0.85);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 10px;
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            font-weight: 700;
+            color: #e2e8f0;
+        }
+        .base-stat .bs-ico { font-size: 13px; }
+        .base-stat .bs-val { color: #93c5fd; }
+
+        .base-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            max-width: 440px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        .room-card {
+            position: relative;
+            background: linear-gradient(170deg, #1c2540 0%, #10162a 100%);
+            border: 2px solid rgba(96,165,250,0.35);
+            border-radius: 16px;
+            padding: 12px 12px 14px;
+            overflow: hidden;
+            box-shadow:
+                0 8px 20px rgba(0,0,0,0.5),
+                inset 0 2px 0 rgba(255,255,255,0.08),
+                inset 0 -3px 0 rgba(0,0,0,0.4);
+            cursor: pointer;
+            transition: transform 0.15s ease, border-color 0.2s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body.faction-rkn .room-card { border-color: rgba(248,113,113,0.35); }
+        .room-card:active { transform: scale(0.97); }
+        .room-card.upgrading { border-color: rgba(253,224,71,0.6); }
+        .room-card.ready     { border-color: rgba(74,222,128,0.85); }
+        .room-card.locked    { opacity: 0.5; }
+        .room-head {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+        .room-ico {
+            width: 38px; height: 38px;
+            flex: 0 0 38px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px;
+            background: radial-gradient(circle at 40% 30%, rgba(147,197,253,0.4), rgba(30,58,138,0.6));
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.12);
+        }
+        body.faction-rkn .room-ico { background: radial-gradient(circle at 40% 30%, rgba(252,165,165,0.4), rgba(127,29,29,0.6)); }
+        .room-name {
+            font-size: 12.5px;
+            font-weight: 800;
+            color: #fff;
+            line-height: 1.15;
+        }
+        .room-lvl {
+            font-family: 'Space Mono', monospace;
+            font-size: 10px;
+            color: #93c5fd;
+            margin-top: 1px;
+        }
+        .room-desc {
+            font-size: 10.5px;
+            color: #94a3b8;
+            line-height: 1.3;
+            min-height: 27px;
+            margin-bottom: 8px;
+        }
+        .room-effect {
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            font-weight: 700;
+            color: #86efac;
+            margin-bottom: 8px;
+        }
+        .room-btn {
+            width: 100%;
+            padding: 8px;
+            border: none;
+            border-radius: 10px;
+            font-family: 'Space Mono', monospace;
+            font-size: 11.5px;
+            font-weight: 800;
+            color: #06240f;
+            background: linear-gradient(180deg, #86efac, #16a34a);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 3px 8px rgba(22,163,74,0.4);
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .room-btn:disabled {
+            background: linear-gradient(180deg, #475569, #1e293b);
+            color: #94a3b8;
+            box-shadow: none;
+            cursor: default;
+        }
+        .room-btn.collect {
+            background: linear-gradient(180deg, #fde047, #d97706);
+            color: #3a1c03;
+        }
+        .room-timer {
+            font-family: 'Space Mono', monospace;
+            font-size: 12px;
+            font-weight: 700;
+            color: #fde047;
+            text-align: center;
+            padding: 7px;
+        }
+        .room-progress {
+            position: absolute;
+            left: 0; bottom: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #fde047, #f97316);
+            transition: width 0.5s linear;
+        }
+
         .news-screen-title {
             font-family: 'Space Mono', monospace;
             font-size: 12px;
@@ -4366,7 +4519,7 @@
     <div class="game-container">
         <!-- DNA Counter (always visible) -->
         <div class="dna-counter">
-            <div class="dna-icon">⚡</div>
+            <div class="dna-icon">📦</div>
             <div class="dna-stack">
                 <div class="dna-count" id="dnaCount">0</div>
                 <div class="dna-rate" id="dnaRate" aria-hidden="true">
@@ -4447,7 +4600,7 @@
                 <div class="home-hint-text">Тапай по узлу<br>чтобы расти</div>
             </div>
             <div class="home-finger" id="homeFinger" hidden>👇</div>
-            <p class="game-subtitle">Тапай по узлу — копи Влияние</p>
+            <p class="game-subtitle">Тапай по узлу — копи Пакеты</p>
         </div>
         
         <!-- Global World Map Screen -->
@@ -4621,6 +4774,13 @@
             </div>
         </div>
 
+        <!-- Base Screen -->
+        <div class="screen base-screen" id="baseScreen">
+            <h2 class="base-title">База</h2>
+            <div class="base-stats" id="baseStats"></div>
+            <div class="base-grid" id="baseGrid"></div>
+        </div>
+
         <!-- Level-up full-screen animation -->
         <div class="level-up-overlay" id="levelUpOverlay" hidden aria-hidden="true">
             <div class="level-up-burst"></div>
@@ -4792,6 +4952,27 @@
                     </svg>
                 </span>
                 <span>Сеть</span>
+            </button>
+            <button class="nav-btn" data-screen="baseScreen" id="navBase">
+                <span class="nav-icon">
+                    <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <defs>
+                            <linearGradient id="navBaseWall" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stop-color="#93c5fd"/>
+                                <stop offset="100%" stop-color="#1e3a8a"/>
+                            </linearGradient>
+                        </defs>
+                        <rect x="5" y="9" width="22" height="18" rx="1.5" fill="url(#navBaseWall)" stroke="#0c1a3a" stroke-width="1"/>
+                        <line x1="5" y1="15" x2="27" y2="15" stroke="#0c1a3a" stroke-width="0.7" opacity="0.6"/>
+                        <line x1="5" y1="21" x2="27" y2="21" stroke="#0c1a3a" stroke-width="0.7" opacity="0.6"/>
+                        <line x1="16" y1="9" x2="16" y2="27" stroke="#0c1a3a" stroke-width="0.7" opacity="0.6"/>
+                        <rect x="8" y="11" width="4" height="2.6" rx="0.4" fill="#bae6fd" opacity="0.85"/>
+                        <rect x="20" y="17" width="4" height="2.6" rx="0.4" fill="#bae6fd" opacity="0.85"/>
+                        <rect x="8" y="23" width="4" height="2.6" rx="0.4" fill="#fde047" opacity="0.9"/>
+                        <path d="M5 9 L16 4 L27 9 Z" fill="#cbd5e1" stroke="#0c1a3a" stroke-width="0.9" stroke-linejoin="round"/>
+                    </svg>
+                </span>
+                <span>База</span>
             </button>
         </nav>
     </div>
@@ -6657,6 +6838,32 @@
                 this.inviteRef = this.getOrCreateInviteRef();
                 this.infectionGrowthTimer = null;
 
+                // ===== Base: 6 rooms, 100 levels each. Mirror names per
+                // faction. Each room drives one derived stat. =====
+                this.MAX_ROOM_LEVEL = 100;
+                this.roomOrder = ['income', 'research', 'attack', 'contrib', 'defense', 'hp'];
+                this.roomDefs = {
+                    income:   { rkn: 'ТСПУ',                vpn: 'Серверная ферма',        icon: '📡',
+                                desc: 'Базовый доход Пакетов/сек', stat: 'income' },
+                    research: { rkn: 'DPI-лаборатория',     vpn: 'Лаборатория протоколов', icon: '🔬',
+                                desc: 'Скорость исследований (−% времени)', stat: 'research' },
+                    attack:   { rkn: 'Аналитический центр', vpn: 'Маршрутизация',          icon: '⚔️',
+                                desc: 'Attack Power (сила в PvP)', stat: 'attack' },
+                    contrib:  { rkn: 'Регуляторный отдел',  vpn: 'Раздача ключей',         icon: '📈',
+                                desc: 'Пассивный рост вклада в регионах', stat: 'contrib' },
+                    defense:  { rkn: 'Реестр запрещённого', vpn: 'Маскировка трафика',     icon: '🛡️',
+                                desc: 'Defense Power (защита в PvP)', stat: 'defense' },
+                    hp:       { rkn: 'PR-отдел',            vpn: 'Чаты пользователей',     icon: '❤️',
+                                desc: 'HP — резерв прочности', stat: 'hp' }
+                };
+                // Per-room runtime state. The income room starts at level 1
+                // so there's a trickle of packets from the start.
+                this.rooms = {};
+                this.roomOrder.forEach(id => {
+                    this.rooms[id] = { level: id === 'income' ? 1 : 0, endsAt: 0, duration: 0 };
+                });
+                this.roomTickTimer = null;
+
                 // Player's starting continent — set on first tutorial infection.
                 // Used to filter local news events.
                 this.startingContinent = null;
@@ -7169,7 +7376,7 @@
 
                     const costBadge = maxed
                         ? '<span class="card-cost-overlay maxed">MAX</span>'
-                        : `<span class="card-cost-overlay">⚡ ${cost}</span>`;
+                        : `<span class="card-cost-overlay">📦 ${cost}</span>`;
 
                     const incNow  = this.getCardIncome(card, level);
                     const incNext = this.getCardIncome(card, Math.min(card.max, level + 1));
@@ -7319,7 +7526,7 @@
                     } else {
                         const affordable = this.dnaPoints >= cost;
                         disabled = !affordable;
-                        costHTML = `<div class="method-cost">⚡ ${cost}</div>`;
+                        costHTML = `<div class="method-cost">📦 ${cost}</div>`;
                     }
                     if (disabled) btn.classList.add('disabled');
                     btn.innerHTML =
@@ -7864,9 +8071,7 @@
                 // every string in the file.
                 const subtitle = document.querySelector('.start-screen .game-subtitle');
                 if (subtitle) {
-                    subtitle.textContent = this.faction === 'resist'
-                        ? 'Тапай по узлу — копи Сигнал'
-                        : 'Тапай по узлу — копи Влияние';
+                    subtitle.textContent = 'Тапай по узлу — копи Пакеты';
                 }
                 if (this.faction === 'resist') {
                     document.title = 'Свобода: Кибер-Коралл';
@@ -8016,6 +8221,7 @@
                     this.updateNewsBadge();
                     this.renderNewsFeed();
                 }
+                if (id === 'baseScreen') this.renderBaseScreen();
                 if (id === 'worldMapScreen') {
                     this.renderCities();
                     this.updateMapZoomedClass();
@@ -9366,6 +9572,7 @@
                         virusLevel: this.virusLevel,
                         virusStats: this.virusStats,
                         abilityLevels: this.abilityLevels,
+                        rooms: this.rooms,
                         tutorialDone: this.tutorialDone,
                         homeHintShown: this.homeHintShown,
                         startingContinent: this.startingContinent,
@@ -9390,6 +9597,15 @@
                         this.virusStats = Object.assign({}, this.virusStats, data.virusStats);
                     }
                     if (data.abilityLevels) this.abilityLevels = data.abilityLevels;
+                    if (data.rooms) {
+                        this.roomOrder.forEach(id => {
+                            const s = data.rooms[id];
+                            if (!s) return;
+                            this.rooms[id].level    = Math.max(0, Math.min(this.MAX_ROOM_LEVEL, s.level || 0));
+                            this.rooms[id].endsAt    = s.endsAt   || 0;
+                            this.rooms[id].duration  = s.duration || 0;
+                        });
+                    }
                     if (typeof data.tutorialDone === 'boolean') this.tutorialDone = data.tutorialDone;
                     if (typeof data.homeHintShown === 'boolean') this.homeHintShown = data.homeHintShown;
                     if (data.startingContinent) this.startingContinent = data.startingContinent;
@@ -9535,7 +9751,7 @@
                     lethality_mult:    'разрушение',
                     severity_mult:     'давление',
                     spread_speed_mult: 'скорость роста',
-                    income_mult:       'доход Влияния',
+                    income_mult:       'доход Пакетов',
                     upgrade_cost_mult: 'стоимость улучш.'
                 };
                 return `${sign}${pct}% ${labels[buff.type] || buff.type}`;
@@ -9612,10 +9828,173 @@
                         perHour += this.getCardIncome(card, level);
                     });
                 });
+                // Base income room: each level adds packets/sec.
+                perHour += this.roomIncomePerSec() * 3600;
                 return perHour * this.buffMult('income_mult');
             }
 
+            // ===== Base rooms =====
+            roomName(id) {
+                const d = this.roomDefs[id];
+                return this.faction === 'resist' ? d.vpn : d.rkn;
+            }
+            // Packets/sec produced by the income room.
+            roomIncomePerSec() {
+                const lvl = this.rooms.income ? this.rooms.income.level : 0;
+                return lvl * 0.5; // 0.5 pkt/sec per level → tunable
+            }
+            // Upgrade cost in Packets for the next level.
+            roomCost(id) {
+                const lvl = this.rooms[id].level;
+                return Math.floor(40 * Math.pow(1.5, lvl));
+            }
+            // Upgrade duration (ms) for the next level. Ramps from a few
+            // seconds at low levels up to 8h near the top.
+            roomDuration(id) {
+                const lvl = this.rooms[id].level;
+                const ms = 15000 * Math.pow(1.105, lvl); // 15s → grows
+                return Math.min(8 * 3600 * 1000, Math.round(ms));
+            }
+            // Derived stat value from a room's level (display only for now).
+            roomEffectText(id) {
+                const lvl = this.rooms[id].level;
+                switch (id) {
+                    case 'income':   return `+${(this.roomIncomePerSec()).toFixed(1)} пак/сек`;
+                    case 'research': return `−${Math.min(60, lvl * 0.6).toFixed(0)}% времени`;
+                    case 'attack':   return `ATK ${lvl * 8}`;
+                    case 'contrib':  return `+${(lvl * 2)}%/ч вклад`;
+                    case 'defense':  return `DEF ${lvl * 8}`;
+                    case 'hp':       return `HP ${lvl * 25}`;
+                    default:         return '';
+                }
+            }
+            // Aggregate combat stats (numbers only this iteration).
+            getAttackPower()  { return this.rooms.attack.level  * 8; }
+            getDefensePower() { return this.rooms.defense.level * 8; }
+            getHP()           { return 100 + this.rooms.hp.level * 25; }
+
+            startRoomUpgrade(id) {
+                const room = this.rooms[id];
+                if (!room || room.endsAt) return;           // already upgrading
+                if (room.level >= this.MAX_ROOM_LEVEL) return;
+                const cost = this.roomCost(id);
+                if (this.dnaPoints < cost) {
+                    this.showToast('Не хватает Пакетов', `Нужно ${cost}`, 'above-map');
+                    return;
+                }
+                this.dnaPoints -= cost;
+                this.updateDNACounter();
+                room.duration = this.roomDuration(id);
+                room.endsAt = Date.now() + room.duration;
+                this.saveState();
+                this.renderBaseScreen();
+            }
+
+            collectRoom(id) {
+                const room = this.rooms[id];
+                if (!room || !room.endsAt || Date.now() < room.endsAt) return;
+                room.level = Math.min(this.MAX_ROOM_LEVEL, room.level + 1);
+                room.endsAt = 0;
+                room.duration = 0;
+                this.updateDNARate();
+                this.saveState();
+                this.renderBaseScreen();
+            }
+
+            // Called every second from the income loop — auto-collects any
+            // finished upgrades and refreshes timers if the screen is open.
+            tickRooms() {
+                let changed = false;
+                this.roomOrder.forEach(id => {
+                    const room = this.rooms[id];
+                    if (room.endsAt && Date.now() >= room.endsAt) {
+                        room.level = Math.min(this.MAX_ROOM_LEVEL, room.level + 1);
+                        room.endsAt = 0;
+                        room.duration = 0;
+                        changed = true;
+                    }
+                });
+                if (changed) { this.updateDNARate(); this.saveState(); }
+                if (document.getElementById('baseScreen').classList.contains('active')) {
+                    this.renderBaseScreen();
+                }
+            }
+
+            fmtDuration(ms) {
+                const s = Math.max(0, Math.ceil(ms / 1000));
+                const h = Math.floor(s / 3600);
+                const m = Math.floor((s % 3600) / 60);
+                const sec = s % 60;
+                if (h > 0) return `${h}ч ${m}м`;
+                if (m > 0) return `${m}м ${sec}с`;
+                return `${sec}с`;
+            }
+
+            renderBaseStats() {
+                const el = document.getElementById('baseStats');
+                if (!el) return;
+                el.innerHTML =
+                    `<div class="base-stat"><span class="bs-ico">⚔️</span>ATK <span class="bs-val">${this.getAttackPower()}</span></div>` +
+                    `<div class="base-stat"><span class="bs-ico">🛡️</span>DEF <span class="bs-val">${this.getDefensePower()}</span></div>` +
+                    `<div class="base-stat"><span class="bs-ico">❤️</span>HP <span class="bs-val">${this.getHP()}</span></div>` +
+                    `<div class="base-stat"><span class="bs-ico">📦</span><span class="bs-val">${this.roomIncomePerSec().toFixed(1)}</span>/сек</div>`;
+            }
+
+            renderBaseScreen() {
+                this.renderBaseStats();
+                const grid = document.getElementById('baseGrid');
+                if (!grid) return;
+                const now = Date.now();
+                grid.innerHTML = this.roomOrder.map(id => {
+                    const room = this.rooms[id];
+                    const def = this.roomDefs[id];
+                    const maxed = room.level >= this.MAX_ROOM_LEVEL;
+                    const upgrading = !!room.endsAt;
+                    const ready = upgrading && now >= room.endsAt;
+                    const cost = this.roomCost(id);
+                    const affordable = this.dnaPoints >= cost;
+
+                    let footer, cls = '';
+                    if (maxed) {
+                        footer = `<button class="room-btn" disabled>MAX</button>`;
+                    } else if (ready) {
+                        cls = 'ready';
+                        footer = `<button class="room-btn collect" data-collect="${id}">Готово ✓</button>`;
+                    } else if (upgrading) {
+                        cls = 'upgrading';
+                        const left = room.endsAt - now;
+                        const pct = room.duration ? (1 - left / room.duration) * 100 : 0;
+                        footer = `<div class="room-timer">${this.fmtDuration(left)}</div>` +
+                                 `<div class="room-progress" style="width:${pct.toFixed(1)}%"></div>`;
+                    } else {
+                        footer = `<button class="room-btn" data-upgrade="${id}" ${affordable ? '' : 'disabled'}>📦 ${cost}</button>`;
+                    }
+
+                    return `<div class="room-card ${cls}" data-room="${id}">
+                        <div class="room-head">
+                            <div class="room-ico">${def.icon}</div>
+                            <div>
+                                <div class="room-name">${this.roomName(id)}</div>
+                                <div class="room-lvl">Ур. ${room.level}/${this.MAX_ROOM_LEVEL}</div>
+                            </div>
+                        </div>
+                        <div class="room-desc">${def.desc}</div>
+                        <div class="room-effect">${this.roomEffectText(id)}</div>
+                        ${footer}
+                    </div>`;
+                }).join('');
+
+                // Wire buttons (delegation-free, fresh each render).
+                grid.querySelectorAll('[data-upgrade]').forEach(btn => {
+                    this.tap(btn, () => this.startRoomUpgrade(btn.dataset.upgrade));
+                });
+                grid.querySelectorAll('[data-collect]').forEach(btn => {
+                    this.tap(btn, () => this.collectRoom(btn.dataset.collect));
+                });
+            }
+
             tickPassiveIncome() {
+                this.tickRooms();
                 const now = Date.now();
                 const dt = now - this.lastIncomeTick;
                 this.lastIncomeTick = now;
