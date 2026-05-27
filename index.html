@@ -4458,8 +4458,8 @@
                 <div class="selection-sub" id="selectionSub">Тапни по сети, чтобы разместить узел</div>
             </div>
             <div class="world-map-wrapper">
-                <canvas class="coral-canvas" id="coralCanvas"></canvas>
-                <canvas class="globe-canvas legacy-hidden" id="globeCanvas"></canvas>
+                <canvas class="coral-canvas legacy-hidden" id="coralCanvas"></canvas>
+                <canvas class="globe-canvas" id="globeCanvas"></canvas>
                 <div class="world-map-pan legacy-hidden" id="worldMapPan">
                     <img src="assets/world_map.png" class="world-map-image" alt="World Map" />
                     <!-- Continent selection overlay -->
@@ -6316,163 +6316,36 @@
                 const NA = 'north-america', SA = 'south-america', EU = 'europe',
                       AF = 'africa', AS = 'asia', OC = 'australia';
                 this.cities = [
-                    // === North America ===
-                    ['New York', 40.71, -74.01, 0, NA, 1], ['Washington', 38.90, -77.04, 1, NA, 0],
-                    ['Los Angeles', 34.05, -118.24, 0, NA, 1], ['Chicago', 41.88, -87.63, 0, NA, 0],
-                    ['Houston', 29.76, -95.37, 0, NA, 0], ['Phoenix', 33.45, -112.07, 0, NA, 0],
-                    ['Philadelphia', 39.95, -75.17, 0, NA, 0], ['San Antonio', 29.42, -98.49, 0, NA, 0],
-                    ['San Diego', 32.72, -117.16, 0, NA, 0], ['Dallas', 32.78, -96.80, 0, NA, 0],
-                    ['San Jose', 37.34, -121.89, 0, NA, 0], ['Miami', 25.77, -80.19, 0, NA, 0],
-                    ['Atlanta', 33.75, -84.39, 0, NA, 0], ['Boston', 42.36, -71.06, 0, NA, 0],
-                    ['Seattle', 47.61, -122.33, 0, NA, 0], ['Denver', 39.74, -104.99, 0, NA, 0],
-                    ['San Francisco', 37.77, -122.42, 0, NA, 0], ['Detroit', 42.33, -83.05, 0, NA, 0],
-                    ['Ottawa', 45.42, -75.70, 1, NA, 0], ['Toronto', 43.65, -79.38, 0, NA, 0],
-                    ['Montreal', 45.50, -73.57, 0, NA, 0], ['Vancouver', 49.28, -123.12, 0, NA, 0],
-                    ['Calgary', 51.04, -114.07, 0, NA, 0], ['Edmonton', 53.55, -113.49, 0, NA, 0],
-                    ['Mexico City', 19.43, -99.13, 1, NA, 1], ['Guadalajara', 20.67, -103.34, 0, NA, 0],
-                    ['Monterrey', 25.69, -100.32, 0, NA, 0], ['Puebla', 19.04, -98.21, 0, NA, 0],
-                    ['Tijuana', 32.51, -117.04, 0, NA, 0], ['Havana', 23.13, -82.38, 1, NA, 0],
-                    ['Guatemala City', 14.63, -90.51, 1, NA, 0], ['Tegucigalpa', 14.07, -87.19, 1, NA, 0],
-                    ['San Salvador', 13.69, -89.19, 1, NA, 0], ['Managua', 12.11, -86.24, 1, NA, 0],
-                    ['San Jose (CR)', 9.93, -84.08, 1, NA, 0], ['Panama City', 8.97, -79.53, 1, NA, 0],
-                    ['Kingston', 17.97, -76.79, 1, NA, 0], ['Santo Domingo', 18.47, -69.89, 1, NA, 0],
-                    ['Port-au-Prince', 18.59, -72.30, 1, NA, 0], ['Nassau', 25.07, -77.34, 1, NA, 0],
+                    // === Russia (west of the Urals → Europe zone) ===
+                    ['Москва',            55.75, 37.62, 1, EU, 1],
+                    ['Санкт-Петербург',   59.94, 30.31, 0, EU, 1],
+                    ['Казань',            55.79, 49.12, 0, EU, 1],
+                    ['Нижний Новгород',   56.33, 44.00, 0, EU, 1],
+                    ['Самара',            53.20, 50.15, 0, EU, 1],
+                    ['Уфа',               54.74, 55.97, 0, EU, 1],
+                    ['Воронеж',           51.66, 39.20, 0, EU, 1],
+                    ['Волгоград',         48.71, 44.51, 0, EU, 1],
+                    ['Ростов-на-Дону',    47.24, 39.71, 0, EU, 1],
 
-                    // === South America ===
-                    ['Brasília', -15.79, -47.88, 1, SA, 0], ['São Paulo', -23.55, -46.63, 0, SA, 1],
-                    ['Rio de Janeiro', -22.91, -43.17, 0, SA, 1], ['Salvador', -12.97, -38.50, 0, SA, 0],
-                    ['Fortaleza', -3.71, -38.54, 0, SA, 0], ['Belo Horizonte', -19.92, -43.94, 0, SA, 0],
-                    ['Manaus', -3.10, -60.02, 0, SA, 0], ['Curitiba', -25.43, -49.27, 0, SA, 0],
-                    ['Recife', -8.05, -34.89, 0, SA, 0], ['Porto Alegre', -30.03, -51.23, 0, SA, 0],
-                    ['Buenos Aires', -34.60, -58.38, 1, SA, 1], ['Córdoba', -31.42, -64.18, 0, SA, 0],
-                    ['Rosario', -32.95, -60.66, 0, SA, 0], ['Santiago', -33.45, -70.66, 1, SA, 0],
-                    ['Lima', -12.05, -77.04, 1, SA, 0], ['Bogotá', 4.71, -74.07, 1, SA, 0],
-                    ['Medellín', 6.24, -75.58, 0, SA, 0], ['Cali', 3.45, -76.53, 0, SA, 0],
-                    ['Caracas', 10.49, -66.88, 1, SA, 0], ['Maracaibo', 10.65, -71.65, 0, SA, 0],
-                    ['Quito', -0.18, -78.47, 1, SA, 0], ['Guayaquil', -2.17, -79.92, 0, SA, 0],
-                    ['La Paz', -16.50, -68.13, 1, SA, 0], ['Santa Cruz', -17.78, -63.18, 0, SA, 0],
-                    ['Asunción', -25.26, -57.58, 1, SA, 0], ['Montevideo', -34.91, -56.16, 1, SA, 0],
-                    ['Georgetown', 6.80, -58.16, 1, SA, 0], ['Paramaribo', 5.85, -55.20, 1, SA, 0],
+                    // === Russia (east of the Urals → Asia zone) ===
+                    ['Екатеринбург',      56.84, 60.61, 0, AS, 1],
+                    ['Челябинск',         55.16, 61.40, 0, AS, 1],
+                    ['Омск',              54.99, 73.37, 0, AS, 1],
+                    ['Новосибирск',       55.03, 82.92, 0, AS, 1],
+                    ['Красноярск',        56.01, 92.85, 0, AS, 1],
+                    ['Владивосток',       43.12, 131.89, 0, AS, 1],
 
-                    // === Europe ===
-                    ['London', 51.51, -0.13, 1, EU, 1], ['Manchester', 53.48, -2.24, 0, EU, 0],
-                    ['Birmingham', 52.49, -1.89, 0, EU, 0], ['Dublin', 53.35, -6.26, 1, EU, 0],
-                    ['Paris', 48.86, 2.35, 1, EU, 1], ['Marseille', 43.30, 5.37, 0, EU, 0],
-                    ['Lyon', 45.76, 4.84, 0, EU, 0], ['Madrid', 40.42, -3.70, 1, EU, 0],
-                    ['Barcelona', 41.39, 2.17, 0, EU, 0], ['Valencia', 39.47, -0.38, 0, EU, 0],
-                    ['Lisbon', 38.72, -9.14, 1, EU, 0], ['Porto', 41.16, -8.62, 0, EU, 0],
-                    ['Rome', 41.90, 12.50, 1, EU, 0], ['Milan', 45.46, 9.19, 0, EU, 0],
-                    ['Naples', 40.85, 14.27, 0, EU, 0], ['Turin', 45.07, 7.69, 0, EU, 0],
-                    ['Berlin', 52.52, 13.40, 1, EU, 1], ['Hamburg', 53.55, 9.99, 0, EU, 0],
-                    ['Munich', 48.14, 11.58, 0, EU, 0], ['Cologne', 50.94, 6.96, 0, EU, 0],
-                    ['Frankfurt', 50.11, 8.68, 0, EU, 0], ['Vienna', 48.21, 16.37, 1, EU, 0],
-                    ['Prague', 50.08, 14.44, 1, EU, 0], ['Warsaw', 52.23, 21.01, 1, EU, 0],
-                    ['Kraków', 50.06, 19.94, 0, EU, 0], ['Budapest', 47.50, 19.04, 1, EU, 0],
-                    ['Bucharest', 44.43, 26.10, 1, EU, 0], ['Sofia', 42.70, 23.32, 1, EU, 0],
-                    ['Athens', 37.98, 23.73, 1, EU, 0], ['Belgrade', 44.79, 20.45, 1, EU, 0],
-                    ['Zagreb', 45.81, 15.98, 1, EU, 0], ['Sarajevo', 43.86, 18.41, 1, EU, 0],
-                    ['Skopje', 41.99, 21.43, 1, EU, 0], ['Tirana', 41.33, 19.82, 1, EU, 0],
-                    ['Chișinău', 47.01, 28.86, 1, EU, 0], ['Kyiv', 50.45, 30.52, 1, EU, 0],
-                    ['Kharkiv', 49.99, 36.23, 0, EU, 0], ['Odesa', 46.48, 30.72, 0, EU, 0],
-                    ['Minsk', 53.90, 27.57, 1, EU, 0], ['Moscow', 55.75, 37.62, 1, EU, 1],
-                    ['Saint Petersburg', 59.93, 30.34, 0, EU, 0], ['Novosibirsk', 55.04, 82.94, 0, AS, 0],
-                    ['Yekaterinburg', 56.84, 60.61, 0, EU, 0], ['Kazan', 55.79, 49.12, 0, EU, 0],
-                    ['Nizhny Novgorod', 56.30, 43.94, 0, EU, 0], ['Samara', 53.20, 50.15, 0, EU, 0],
-                    ['Stockholm', 59.33, 18.07, 1, EU, 0], ['Oslo', 59.91, 10.75, 1, EU, 0],
-                    ['Copenhagen', 55.68, 12.57, 1, EU, 0], ['Helsinki', 60.17, 24.94, 1, EU, 0],
-                    ['Tallinn', 59.44, 24.75, 1, EU, 0], ['Riga', 56.95, 24.11, 1, EU, 0],
-                    ['Vilnius', 54.69, 25.28, 1, EU, 0], ['Amsterdam', 52.37, 4.90, 1, EU, 0],
-                    ['Brussels', 50.85, 4.35, 1, EU, 0], ['Bern', 46.95, 7.45, 1, EU, 0],
-                    ['Zurich', 47.38, 8.54, 0, EU, 0], ['Luxembourg', 49.61, 6.13, 1, EU, 0],
-                    ['Reykjavík', 64.15, -21.95, 1, EU, 0],
-
-                    // === Asia ===
-                    ['Ankara', 39.93, 32.86, 1, AS, 0], ['Istanbul', 41.01, 28.98, 0, AS, 1],
-                    ['İzmir', 38.42, 27.14, 0, AS, 0], ['Tbilisi', 41.72, 44.79, 1, AS, 0],
-                    ['Yerevan', 40.18, 44.51, 1, AS, 0], ['Baku', 40.41, 49.87, 1, AS, 0],
-                    ['Tehran', 35.69, 51.39, 1, AS, 0], ['Mashhad', 36.30, 59.61, 0, AS, 0],
-                    ['Isfahan', 32.65, 51.67, 0, AS, 0], ['Baghdad', 33.31, 44.36, 1, AS, 0],
-                    ['Damascus', 33.51, 36.29, 1, AS, 0], ['Beirut', 33.89, 35.50, 1, AS, 0],
-                    ['Amman', 31.95, 35.93, 1, AS, 0], ['Jerusalem', 31.78, 35.22, 1, AS, 0],
-                    ['Tel Aviv', 32.08, 34.78, 0, AS, 0], ['Riyadh', 24.71, 46.68, 1, AS, 0],
-                    ['Jeddah', 21.49, 39.19, 0, AS, 0], ['Mecca', 21.42, 39.83, 0, AS, 0],
-                    ['Doha', 25.29, 51.53, 1, AS, 0], ['Dubai', 25.20, 55.27, 0, AS, 1],
-                    ['Abu Dhabi', 24.47, 54.37, 1, AS, 0], ['Muscat', 23.59, 58.41, 1, AS, 0],
-                    ['Sanaa', 15.37, 44.19, 1, AS, 0], ['Kuwait City', 29.38, 47.99, 1, AS, 0],
-                    ['Manama', 26.23, 50.59, 1, AS, 0], ['Kabul', 34.53, 69.17, 1, AS, 0],
-                    ['Islamabad', 33.69, 73.05, 1, AS, 0], ['Karachi', 24.86, 67.01, 0, AS, 0],
-                    ['Lahore', 31.55, 74.34, 0, AS, 0], ['Delhi', 28.61, 77.21, 1, AS, 1],
-                    ['Mumbai', 19.08, 72.88, 0, AS, 1], ['Bangalore', 12.97, 77.59, 0, AS, 0],
-                    ['Hyderabad', 17.39, 78.49, 0, AS, 0], ['Chennai', 13.08, 80.27, 0, AS, 0],
-                    ['Kolkata', 22.57, 88.36, 0, AS, 0], ['Ahmedabad', 23.03, 72.59, 0, AS, 0],
-                    ['Pune', 18.52, 73.86, 0, AS, 0], ['Surat', 21.17, 72.83, 0, AS, 0],
-                    ['Jaipur', 26.92, 75.79, 0, AS, 0], ['Lucknow', 26.85, 80.95, 0, AS, 0],
-                    ['Kathmandu', 27.71, 85.32, 1, AS, 0], ['Thimphu', 27.47, 89.64, 1, AS, 0],
-                    ['Dhaka', 23.81, 90.41, 1, AS, 0], ['Chittagong', 22.36, 91.78, 0, AS, 0],
-                    ['Colombo', 6.93, 79.86, 1, AS, 0], ['Malé', 4.18, 73.51, 1, AS, 0],
-                    ['Naypyidaw', 19.76, 96.08, 1, AS, 0], ['Yangon', 16.87, 96.20, 0, AS, 0],
-                    ['Bangkok', 13.76, 100.50, 1, AS, 1], ['Hanoi', 21.03, 105.85, 1, AS, 0],
-                    ['Ho Chi Minh City', 10.82, 106.63, 0, AS, 0], ['Vientiane', 17.97, 102.60, 1, AS, 0],
-                    ['Phnom Penh', 11.56, 104.92, 1, AS, 0], ['Kuala Lumpur', 3.14, 101.69, 1, AS, 0],
-                    ['Singapore', 1.35, 103.82, 1, AS, 1], ['Jakarta', -6.21, 106.85, 1, AS, 0],
-                    ['Surabaya', -7.25, 112.75, 0, AS, 0], ['Bandung', -6.92, 107.61, 0, AS, 0],
-                    ['Manila', 14.60, 120.98, 1, AS, 0], ['Quezon City', 14.68, 121.04, 0, AS, 0],
-                    ['Beijing', 39.90, 116.41, 1, AS, 1], ['Shanghai', 31.23, 121.47, 0, AS, 1],
-                    ['Guangzhou', 23.13, 113.26, 0, AS, 0], ['Shenzhen', 22.54, 114.05, 0, AS, 0],
-                    ['Tianjin', 39.34, 117.36, 0, AS, 0], ['Chongqing', 29.56, 106.55, 0, AS, 0],
-                    ['Chengdu', 30.67, 104.07, 0, AS, 0], ['Wuhan', 30.59, 114.30, 0, AS, 0],
-                    ['Xi\'an', 34.34, 108.94, 0, AS, 0], ['Nanjing', 32.06, 118.79, 0, AS, 0],
-                    ['Hangzhou', 30.27, 120.15, 0, AS, 0], ['Hong Kong', 22.32, 114.17, 0, AS, 1],
-                    ['Taipei', 25.03, 121.57, 1, AS, 0], ['Seoul', 37.57, 126.98, 1, AS, 1],
-                    ['Busan', 35.18, 129.08, 0, AS, 0], ['Pyongyang', 39.04, 125.76, 1, AS, 0],
-                    ['Tokyo', 35.68, 139.69, 1, AS, 1], ['Osaka', 34.69, 135.50, 0, AS, 0],
-                    ['Yokohama', 35.44, 139.64, 0, AS, 0], ['Nagoya', 35.18, 136.91, 0, AS, 0],
-                    ['Sapporo', 43.06, 141.35, 0, AS, 0], ['Ulaanbaatar', 47.92, 106.92, 1, AS, 0],
-                    ['Astana', 51.17, 71.43, 1, AS, 0], ['Almaty', 43.24, 76.95, 0, AS, 0],
-                    ['Tashkent', 41.30, 69.24, 1, AS, 0], ['Dushanbe', 38.56, 68.79, 1, AS, 0],
-                    ['Bishkek', 42.87, 74.59, 1, AS, 0], ['Ashgabat', 37.96, 58.33, 1, AS, 0],
-                    ['Nicosia', 35.17, 33.36, 1, AS, 0],
-
-                    // === Africa ===
-                    ['Cairo', 30.04, 31.24, 1, AF, 1], ['Alexandria', 31.20, 29.92, 0, AF, 0],
-                    ['Tripoli', 32.89, 13.19, 1, AF, 0], ['Tunis', 36.81, 10.18, 1, AF, 0],
-                    ['Algiers', 36.75, 3.06, 1, AF, 0], ['Casablanca', 33.57, -7.59, 0, AF, 0],
-                    ['Rabat', 34.02, -6.83, 1, AF, 0], ['Nouakchott', 18.08, -15.97, 1, AF, 0],
-                    ['Dakar', 14.69, -17.45, 1, AF, 0], ['Bamako', 12.65, -8.00, 1, AF, 0],
-                    ['Ouagadougou', 12.37, -1.52, 1, AF, 0], ['Niamey', 13.51, 2.11, 1, AF, 0],
-                    ['Abuja', 9.08, 7.39, 1, AF, 0], ['Lagos', 6.52, 3.38, 0, AF, 1],
-                    ['Kano', 12.00, 8.52, 0, AF, 0], ['Accra', 5.60, -0.19, 1, AF, 0],
-                    ['Lomé', 6.17, 1.22, 1, AF, 0], ['Cotonou', 6.36, 2.43, 1, AF, 0],
-                    ['Yaoundé', 3.85, 11.50, 1, AF, 0], ['Douala', 4.05, 9.77, 0, AF, 0],
-                    ['Malabo', 3.75, 8.78, 1, AF, 0], ['Libreville', 0.42, 9.45, 1, AF, 0],
-                    ['Brazzaville', -4.27, 15.28, 1, AF, 0], ['Kinshasa', -4.32, 15.31, 1, AF, 0],
-                    ['Luanda', -8.84, 13.23, 1, AF, 0], ['Windhoek', -22.56, 17.08, 1, AF, 0],
-                    ['Gaborone', -24.66, 25.91, 1, AF, 0], ['Pretoria', -25.75, 28.19, 1, AF, 0],
-                    ['Johannesburg', -26.20, 28.05, 0, AF, 0], ['Cape Town', -33.92, 18.42, 0, AF, 1],
-                    ['Durban', -29.86, 31.02, 0, AF, 0], ['Maseru', -29.31, 27.48, 1, AF, 0],
-                    ['Mbabane', -26.32, 31.14, 1, AF, 0], ['Maputo', -25.97, 32.57, 1, AF, 0],
-                    ['Harare', -17.83, 31.05, 1, AF, 0], ['Lusaka', -15.42, 28.28, 1, AF, 0],
-                    ['Lilongwe', -13.97, 33.79, 1, AF, 0], ['Dar es Salaam', -6.79, 39.21, 0, AF, 0],
-                    ['Dodoma', -6.17, 35.74, 1, AF, 0], ['Nairobi', -1.29, 36.82, 1, AF, 0],
-                    ['Mombasa', -4.04, 39.66, 0, AF, 0], ['Kampala', 0.35, 32.58, 1, AF, 0],
-                    ['Kigali', -1.94, 30.06, 1, AF, 0], ['Bujumbura', -3.36, 29.36, 1, AF, 0],
-                    ['Addis Ababa', 9.03, 38.74, 1, AF, 0], ['Asmara', 15.32, 38.93, 1, AF, 0],
-                    ['Khartoum', 15.50, 32.56, 1, AF, 0], ['Juba', 4.85, 31.58, 1, AF, 0],
-                    ['Mogadishu', 2.04, 45.34, 1, AF, 0], ['Djibouti', 11.59, 43.15, 1, AF, 0],
-                    ['Antananarivo', -18.88, 47.51, 1, AF, 0], ['Port Louis', -20.16, 57.50, 1, AF, 0],
-                    ['Bangui', 4.39, 18.55, 1, AF, 0], ['N\'Djamena', 12.13, 15.05, 1, AF, 0],
-                    ['Freetown', 8.48, -13.23, 1, AF, 0], ['Monrovia', 6.30, -10.80, 1, AF, 0],
-                    ['Conakry', 9.51, -13.69, 1, AF, 0], ['Bissau', 11.86, -15.58, 1, AF, 0],
-                    ['Banjul', 13.45, -16.58, 1, AF, 0],
-
-                    // === Oceania ===
-                    ['Canberra', -35.28, 149.13, 1, OC, 0], ['Sydney', -33.87, 151.21, 0, OC, 1],
-                    ['Melbourne', -37.81, 144.96, 0, OC, 0], ['Brisbane', -27.47, 153.03, 0, OC, 0],
-                    ['Perth', -31.95, 115.86, 0, OC, 0], ['Adelaide', -34.93, 138.60, 0, OC, 0],
-                    ['Auckland', -36.85, 174.76, 0, OC, 0], ['Wellington', -41.29, 174.78, 1, OC, 0],
-                    ['Port Moresby', -9.44, 147.18, 1, OC, 0], ['Suva', -18.14, 178.44, 1, OC, 0],
-                    ['Honiara', -9.43, 159.96, 1, OC, 0], ['Port Vila', -17.74, 168.31, 1, OC, 0],
-                    ['Nukuʻalofa', -21.13, -175.20, 1, OC, 0], ['Apia', -13.84, -171.76, 1, OC, 0]
+                    // === VPN / proxy servers ===
+                    ['Сервер NL',         52.37, 4.90,   0, EU, 1],
+                    ['Сервер DE',         50.11, 8.68,   0, EU, 1],
+                    ['Сервер FR',         48.85, 2.35,   0, EU, 1],
+                    ['Сервер TR',         41.01, 28.98,  0, EU, 1],
+                    ['Сервер US-E',       39.04, -77.49, 0, NA, 1],
+                    ['Сервер US-W',       37.77, -122.42, 0, NA, 1],
+                    ['Сервер JP',         35.68, 139.69, 0, AS, 1],
+                    ['Сервер SG',         1.35,  103.82, 0, AS, 1],
+                    ['Сервер AE',         25.20, 55.27,  0, AS, 1],
+                    ['Сервер AM',         40.18, 44.51,  0, AS, 1]
                 ];
 
                 // Virus progression
@@ -7707,8 +7580,7 @@
                 document.querySelectorAll('.nav-btn').forEach(b => {
                     b.classList.toggle('active', b.dataset.screen === 'worldMapScreen');
                 });
-                // Strip any leftover picker chrome and make sure the coral
-                // is initialised + animating.
+                // Strip any leftover picker chrome and bring the globe up.
                 document.body.classList.remove('selecting', 'tutorial-active');
                 const ws = document.getElementById('worldMapScreen');
                 if (ws) ws.classList.remove('selecting', 'intro', 'placing');
@@ -7717,8 +7589,12 @@
                 const prompt = document.getElementById('selectionPrompt');
                 if (prompt) prompt.style.display = 'none';
                 this.pickerMode = null;
-                this.ensureCoral && this.ensureCoral();
-                if (this.coralMap) this.coralMap.draw();
+                this.ensureGlobe();
+                this.renderCities();
+                if (this.globe) {
+                    this.globe.resetView();
+                    this.globe.updateInfections(this.continents, this.cities);
+                }
                 this.updateFactionCopy();
             }
 
@@ -8879,25 +8755,26 @@
 
             // ---- 3D Globe (picker mode only) ----------------------------
             ensureGlobe() {
-                // Legacy 3D globe replaced by the cyber-coral in Phase 3.
-                // Kept as a no-op so existing call sites don't break.
-                this.ensureCoral();
-            }
-
-            ensureCoral() {
-                if (this.coralMap) {
-                    this.coralMap.startAnimating();
-                    return;
-                }
-                const canvas = document.getElementById('coralCanvas');
+                if (this.globe || typeof THREE === 'undefined') return;
+                const canvas = document.getElementById('globeCanvas');
                 if (!canvas) return;
-                this.coralMap = new CoralMap(canvas, this);
-                // First layout pass after the screen has gained its real size.
-                requestAnimationFrame(() => {
-                    this.coralMap.resize();
-                    this.coralMap.startAnimating();
+                this.globe = new Globe({
+                    canvas,
+                    textureUrl: 'assets/world_map.png',
+                    cities: this.cities,
+                    vboxForCity: (c) => this.cityToXY(c[1], c[2], c[4], c[0]),
+                    onCityTap: (idx) => this.handleCityTap(idx),
+                    onEmptyTap: () => {
+                        if (!this.pickerMode && this.mapSelectedCityIdx != null) {
+                            this.clearMapSelection();
+                        }
+                    }
                 });
             }
+
+            // Cyber-coral retired — globe is back. No-op kept so old call
+            // sites don't throw.
+            ensureCoral() { this.ensureGlobe(); }
 
             // Called by the coral when the player taps a branch / sector.
             // In picker (tutorial) mode this places the first node; otherwise
