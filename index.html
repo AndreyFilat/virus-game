@@ -3364,9 +3364,8 @@
             color: #06240f;
             background: linear-gradient(180deg, #a7f3c0, #16a34a);
             box-shadow: inset 0 1px 0 rgba(255,255,255,0.55), 0 3px 8px rgba(0,0,0,0.45);
-            cursor: pointer; -webkit-tap-highlight-color: transparent;
+            pointer-events: none;   /* tap goes to the room → opens the sheet */
         }
-        .lock-btn:active { transform: scale(0.95); }
 
         /* Reveal animation when a room is unlocked */
         .room.revealing > svg { animation: roomReveal 0.6s cubic-bezier(0.2,0.9,0.25,1.2) both; transform-origin: 50% 70%; }
@@ -10121,6 +10120,8 @@
                 this.updateDNARate();
                 this.renderBaseStats();
                 this.saveState();
+                // Close the sheet so the reveal animation on the tile is visible.
+                if (this.openRoom === id) this.closeRoomSheet();
                 this.updateRoomTile(id, true);   // play reveal animation
             }
             // Derived stat value from a room's level (display only for now).
@@ -10182,13 +10183,8 @@
                 return 'room' + (room.endsAt ? ' busy' : '');
             }
             wireRoomTile(el) {
-                const id = el.dataset.room;
-                if (this.rooms[id].unlocked) {
-                    this.tap(el, () => this.openRoomSheet(id));
-                } else {
-                    const btn = el.querySelector('[data-unlock]');
-                    if (btn) this.tap(btn, () => this.unlockRoom(id));
-                }
+                // Tapping anywhere on a room (locked or not) opens its sheet.
+                this.tap(el, () => this.openRoomSheet(el.dataset.room));
             }
             updateRoomTile(id, reveal) {
                 const el = document.querySelector(`.room[data-room="${id}"]`);
@@ -10261,21 +10257,31 @@
                 const cost = this.roomCost(id);
                 const affordable = this.dnaPoints >= cost;
 
-                let statRows = `<div class="rs-stat"><span class="rs-k">Сейчас</span><span class="rs-v">${this.roomEffectText(id)}</span></div>`;
-                if (!maxed) {
-                    statRows += `<div class="rs-stat"><span class="rs-k">След. уровень</span><span class="rs-v next">${this.roomEffectText(id, room.level + 1)}</span></div>`;
-                }
-
-                let action, progress = '';
-                if (maxed) {
-                    action = `<button class="rs-action" disabled>Максимальный уровень</button>`;
-                } else if (busy) {
-                    const left = Math.max(0, room.endsAt - Date.now());
-                    const pct = room.duration ? (1 - left / room.duration) * 100 : 0;
-                    progress = `<div class="rs-progress-wrap"><div class="rs-progress-bar" style="width:${pct.toFixed(1)}%"></div></div>`;
-                    action = `<button class="rs-action busy" disabled>⏳ Идёт улучшение · ${this.fmtDuration(left)}</button>`;
+                let statRows, action, progress = '', lvlText;
+                if (!room.unlocked) {
+                    // Locked preview: what the room will do once opened.
+                    const uCost = this.roomUnlockCost(id);
+                    const canAfford = this.dnaPoints >= uCost;
+                    lvlText = 'Закрыто';
+                    statRows = `<div class="rs-stat"><span class="rs-k">При открытии</span><span class="rs-v next">${this.roomEffectText(id, 1)}</span></div>`;
+                    const label = uCost > 0 ? `Открыть · 📦 ${uCost}` : 'Открыть бесплатно';
+                    action = `<button class="rs-action" data-unlock="${id}" ${canAfford ? '' : 'disabled'}>${label}</button>`;
                 } else {
-                    action = `<button class="rs-action" data-upgrade="${id}" ${affordable ? '' : 'disabled'}>Улучшить · 📦 ${cost}</button>`;
+                    lvlText = `Уровень ${room.level} / ${this.MAX_ROOM_LEVEL}`;
+                    statRows = `<div class="rs-stat"><span class="rs-k">Сейчас</span><span class="rs-v">${this.roomEffectText(id)}</span></div>`;
+                    if (!maxed) {
+                        statRows += `<div class="rs-stat"><span class="rs-k">След. уровень</span><span class="rs-v next">${this.roomEffectText(id, room.level + 1)}</span></div>`;
+                    }
+                    if (maxed) {
+                        action = `<button class="rs-action" disabled>Максимальный уровень</button>`;
+                    } else if (busy) {
+                        const left = Math.max(0, room.endsAt - Date.now());
+                        const pct = room.duration ? (1 - left / room.duration) * 100 : 0;
+                        progress = `<div class="rs-progress-wrap"><div class="rs-progress-bar" style="width:${pct.toFixed(1)}%"></div></div>`;
+                        action = `<button class="rs-action busy" disabled>⏳ Идёт улучшение · ${this.fmtDuration(left)}</button>`;
+                    } else {
+                        action = `<button class="rs-action" data-upgrade="${id}" ${affordable ? '' : 'disabled'}>Улучшить · 📦 ${cost}</button>`;
+                    }
                 }
 
                 body.innerHTML = `
@@ -10284,7 +10290,7 @@
                         <div class="rs-ico">${def.icon}</div>
                         <div class="rs-titles">
                             <div class="rs-name">${this.roomName(id)}</div>
-                            <div class="rs-lvl">Уровень ${room.level} / ${this.MAX_ROOM_LEVEL}</div>
+                            <div class="rs-lvl">${lvlText}</div>
                         </div>
                         <button class="rs-close" data-close>✕</button>
                     </div>
@@ -10296,6 +10302,7 @@
                 const wire = (sel, fn) => { const b = body.querySelector(sel); if (b) this.tap(b, fn); };
                 wire('[data-close]', () => this.closeRoomSheet());
                 wire('[data-upgrade]', () => this.startRoomUpgrade(id));
+                wire('[data-unlock]', () => this.unlockRoom(id));
             }
 
             fmtDuration(ms) {
