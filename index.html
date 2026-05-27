@@ -3976,6 +3976,11 @@
             position: fixed;
             z-index: 200;
             transform: translate(-50%, calc(-100% - 16px));
+            /* Intrinsic, non-wrapping width so the plate keeps a constant size
+               as it tracks a city toward the screen edge during globe rotation
+               (a shrink-to-fit fixed element would otherwise reflow/wrap). */
+            width: max-content;
+            white-space: nowrap;
             min-width: 120px;
             padding: 9px 16px 10px;
             border-radius: 14px;
@@ -4020,6 +4025,7 @@
             font-size: 11px;
             letter-spacing: 1.4px;
             text-transform: uppercase;
+            white-space: nowrap;
             padding: 7px 14px;
             border-radius: 10px;
             cursor: pointer;
@@ -8072,8 +8078,10 @@
                 // `position: fixed` lands the plate over the right city.
                 const offsetParent = plate.offsetParent || document.body;
                 const opRect = offsetParent.getBoundingClientRect();
-                plate.style.left = (xViewport - opRect.left) + 'px';
-                plate.style.top  = (yViewport - opRect.top)  + 'px';
+                // Round to whole pixels so the text/button don't shimmer or
+                // appear to resize as the plate tracks the dot each frame.
+                plate.style.left = Math.round(xViewport - opRect.left) + 'px';
+                plate.style.top  = Math.round(yViewport - opRect.top)  + 'px';
             }
 
             cloneHelixToMap() {
