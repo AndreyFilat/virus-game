@@ -2445,7 +2445,7 @@
         
         /* Evolution Screen */
         .evolution-screen {
-            padding: 22px 16px 96px;
+            padding: 56px 16px 96px;
             background:
                 radial-gradient(circle at 30% 20%, rgba(147, 51, 234, 0.15), transparent 60%),
                 radial-gradient(circle at 70% 80%, rgba(59, 130, 246, 0.1), transparent 50%),
@@ -4165,6 +4165,7 @@
         .virus-character-container {
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 12px;
             width: 100%;
             max-width: 420px;
@@ -4174,10 +4175,13 @@
 
         .virus-stats-col {
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
+            justify-content: center;
             gap: 8px;
-            flex: 0 0 auto;
+            flex: 1 1 auto;
         }
+
+        .virus-stats-col .stat-line { flex: 1 1 0; min-width: 0; }
 
         .stat-line {
             display: flex;
@@ -5021,13 +5025,6 @@
         
         <!-- Evolution Menu Screen -->
         <div class="screen evolution-screen" id="evolutionScreen">
-            <div class="virus-header">
-                <div class="virus-level-badge">УРОВЕНЬ <span id="virusLevel">1</span></div>
-                <div class="virus-level-progress" aria-hidden="true">
-                    <div class="virus-level-fill" id="virusLevelFill" style="width: 0%"></div>
-                </div>
-            </div>
-
             <div class="virus-character-container">
                 <div class="virus-stats-col">
                     <div class="stat-line infectivity">
@@ -5051,8 +5048,6 @@
                             <div class="stat-num" id="statHP">100</div>
                         </div>
                     </div>
-                </div>
-                <div class="virus-character">
                 </div>
             </div>
 
@@ -5249,7 +5244,7 @@
                         <ellipse cx="13.5" cy="13" rx="1.8" ry="2.6" fill="#fff" opacity="0.4"/>
                     </svg>
                 </span>
-                <span>Сеть</span>
+                <span>Техно</span>
             </button>
             <button class="nav-btn" data-screen="baseScreen" id="navBase">
                 <span class="nav-icon">
@@ -6867,6 +6862,7 @@
                 this.techBonus  = { attack: [25, 45, 75, 130], defense: [25, 45, 75, 130], hp: [120, 220, 360, 600] };
                 this.techCost   = [250, 700, 1800, 4200];
                 this.techTime   = [30000, 120000, 420000, 1200000]; // 30s · 2m · 7m · 20m (before lab reduction)
+                this.techRoomReq = [1, 5, 12, 25]; // min level of the branch's base room to unlock each tier
                 this.techTreeDefs = {
                     rkn: [
                         { id: 'block', name: 'Блокировки', stat: 'attack',  icon: '⛔',
@@ -7295,10 +7291,21 @@
             }
             techKey(branchId, i) { return `${branchId}_${i}`; }
             isTechDone(branchId, i) { return !!this.techResearched[this.techKey(branchId, i)]; }
-            // A node is available once the previous tier in its branch is done.
+            techBranch(branchId) { return this.techBranchesForFaction().find(b => b.id === branchId); }
+            // The base room whose level gates a branch (attack/defense/hp share ids with the stat).
+            techRoomId(branchId) { return this.techBranch(branchId).stat; }
+            roomName(roomId) {
+                const d = this.roomDefs[roomId];
+                return d ? d[this.faction === 'resist' ? 'vpn' : 'rkn'] : roomId;
+            }
+            // Previous tier in the branch must be researched first.
+            techChainMet(branchId, i) { return i === 0 || this.isTechDone(branchId, i - 1); }
+            // The branch's base room must reach the tier's required level.
+            techRoomMet(branchId, i) { return this.rooms[this.techRoomId(branchId)].level >= this.techRoomReq[i]; }
+            // A node is available once its chain and room gates are both met.
             isTechAvailable(branchId, i) {
                 if (this.isTechDone(branchId, i)) return false;
-                return i === 0 || this.isTechDone(branchId, i - 1);
+                return this.techChainMet(branchId, i) && this.techRoomMet(branchId, i);
             }
             researchReduction() {
                 const lvl = this.rooms.research ? this.rooms.research.level : 0;
@@ -7387,7 +7394,10 @@
                             const left = Math.max(0, this.techActive.endsAt - now);
                             sub = this.fmtDuration(left);
                         } else if (available) { state = 'avail'; sub = `📦 ${this.techCost[i]}`; }
-                        else { sub = '🔒'; }
+                        else if (this.techChainMet(br.id, i) && !this.techRoomMet(br.id, i)) {
+                            // Gated by base-room level — show the required level.
+                            sub = `🏠 ${this.techRoomReq[i]}`;
+                        } else { sub = '🔒'; }
                         const connector = i > 0 ? `<div class="tech-link ${this.isTechDone(br.id, i - 1) ? 'lit' : ''}"></div>` : '';
                         const pct = active && this.techActive.duration
                             ? (1 - (this.techActive.endsAt - now) / this.techActive.duration) * 100 : 0;
@@ -7469,8 +7479,17 @@
                     action = `<button class="rs-action" data-research ${afford ? '' : 'disabled'}>${sub}</button>`;
                 } else {
                     lvlText = `Тир ${i + 1} / 4`;
-                    statRows += `<div class="rs-stat"><span class="rs-k">Требует</span><span class="rs-v">${br.nodes[i - 1]}</span></div>`;
-                    action = `<button class="rs-action" disabled>🔒 Сначала откройте предыдущий узел</button>`;
+                    const roomId = this.techRoomId(branchId);
+                    const roomLvl = this.rooms[roomId].level;
+                    const reqLvl = this.techRoomReq[i];
+                    statRows += `<div class="rs-stat"><span class="rs-k">Комната</span>` +
+                                `<span class="rs-v ${this.techRoomMet(branchId, i) ? '' : 'next'}">${this.roomName(roomId)} · ур. ${roomLvl}/${reqLvl}</span></div>`;
+                    if (!this.techChainMet(branchId, i)) {
+                        statRows += `<div class="rs-stat"><span class="rs-k">Требует</span><span class="rs-v next">${br.nodes[i - 1]}</span></div>`;
+                        action = `<button class="rs-action" disabled>🔒 Сначала откройте предыдущий узел</button>`;
+                    } else {
+                        action = `<button class="rs-action" disabled>🔒 Нужен ур. ${reqLvl}: ${this.roomName(roomId)}</button>`;
+                    }
                 }
 
                 body.innerHTML = `
@@ -7548,8 +7567,7 @@
             }
 
             renderVirusScreen() {
-                const lvl = document.getElementById('virusLevel');
-                if (!lvl) return;
+                if (!document.getElementById('techTree')) return;
                 this.updateVirusLevelProgress();
                 const setTxt = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
                 setTxt('statAttack', this.getAttackPower());
