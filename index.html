@@ -4204,6 +4204,73 @@
         .pc-hp-bar { flex: 1 1 auto; height: 6px; border-radius: 4px; background: rgba(255,255,255,0.1); overflow: hidden; }
         .pc-hp-fill { height: 100%; background: linear-gradient(90deg, #f472b6, #ec4899); transition: width 0.3s ease; }
         .pc-hp-val { font-family: 'Space Mono', monospace; font-size: 9px; color: #fff; white-space: nowrap; }
+
+        /* ----- Enemy defenders list inside the city plate ----- */
+        .plate-defenders { margin-top: 10px; }
+        .plate-defenders[hidden] { display: none; }
+        .pd-title {
+            font-family: 'Space Mono', monospace;
+            font-size: 9.5px;
+            font-weight: 800;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            color: #cbd5e1;
+            margin-bottom: 5px;
+        }
+        .pd-list { display: flex; flex-direction: column; gap: 5px; }
+        .pd-card {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 6px;
+            border-radius: 10px;
+            background: linear-gradient(170deg, rgba(40,55,75,0.85), rgba(20,28,42,0.95));
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+        }
+        .pd-card.unreachable { opacity: 0.55; }
+        .pd-meta { flex: 1 1 auto; min-width: 0; text-align: left; }
+        .pd-name-row { display: flex; align-items: center; gap: 5px; }
+        .pd-name { font-size: 11px; font-weight: 800; color: #f8fafc; }
+        .pd-league {
+            font-family: 'Space Mono', monospace;
+            font-size: 8.5px; font-weight: 800;
+            padding: 1px 5px; border-radius: 999px; color: #fff;
+            box-shadow: 0 1px 0 rgba(0,0,0,0.3) inset;
+        }
+        .pd-league.lg-1 { background: linear-gradient(90deg,#a855f7,#5b21b6); }
+        .pd-league.lg-2 { background: linear-gradient(90deg,#06b6d4,#155e75); }
+        .pd-league.lg-3 { background: linear-gradient(90deg,#eab308,#854d0e); }
+        .pd-league.lg-4 { background: linear-gradient(90deg,#94a3b8,#475569); }
+        .pd-league.lg-5 { background: linear-gradient(90deg,#b66e2c,#5c2f0d); }
+        .pd-stats {
+            font-family: 'Space Mono', monospace;
+            font-size: 9px;
+            color: #cbd5e1;
+            margin-top: 2px;
+            letter-spacing: 0.4px;
+        }
+        .pd-stats .pd-s-hp { color: #fca5a5; }
+        .pd-stats .pd-s-hp.dead { color: #64748b; text-decoration: line-through; }
+        .pd-hit {
+            flex: 0 0 auto;
+            border: none;
+            border-radius: 8px;
+            padding: 6px 9px;
+            font-family: 'Space Mono', monospace;
+            font-weight: 800;
+            font-size: 10px;
+            letter-spacing: 0.5px;
+            color: #2a0606;
+            background: linear-gradient(170deg, #ff9090 0%, #ef4444 55%, #b91c1c 100%);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.35);
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            pointer-events: auto;
+        }
+        .pd-hit:active { transform: scale(0.94); }
+        .pd-hit[disabled] { opacity: 0.45; cursor: default; }
+        .pd-empty { font-size: 10px; color: #94a3b8; text-align: center; padding: 4px; }
         /* Little tail/arrow pointing to the city dot below. */
         .city-plate .plate-tail {
             position: absolute;
@@ -5182,6 +5249,10 @@
                         <div class="pc-hp-bar"><div class="pc-hp-fill" id="pcHpFill"></div></div>
                         <span class="pc-hp-val" id="pcHpVal"></span>
                     </div>
+                </div>
+                <div class="plate-defenders" id="plateDefenders" hidden>
+                    <div class="pd-title">Защитники противника</div>
+                    <div class="pd-list" id="pdList"></div>
                 </div>
                 <button class="plate-action" id="plateAction" hidden>Распространить</button>
                 <button class="plate-action plate-action-2" id="plateAction2" hidden></button>
@@ -7984,6 +8055,72 @@
             myFactionKey() { return this.faction === 'resist' ? 'vpn' : 'rkn'; }
             enemyFactionKey() { return this.faction === 'resist' ? 'rkn' : 'vpn'; }
 
+            // ===== Simulated city defenders (PvP targets) =====
+            DEFENDER_NAMES() {
+                return ['Иван','Олег','Анна','Мария','Сергей','Дмитрий','Юлия','Виктор','Алина','Ника',
+                        'Артём','Кирилл','Полина','Илья','Лиза','Максим','Ева','Глеб','Никита','Соня',
+                        'Тимур','Карина','Антон','Денис','Роман','Влад','Аня','Маша','Лёша','Боря'];
+            }
+            DEFENDER_COOLDOWN_MS() { return 6 * 60 * 60 * 1000; }
+            // Stat ranges per league for simulated defenders.
+            defenderStatsForLeague(league, rnd) {
+                const R = {
+                    1: { atk: [220, 320], def: [110, 160], hp: [9, 14] },
+                    2: { atk: [140, 220], def: [80,  120], hp: [6, 10] },
+                    3: { atk: [80,  140], def: [55,  90],  hp: [5,  8] },
+                    4: { atk: [45,  85],  def: [35,  60],  hp: [3,  5] },
+                    5: { atk: [18,  45],  def: [18,  35],  hp: [3,  3] }
+                }[league];
+                const pick = a => Math.round(a[0] + rnd() * (a[1] - a[0]));
+                return { atk: pick(R.atk), def: pick(R.def), hp: pick(R.hp) };
+            }
+            seedCityDefenders(idx) {
+                const s = this.getCity(idx);
+                let seed = ((idx + 1) * 0x9E3779B9 ^ 0x12345) >>> 0;
+                const rnd = () => { seed = (seed * 1103515245 + 12345) >>> 0; return seed / 4294967296; };
+                const names = this.DEFENDER_NAMES();
+                const out = [];
+                for (let i = 0; i < 6; i++) {
+                    const r = rnd();
+                    // Weighted toward lower leagues so most defenders are 3-5.
+                    const league = r < 0.06 ? 1 : r < 0.20 ? 2 : r < 0.46 ? 3 : r < 0.76 ? 4 : 5;
+                    const st = this.defenderStatsForLeague(league, rnd);
+                    out.push({
+                        id: idx + ':' + i,
+                        name: names[Math.floor(rnd() * names.length)],
+                        league,
+                        atk: st.atk, def: st.def,
+                        hp: st.hp, maxHp: st.hp,
+                        lastAttackedAt: 0
+                    });
+                }
+                s.defenders = out;
+            }
+            getCityDefenders(idx) {
+                const s = this.getCity(idx);
+                if (!s.defenders || s.defenders.length === 0) this.seedCityDefenders(idx);
+                return s.defenders;
+            }
+            // Cascade rule: priority targets are the player's own league or
+            // higher (smaller idx). Fill remaining slots from lower leagues.
+            visibleDefenders(idx) {
+                const all = this.getCityDefenders(idx).filter(d => d.hp > 0);
+                const myL = this.getLeague().idx;
+                const out = [];
+                for (let lg = 1; lg <= myL && out.length < 3; lg++) {
+                    for (const d of all) if (d.league === lg && out.length < 3) out.push(d);
+                }
+                for (let lg = myL + 1; lg <= 5 && out.length < 3; lg++) {
+                    for (const d of all) if (d.league === lg && out.length < 3) out.push(d);
+                }
+                return out;
+            }
+            // round(Attack / Defense) × random(0.9..1.1) — integer HP damage.
+            rollPvpDamage(atk, def) {
+                const base = Math.round(atk / Math.max(1, def));
+                return Math.max(0, Math.round(base * (0.9 + Math.random() * 0.2)));
+            }
+
             // Deterministic baseline member split per city so every city shows
             // a populated, stable control bar on first view.
             cityBaseMembers(idx) {
@@ -8101,6 +8238,46 @@
                         a2.onclick = (e) => { e.preventDefault(); e.stopPropagation(); this.inviteCaptureCity(idx); };
                     }
                 }
+                this.renderCityDefenders(idx);
+            }
+
+            renderCityDefenders(idx) {
+                const wrap = document.getElementById('plateDefenders');
+                const list = document.getElementById('pdList');
+                if (!wrap || !list) return;
+                // Hide the defender list during the starting-city picker —
+                // first pick is a clean placement, not a PvP fight.
+                if (this.pickerMode === 'tutorial') { wrap.hidden = true; return; }
+                wrap.hidden = false;
+                list.innerHTML = '';
+                const defenders = this.visibleDefenders(idx);
+                if (!defenders.length) {
+                    list.innerHTML = '<div class="pd-empty">Защитников нет</div>';
+                    return;
+                }
+                const now = Date.now();
+                const cdMs = this.DEFENDER_COOLDOWN_MS();
+                defenders.forEach(d => {
+                    const card = document.createElement('div');
+                    card.className = 'pd-card';
+                    const cdLeft = d.lastAttackedAt ? Math.max(0, cdMs - (now - d.lastAttackedAt)) : 0;
+                    const disabled = cdLeft > 0;
+                    const cdLabel = disabled ? `⏳ ${Math.ceil(cdLeft / 3600000)}ч` : '⚔ Бить';
+                    card.innerHTML = `
+                        <div class="pd-meta">
+                            <div class="pd-name-row">
+                                <span class="pd-name">${d.name}</span>
+                                <span class="pd-league lg-${d.league}">Л${d.league}</span>
+                            </div>
+                            <div class="pd-stats">⚔ ${d.atk}  🛡 ${d.def}  <span class="pd-s-hp${d.hp === 0 ? ' dead' : ''}">❤ ${d.hp}/${d.maxHp}</span></div>
+                        </div>
+                        <button class="pd-hit" ${disabled ? 'disabled' : ''}>${cdLabel}</button>`;
+                    if (!disabled) {
+                        const btn = card.querySelector('.pd-hit');
+                        this.tap(btn, () => this.attackDefender(idx, d.id));
+                    }
+                    list.appendChild(card);
+                });
             }
 
             // Great-circle distance between two cities in km (lat/lon).
@@ -8196,9 +8373,50 @@
                 }
             }
 
-            // Incoming PvP from the enemy faction against a random held city.
-            // HP (pool) and Defense Power (mitigation) decide how many attacks
-            // a city survives before the player loses control of it.
+            // Player attacks one of the city's enemy defenders.
+            attackDefender(idx, defenderId) {
+                const s = this.getCity(idx);
+                const defenders = this.getCityDefenders(idx);
+                const d = defenders.find(x => x.id === defenderId);
+                if (!d || d.hp <= 0) return;
+                const myL = this.getLeague().idx;
+                const visible = this.visibleDefenders(idx);
+                if (!visible.includes(d)) {
+                    this.showToast('Цель вне досягаемости', 'Каскад выбирает другую цель', 'above-map', '🚫');
+                    return;
+                }
+                const now = Date.now();
+                if (d.lastAttackedAt && now - d.lastAttackedAt < this.DEFENDER_COOLDOWN_MS()) {
+                    const leftH = Math.ceil((this.DEFENDER_COOLDOWN_MS() - (now - d.lastAttackedAt)) / 3600000);
+                    this.showToast('Кулдаун атаки', `${d.name} · ещё ${leftH} ч`, 'above-map', '⏳');
+                    return;
+                }
+                const dmg = this.rollPvpDamage(this.getAttackPower(), d.def);
+                d.lastAttackedAt = now;
+                if (dmg === 0) {
+                    this.pvpEvent({ icon: '🛡️', title: 'Атака отбита', sub: `${d.name} устоял`, tone: 'negative' });
+                } else {
+                    d.hp = Math.max(0, d.hp - dmg);
+                    if (d.hp === 0) {
+                        // Defender kicked — enemy faction's control drops.
+                        const enemyKey = this.enemyFactionKey();
+                        const mineKey  = this.myFactionKey();
+                        const flip = Math.min(s[enemyKey], this.PVP_CAPTURE_GAIN);
+                        s[enemyKey] = Math.max(0, s[enemyKey] - flip);
+                        s[mineKey] += flip;
+                        s.lastDom = mineKey;
+                        this.pvpEvent({ icon: '💥', title: 'Защитник выбит', sub: `${d.name} вылетел из ${this.cities[idx][0]}`, tone: 'positive' });
+                    } else {
+                        this.pvpEvent({ icon: '⚔️', title: 'Удар по защитнику', sub: `${d.name} −${dmg} ❤`, tone: 'positive' });
+                    }
+                }
+                if (this._plateCityIdx === idx) this.refreshCityControlPlate();
+                if (this.coralMap) this.coralMap.draw();
+                this.saveState();
+            }
+
+            // Incoming PvP: enemy faction defenders periodically raid your
+            // held cities. Attacker league must be ≥ yours (cascading down).
             enemyAttackOnPlayer() {
                 const now = Date.now();
                 // Грейс-период: первая атака — не раньше 60 секунд после старта.
@@ -8215,22 +8433,31 @@
                 if (!c) return;
                 const s = this.getCity(idx);
                 s.lastAttackedAt = now;
-                const enemyLvl = (this.continents[c[4]] && this.continents[c[4]].enemyLevel) || 0;
-                const incoming = this.ENEMY_ATK_BASE + enemyLvl * 6;
-                const dmg = Math.max(1, incoming - this.getDefensePower());
-                s.hp -= dmg;
-                if (s.hp <= 0) {
-                    s.hp = 0;
-                    s.mine = false;
-                    const mineKey = this.myFactionKey();
-                    const enemyKey = this.enemyFactionKey();
-                    const flip = Math.min(s[mineKey], this.PVP_CAPTURE_GAIN);
-                    s[mineKey] = Math.max(1, s[mineKey] - flip);
-                    s[enemyKey] += this.PVP_CAPTURE_GAIN;
-                    s.lastDom = enemyKey; // the enemy is the rising side
-                    this.pvpEvent({ icon: '💔', title: 'Город потерян', sub: `${c[0]} перешёл к противнику`, tone: 'negative' });
+                // Attackers are simulated enemies in this city of the player's
+                // league or lower (larger idx). Cascade if none available.
+                const myL = this.getLeague().idx;
+                const pool = this.getCityDefenders(idx).filter(d => d.hp > 0);
+                let attacker = pool.find(d => d.league === myL);
+                for (let lg = myL + 1; !attacker && lg <= 5; lg++) attacker = pool.find(d => d.league === lg);
+                for (let lg = myL - 1; !attacker && lg >= 1; lg--) attacker = pool.find(d => d.league === lg);
+                if (!attacker) return;
+                const dmg = this.rollPvpDamage(attacker.atk, this.getDefensePower());
+                if (dmg === 0) {
+                    this.pvpEvent({ icon: '🛡️', title: 'Атака отбита', sub: `${c[0]} устоял`, tone: 'positive' });
                 } else {
-                    this.pvpEvent({ icon: '⚔️', title: 'Атака на ваш город', sub: `${c[0]} −${dmg} обороны`, tone: 'negative' });
+                    s.hp = Math.max(0, (s.hp || 0) - dmg);
+                    if (s.hp === 0) {
+                        s.mine = false;
+                        const mineKey = this.myFactionKey();
+                        const enemyKey = this.enemyFactionKey();
+                        const flip = Math.min(s[mineKey], this.PVP_CAPTURE_GAIN);
+                        s[mineKey] = Math.max(1, s[mineKey] - flip);
+                        s[enemyKey] += this.PVP_CAPTURE_GAIN;
+                        s.lastDom = enemyKey;
+                        this.pvpEvent({ icon: '💔', title: 'Город потерян', sub: `${c[0]} перешёл к противнику`, tone: 'negative' });
+                    } else {
+                        this.pvpEvent({ icon: '⚔️', title: 'Атака на ваш город', sub: `${c[0]} −${dmg} ❤`, tone: 'negative' });
+                    }
                 }
                 if (this._plateCityIdx === idx) this.refreshCityControlPlate();
                 if (this.coralMap) this.coralMap.draw();
@@ -8253,11 +8480,14 @@
                 if (!plate || !nameEl || !actionEl) return;
                 this._plateCityIdx = cityIdx;
                 nameEl.textContent = name;
-                // Picker/tutorial plate: hide the PvP control section + 2nd button.
+                // Picker/tutorial plate: hide the PvP control section, the
+                // 2nd button, and the defender list.
                 const ctrlEl = document.getElementById('plateControl');
                 const action2El = document.getElementById('plateAction2');
+                const defEl = document.getElementById('plateDefenders');
                 if (ctrlEl) ctrlEl.hidden = true;
                 if (action2El) { action2El.hidden = true; action2El.onclick = null; }
+                if (defEl) defEl.hidden = true;
                 if (actionLabel) {
                     actionEl.textContent = actionLabel;
                     actionEl.hidden = false;
@@ -10628,23 +10858,34 @@
             // Aggregate combat stats (numbers only this iteration).
             getAttackPower()  { return this.rooms.attack.level  * 8 + this.techStatBonus('attack'); }
             getDefensePower() { return this.rooms.defense.level * 8 + this.techStatBonus('defense'); }
-            getHP()           { return 100 + this.rooms.hp.level * 25 + this.techStatBonus('hp'); }
+            // HP is now the count of PvP hits a city of yours can survive
+            // before you're kicked out — a small integer that grows with the
+            // HP room and the HP-branch tech.
+            getHP() {
+                return 3 + Math.floor(this.rooms.hp.level / 10) + Math.floor(this.techStatBonus('hp') / 200);
+            }
 
             // ===== PvP leagues =====
-            // Every player is bucketed into one of five leagues based on the
-            // combined power of their PvP stats (Attack + Defense + HP).
-            getPvpScore() { return this.getAttackPower() + this.getDefensePower() + this.getHP(); }
+            // Лига 1 — топ (сильнейшие), Лига 5 — вход (новички). Меньший номер = выше.
+            // Score is the raw progression value of all three PvP rooms + tech
+            // so it stays independent of the small-integer combat HP above.
+            getPvpScore() {
+                const atk  = this.rooms.attack.level  * 8  + this.techStatBonus('attack');
+                const def  = this.rooms.defense.level * 8  + this.techStatBonus('defense');
+                const hpS  = this.rooms.hp.level      * 25 + this.techStatBonus('hp');
+                return atk + def + hpS;
+            }
             getLeague() {
                 const score = this.getPvpScore();
+                // Listed from top down — first match (descending min) wins.
                 const tiers = [
-                    { idx: 1, name: 'Стажёр',       icon: '🥉', min: 0,    next: 250  },
-                    { idx: 2, name: 'Оперативник',  icon: '🥈', min: 250,  next: 700  },
-                    { idx: 3, name: 'Координатор',  icon: '🥇', min: 700,  next: 1500 },
-                    { idx: 4, name: 'Командир',     icon: '🏆', min: 1500, next: 3000 },
-                    { idx: 5, name: 'Магистр',      icon: '💎', min: 3000, next: null }
+                    { idx: 1, name: 'Магистр',     icon: '💎', min: 3000 },
+                    { idx: 2, name: 'Командир',    icon: '🏆', min: 1500 },
+                    { idx: 3, name: 'Координатор', icon: '🥇', min: 700  },
+                    { idx: 4, name: 'Оперативник', icon: '🥈', min: 250  },
+                    { idx: 5, name: 'Стажёр',      icon: '🥉', min: 0    }
                 ];
-                let tier = tiers[0];
-                for (const t of tiers) if (score >= t.min) tier = t;
+                const tier = tiers.find(t => score >= t.min);
                 return { ...tier, score };
             }
             updateLeagueBadge() {
@@ -10659,9 +10900,11 @@
                 if (tier) tier.textContent = `ЛИГА ${lg.idx} · ${lg.name.toUpperCase()}`;
                 if (pip) {
                     pip.innerHTML = '';
+                    // 5 pips light up from the top — the player at Лига 1 fills all 5.
+                    const filled = 6 - lg.idx;
                     for (let i = 1; i <= 5; i++) {
                         const d = document.createElement('span');
-                        d.className = 'lc-pip' + (i <= lg.idx ? ' filled' : '');
+                        d.className = 'lc-pip' + (i <= filled ? ' filled' : '');
                         pip.appendChild(d);
                     }
                 }
