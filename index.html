@@ -8192,6 +8192,12 @@
                 this.techResearched[key] = true;
                 this.techActive = null;
                 this.renderBaseStats();
+                // HP-branch research immediately tops every held city up
+                // to the new cap; other branches don't touch defence HP.
+                const [branchId] = this.splitTechKey(key);
+                if (this.techBranch(branchId) && this.techBranch(branchId).stat === 'hp') {
+                    this.refreshCityHpToMax();
+                }
                 this.updateDNARate();
                 this.saveState();
                 if (document.getElementById('evolutionScreen').classList.contains('active')) {
@@ -8285,12 +8291,20 @@
                 const done = this.isTechDone(branchId, i);
                 const active = this.techActive && this.techActive.key === key;
                 const available = this.isTechAvailable(branchId, i);
-                const labStat = { attack: 'Attack Power', defense: 'Defense Power', hp: 'HP' }[br.stat];
+                const labStat = { attack: 'Attack Power', defense: 'Defense Power', hp: 'HP-пул' }[br.stat];
                 const bonus = this.techBonus[br.stat][i];
+                // For HP nodes, compute the actual city-defence delta the
+                // research will add (HP-пул bonus / 200, floored).
+                let bonusText = `+${bonus} ${labStat}`;
+                if (br.stat === 'hp') {
+                    const curTech = this.techStatBonus('hp');
+                    const cityGain = Math.floor((curTech + bonus) / 200) - Math.floor(curTech / 200);
+                    if (cityGain > 0) bonusText += ` (+${cityGain} жизни города)`;
+                }
 
                 let lvlText, statRows, progress = '', action;
                 statRows = `<div class="rs-stat"><span class="rs-k">Ветка</span><span class="rs-v">${br.icon} ${br.name}</span></div>` +
-                           `<div class="rs-stat"><span class="rs-k">Даёт</span><span class="rs-v next">+${bonus} ${labStat}</span></div>`;
+                           `<div class="rs-stat"><span class="rs-k">Даёт</span><span class="rs-v next">${bonusText}</span></div>`;
                 if (done) {
                     lvlText = 'Исследовано ✓';
                     action = `<button class="rs-action" disabled>Исследовано</button>`;
@@ -11620,6 +11634,7 @@
                 room.level = 1;            // opens already working at level 1
                 room.endsAt = 0;
                 room.duration = 0;
+                if (id === 'hp') this.refreshCityHpToMax();
                 this.updateDNARate();
                 this.renderBaseStats();
                 this.saveState();
@@ -11633,10 +11648,10 @@
                 switch (id) {
                     case 'income':   return `+${(lvl * 0.5).toFixed(1)} пак/сек`;
                     case 'research': return `−${Math.min(60, lvl * 0.6).toFixed(0)}% времени`;
-                    case 'attack':   return `ATK ${lvl * 8}`;
+                    case 'attack':   return `ATK ${30 + lvl * 8}`;
                     case 'contrib':  return `+${(lvl * 5)}%/ч энергии, лимит +${Math.floor(lvl / 10)}`;
                     case 'defense':  return `DEF ${lvl * 8}`;
-                    case 'hp':       return `HP ${lvl * 25}`;
+                    case 'hp':       return `Жизни города +${Math.floor(lvl / 10)}`;
                     default:         return '';
                 }
             }
@@ -11819,12 +11834,25 @@
                         room.duration = 0;
                         this.updateDNARate();
                         this.renderBaseStats();
+                        if (id === 'hp') this.refreshCityHpToMax();
                         this.saveState();
                         if (active) this.updateRoomTile(id, true);
                         if (this.openRoom === id) this.renderRoomSheet(id);
                     }
                 });
                 if (this.openRoom) this.renderRoomSheet(this.openRoom);
+            }
+
+            // Top every player-held city up to the current getHP() cap so a
+            // room or tech upgrade benefits cities already under control.
+            refreshCityHpToMax() {
+                const max = this.getHP();
+                let changed = false;
+                for (const i in this.cityState) {
+                    const s = this.cityState[i];
+                    if (s && s.mine && s.hp < max) { s.hp = max; changed = true; }
+                }
+                if (changed && this._plateCityIdx != null) this.refreshCityControlPlate();
             }
 
             // ----- Room detail sheet -----
