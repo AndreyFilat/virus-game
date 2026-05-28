@@ -8762,6 +8762,24 @@
             }
             showOnboarding() {
                 if (!this.onboardStep) return;
+                // Self-correct stale states so the tour can't get stuck on
+                // a refresh / when the player wanders off-rail.
+                if (this.onboardStep === 'firstRoom'
+                    && this.rooms.income && this.rooms.income.unlocked) {
+                    return this.advanceOnboarding('home');
+                }
+                if (this.onboardStep === 'confirmRoom') {
+                    if (this.rooms.income && this.rooms.income.unlocked) {
+                        return this.advanceOnboarding('home');
+                    }
+                    if (this.openRoom && this.openRoom !== 'income') {
+                        this.closeRoomSheet();
+                        return this.advanceOnboarding('firstRoom');
+                    }
+                    if (!this.openRoom) {
+                        return this.advanceOnboarding('firstRoom');
+                    }
+                }
                 document.querySelectorAll('.onboard-highlight').forEach(el => el.classList.remove('onboard-highlight'));
                 const overlay = document.getElementById('onboardOverlay');
                 const finger  = document.getElementById('onboardFinger');
