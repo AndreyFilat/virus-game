@@ -434,13 +434,16 @@
             opacity: 0;
             pointer-events: none;
         }
+        .loading-screen { overflow: hidden; }
         .loading-image {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            /* Crop the bottom 17 % of the artwork so the baked-in
-               "LOADING…" text + progress bar don't show. */
-            clip-path: inset(0 0 17% 0);
+            /* Scale the artwork ~22 % from the top so the baked-in
+               "LOADING…" + progress-bar overflow below the viewport
+               and the parent's overflow:hidden trims them off. */
+            transform: scale(1.22);
+            transform-origin: center top;
             user-select: none;
             -webkit-user-select: none;
             pointer-events: none;
@@ -4629,6 +4632,68 @@
         /* Centred virus on the Home screen with its own breathing pulse.
            Top is set to 42% so it lands in the visual centre of the play area
            (between the DNA counter at the top and the bottom nav). */
+        /* ===== Post-tutorial guided tour ===== */
+        .onboard-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(2, 6, 14, 0.62);
+            z-index: 99990;
+            pointer-events: none;
+        }
+        .onboard-overlay[hidden] { display: none; }
+        .onboard-finger {
+            position: fixed;
+            transform: translate(-50%, 0);
+            font-size: 44px;
+            line-height: 1;
+            z-index: 99999;
+            pointer-events: none;
+            filter: drop-shadow(0 6px 14px rgba(0,0,0,0.7));
+            animation: onboard-bounce 0.9s ease-in-out infinite;
+        }
+        .onboard-finger[hidden] { display: none; }
+        @keyframes onboard-bounce {
+            0%, 100% { transform: translate(-50%, 0); }
+            50%      { transform: translate(-50%, 10px); }
+        }
+        .onboard-tip {
+            position: fixed;
+            transform: translate(-50%, -100%);
+            z-index: 99999;
+            background: linear-gradient(170deg, rgba(40, 55, 75, 0.96), rgba(20, 28, 42, 0.96));
+            color: #fff;
+            font-family: 'Space Mono', monospace;
+            font-weight: 800;
+            font-size: 13px;
+            letter-spacing: 0.8px;
+            padding: 8px 14px;
+            border-radius: 12px;
+            border: 1.5px solid rgba(74, 222, 128, 0.55);
+            box-shadow:
+                0 10px 22px rgba(0,0,0,0.55),
+                0 0 24px rgba(74, 222, 128, 0.35);
+            pointer-events: none;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        .onboard-tip.visible { opacity: 1; }
+        .onboard-tip[hidden] { display: none; }
+        /* The highlighted target rises above the dim mask and pulses. */
+        .onboard-highlight {
+            position: relative;
+            z-index: 99995 !important;
+            animation: onboard-glow 1.4s ease-in-out infinite;
+            border-radius: 14px;
+        }
+        @keyframes onboard-glow {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0),   0 0 18px rgba(74, 222, 128, 0.7); }
+            50%      { box-shadow: 0 0 0 6px rgba(74, 222, 128, 0), 0 0 30px rgba(74, 222, 128, 1.0); }
+        }
+        /* During the tour only the highlighted element accepts taps. */
+        body.onboard-active { pointer-events: none; }
+        body.onboard-active .onboard-highlight { pointer-events: auto; }
+
         /* ===== Tutorial celebration overlay ===== */
         .tutorial-celebrate {
             position: fixed;
@@ -5301,6 +5366,13 @@
              onerror="this.style.display='none'"/>
     </div>
     <button id="debugResetBtn" class="debug-reset" title="Сбросить прогресс">⟲ DEBUG v14</button>
+
+    <!-- Post-tutorial guided tour: dim overlay, finger and tooltip
+         that walk the player from the world map → Base tab → first
+         room → back Home. Stays hidden until startPostTutorialOnboarding. -->
+    <div class="onboard-overlay" id="onboardOverlay" hidden></div>
+    <div class="onboard-tip"     id="onboardTip"     hidden></div>
+    <div class="onboard-finger"  id="onboardFinger"  hidden>👇</div>
     <div class="game-container">
         <!-- DNA Counter (always visible) -->
         <div class="dna-counter">
@@ -7606,6 +7678,8 @@
                 this.updateDNACounter();
                 this.tickEnergyRegen();
                 this.updateEnergyUI();
+                // Resume the post-tutorial guided tour if it was in progress.
+                if (this.onboardStep) setTimeout(() => this.showOnboarding(), 600);
                 this.cloneHelixToMap();
                 this.updateVirusArt();
                 this.updateLeagueBadge();
@@ -8627,7 +8701,80 @@
                     if (cb) cb.classList.remove('visible');
                     this.afterTutorialSetup();
                     this.saveState();
+                    // Kick off the post-tutorial guided tour after the
+                    // city plate has finished animating in.
+                    setTimeout(() => this.startPostTutorialOnboarding(), 700);
                 }
+            }
+
+            // ===== Post-tutorial onboarding tour =====
+            // Walks the player from the world map → Base tab → first room →
+            // Home tab. Each step highlights one element and shows a finger.
+            startPostTutorialOnboarding() {
+                this.onboardStep = 'base';
+                this.saveState();
+                this.showOnboarding();
+            }
+            advanceOnboarding(step) {
+                if (!this.onboardStep) return;
+                this.onboardStep = step;
+                this.saveState();
+                if (!step) {
+                    this.clearOnboarding();
+                    return;
+                }
+                setTimeout(() => this.showOnboarding(), 350);
+            }
+            clearOnboarding() {
+                this.onboardStep = null;
+                document.body.classList.remove('onboard-active');
+                document.querySelectorAll('.onboard-highlight').forEach(el => el.classList.remove('onboard-highlight'));
+                const overlay = document.getElementById('onboardOverlay');
+                const finger  = document.getElementById('onboardFinger');
+                const tip     = document.getElementById('onboardTip');
+                if (overlay) overlay.hidden = true;
+                if (finger)  finger.hidden  = true;
+                if (tip)     { tip.hidden = true; tip.classList.remove('visible'); }
+            }
+            showOnboarding() {
+                if (!this.onboardStep) return;
+                document.querySelectorAll('.onboard-highlight').forEach(el => el.classList.remove('onboard-highlight'));
+                const overlay = document.getElementById('onboardOverlay');
+                const finger  = document.getElementById('onboardFinger');
+                const tip     = document.getElementById('onboardTip');
+                if (!overlay || !finger || !tip) return;
+                let target = null, text = '';
+                if (this.onboardStep === 'base') {
+                    target = document.querySelector('.nav-btn[data-screen="baseScreen"]');
+                    text = 'Загляни на Базу';
+                } else if (this.onboardStep === 'firstRoom') {
+                    target = document.querySelector('#baseGrid .room-tile, #baseGrid .building > *, #baseGrid > *');
+                    text = 'Открой первую комнату';
+                } else if (this.onboardStep === 'home') {
+                    target = document.querySelector('.nav-btn[data-screen="startScreen"]');
+                    text = 'Вернись на Дом';
+                }
+                if (!target) {
+                    // Target not yet in the DOM — retry shortly.
+                    return setTimeout(() => this.showOnboarding(), 220);
+                }
+                document.body.classList.add('onboard-active');
+                target.classList.add('onboard-highlight');
+                overlay.hidden = false;
+                finger.hidden  = false;
+                tip.hidden     = false;
+                const r = target.getBoundingClientRect();
+                const cx = r.left + r.width / 2;
+                // Finger sits just above the target.
+                finger.style.left = cx + 'px';
+                finger.style.top  = (r.top - 50) + 'px';
+                tip.textContent = text;
+                // Keep the tooltip on-screen even when the target is near
+                // a viewport edge.
+                tip.style.left = '50%';
+                tip.style.top  = (r.top - 60) + 'px';
+                tip.style.transform = 'translate(-50%, -100%)';
+                requestAnimationFrame(() => tip.classList.add('visible'));
             }
 
             // Player attacks one of the city's enemy defenders. Costs 1 ⚡;
@@ -9386,6 +9533,13 @@
                 // Leaving the map screen → drop any plate; entering it →
                 // the player has to tap a city to bring it back.
                 if (id !== 'worldMapScreen') this.hideCityPlate();
+
+                // Drive the post-tutorial guided tour.
+                if (this.onboardStep === 'base' && id === 'baseScreen') {
+                    this.advanceOnboarding('firstRoom');
+                } else if (this.onboardStep === 'home' && id === 'startScreen') {
+                    this.advanceOnboarding(null);
+                }
 
                 if (id === 'evolutionScreen') this.renderVirusScreen();
                 if (id === 'startScreen' && this.tutorialDone) {
@@ -10846,6 +11000,7 @@
                         dnaPoints: this.dnaPoints,
                         energy: this.energy,
                         lastEnergyTick: this.lastEnergyTick,
+                        onboardStep: this.onboardStep || null,
                         virusLevel: this.virusLevel,
                         virusStats: this.virusStats,
                         techResearched: this.techResearched,
@@ -10874,6 +11029,7 @@
                     if (typeof data.dnaPoints === 'number') this.dnaPoints = data.dnaPoints;
                     if (typeof data.energy === 'number') this.energy = data.energy;
                     if (typeof data.lastEnergyTick === 'number') this.lastEnergyTick = data.lastEnergyTick;
+                    if (typeof data.onboardStep === 'string') this.onboardStep = data.onboardStep;
                     if (typeof data.virusLevel === 'number') this.virusLevel = data.virusLevel;
                     if (data.virusStats) {
                         this.virusStats = Object.assign({}, this.virusStats, data.virusStats);
@@ -11373,6 +11529,9 @@
             // ----- Room detail sheet -----
             openRoomSheet(id) {
                 this.openRoom = id;
+                // Guided tour: opening any room from the first-room step
+                // moves the player toward the Home tab.
+                if (this.onboardStep === 'firstRoom') this.advanceOnboarding('home');
                 const back = document.getElementById('roomSheet');
                 back.style.setProperty('--room-accent', this.roomAccent(id));
                 this.renderRoomSheet(id);
