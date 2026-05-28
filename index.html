@@ -8658,17 +8658,17 @@
                 }
                 return out;
             }
-            // round(Attack / Defense) × random(0.9..1.1) — integer HP damage,
-            // capped at 2 so a single blow can never one-shot a fresh city
-            // (base HP = 3) regardless of how lopsided early-game stats are.
-            // A small "chip" chance lets weak attacks still register a 1 when
-            // the ratio rounds down to 0, so progress isn't fully blocked.
+            // Every successful PvP attack now costs exactly 1 HP — both
+            // outgoing and incoming. round(atk/def) decides whether the hit
+            // lands; a weak attack (ratio < 0.5) gets a probabilistic chip
+            // so progress isn't fully blocked. dmg is otherwise binary.
             rollPvpDamage(atk, def) {
                 if (atk <= 0) return 0;
                 const ratio = atk / Math.max(1, def);
-                let dmg = Math.round(ratio * (0.9 + Math.random() * 0.2));
-                if (dmg === 0 && Math.random() < ratio) dmg = 1;
-                return Math.max(0, Math.min(2, dmg));
+                const rolled = Math.round(ratio * (0.9 + Math.random() * 0.2));
+                if (rolled > 0) return 1;
+                if (Math.random() < ratio) return 1;
+                return 0;
             }
 
             // Deterministic baseline member split per city so every city shows
