@@ -7643,7 +7643,7 @@
             // Faction-specific verbs / icons for the map spread button and
             // the city plate action.
             factionActionLabel() {
-                return this.faction === 'resist' ? 'Обойти' : 'Заблокировать';
+                return this.faction === 'resist' ? 'Разблокировать' : 'Заблокировать';
             }
             // Label for the city-capture button on the control plate.
             factionCaptureLabel() {
@@ -7907,7 +7907,7 @@
                     a2.hidden = true;
                     a2.onclick = null;
                     a1.hidden = false;
-                    a1.textContent = `${this.factionCaptureLabel()} · 📦 ${this.PVP_CAPTURE_COST}`;
+                    a1.textContent = `${this.factionCaptureLabel()} 📦 ${this.PVP_CAPTURE_COST}`;
                     a1.disabled = this.dnaPoints < this.PVP_CAPTURE_COST;
                     a1.onclick = (e) => { e.preventDefault(); e.stopPropagation(); this.captureCity(idx); };
                 }
@@ -7933,7 +7933,11 @@
                 // Your faction takes a controlling share of the city.
                 s[mineKey] = Math.max(s[mineKey], s[enemyKey] + this.PVP_CAPTURE_GAIN);
                 this.infectContinent(c[4], 5, idx); // keep infection progression
-                this.showToast(this.faction === 'resist' ? 'Город разблокирован' : 'Город заблокирован', c[0], 'above-map');
+                this.showToast(
+                    this.faction === 'resist' ? 'Город разблокирован' : 'Город заблокирован',
+                    c[0], 'above-map',
+                    this.faction === 'resist' ? '🔓' : '🔒'
+                );
                 if (this.coralMap) this.coralMap.draw();
                 this.refreshCityControlPlate();
                 this.saveState();
@@ -7961,9 +7965,9 @@
                     const flip = Math.min(s[mineKey], this.PVP_CAPTURE_GAIN);
                     s[mineKey] = Math.max(1, s[mineKey] - flip);
                     s[enemyKey] += this.PVP_CAPTURE_GAIN;
-                    this.showToast('Город потерян!', `${c[0]} перешёл к противнику`, 'above-map');
+                    this.showToast('Город потерян!', `${c[0]} перешёл к противнику`, 'above-map', '💔');
                 } else {
-                    this.showToast('Атака на ваш город', `${c[0]} · −${dmg} обороны`, 'above-map');
+                    this.showToast('Атака на ваш город', `${c[0]} · −${dmg} обороны`, 'above-map', '⚔️');
                 }
                 if (this._plateCityIdx === idx) this.refreshCityControlPlate();
                 if (this.coralMap) this.coralMap.draw();
@@ -10723,10 +10727,13 @@
                 el.classList.add('visible');
             }
 
-            showToast(title, sub, variant) {
+            showToast(title, sub, variant, icon) {
                 const toast = document.createElement('div');
                 toast.className = 'placement-toast' + (variant ? ' ' + variant : '');
-                toast.innerHTML = `<img class="toast-icon-img" src="${this.getCurrentVirusImage()}" alt=""/><div class="toast-title">${title}</div>${sub ? `<div class="toast-sub">${sub}</div>` : ''}`;
+                const iconHTML = icon
+                    ? `<div class="toast-icon">${icon}</div>`
+                    : `<img class="toast-icon-img" src="${this.getCurrentVirusImage()}" alt=""/>`;
+                toast.innerHTML = `${iconHTML}<div class="toast-title">${title}</div>${sub ? `<div class="toast-sub">${sub}</div>` : ''}`;
                 document.body.appendChild(toast);
                 setTimeout(() => toast.remove(), 1700);
             }
