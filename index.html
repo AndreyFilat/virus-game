@@ -6189,9 +6189,9 @@
                 // weighing the dot down with a heavy black outline.
                 const DOT_FILL = 0xd4f5d8;
                 const DOT_RING = 0x6b7280;
-                // Crisp marker sizes — small enough that neighbouring dots
-                // don't overlap when the player zooms in.
-                const size = famous ? 0.018 : (capital ? 0.014 : 0.010);
+                // Small markers — kept compact so neighbouring dots never
+                // touch even at the deepest zoom.
+                const size = famous ? 0.011 : (capital ? 0.008 : 0.006);
 
                 const ringR = 1.003;
                 const dotR  = ringR + size * 0.85;
@@ -10630,12 +10630,12 @@
                     m.material.opacity = 1.0;
 
                     if (s.mine) {
-                        m.scale.setScalar(1.7);
+                        m.scale.setScalar(1.4);
                         if (m.userData.ring) {
                             m.userData.ring.visible = true;
                             m.userData.ring.material.color.setRGB(ringRgb[0], ringRgb[1], ringRgb[2]);
                             m.userData.ring.material.opacity = 0.95;
-                            m.userData.ring.scale.setScalar(1.4);
+                            m.userData.ring.scale.setScalar(1.2);
                         }
                     } else if (m.userData.ring) {
                         m.userData.ring.material.color.setRGB(ringRgb[0], ringRgb[1], ringRgb[2]);
