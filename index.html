@@ -11582,9 +11582,15 @@
 
             // ----- Room detail sheet -----
             openRoomSheet(id) {
+                // Onboarding rail: while the tour is on the room-tile or
+                // confirm step, only ТСПУ may open. Anything else is
+                // bounced back to the firstRoom highlight.
+                if ((this.onboardStep === 'firstRoom' || this.onboardStep === 'confirmRoom')
+                    && id !== 'income') {
+                    this.advanceOnboarding('firstRoom');
+                    return;
+                }
                 this.openRoom = id;
-                // Onboarding: only the highlighted starter room (income / ТСПУ)
-                // advances the tour to the confirm step.
                 if (this.onboardStep === 'firstRoom' && id === 'income') {
                     this.advanceOnboarding('confirmRoom');
                 }
