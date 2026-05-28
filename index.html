@@ -6474,10 +6474,27 @@
                     rim.renderOrder  = -1;
                     group.add(fill);
                     group.add(rim);
-                    const dir = this._latLonToLocal(c[1], c[2]).normalize();
+                    group.userData = { rim, fill, capCenter: this._latLonToLocal(c[1], c[2]).normalize() };
+                    const dir = group.userData.capCenter;
                     group.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
                     this._influenceGroup.add(group);
                     this._influenceMeshes.set(idx, group);
+                }
+                // Merge visually: hide the rim on any cap whose centre lies
+                // within 2× the cap angle of another held city — the
+                // overlapping additive fills already blend into one shape,
+                // so the rim circles would just clutter the union.
+                const mergeAngle = capAngle * 2;
+                const groups = Array.from(this._influenceMeshes.entries());
+                for (const [idxA, gA] of groups) {
+                    const dirA = gA.userData.capCenter;
+                    let merged = false;
+                    for (const [idxB, gB] of groups) {
+                        if (idxA === idxB) continue;
+                        const dot = Math.max(-1, Math.min(1, dirA.dot(gB.userData.capCenter)));
+                        if (Math.acos(dot) < mergeAngle) { merged = true; break; }
+                    }
+                    if (gA.userData.rim) gA.userData.rim.visible = !merged;
                 }
             }
 
