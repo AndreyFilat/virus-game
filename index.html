@@ -3582,10 +3582,10 @@
             width: 100%;
             max-width: 470px;
             background: linear-gradient(180deg, #1b2030 0%, #11151f 100%);
-            border-radius: 18px 18px 0 0;
+            border-radius: 22px 22px 0 0;
             border-top: 3px solid var(--room-accent, #3b82f6);
             box-shadow: 0 -10px 40px rgba(0,0,0,0.6);
-            padding: 14px 16px calc(86px + env(safe-area-inset-bottom, 0px));
+            padding: 10px 14px calc(84px + env(safe-area-inset-bottom, 0px));
             transform: translateY(110%);
             transition: transform 0.32s cubic-bezier(0.2,0.85,0.25,1);
         }
@@ -3593,43 +3593,61 @@
         .rs-grab {
             width: 40px; height: 4px; border-radius: 2px;
             background: rgba(255,255,255,0.25);
-            margin: 0 auto 12px;
+            margin: 0 auto 8px;
         }
-        .rs-head { display: flex; align-items: center; gap: 11px; margin-bottom: 10px; }
+        .rs-head { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
         .rs-ico {
-            width: 46px; height: 46px; flex: 0 0 46px;
+            width: 38px; height: 38px; flex: 0 0 38px;
             display: flex; align-items: center; justify-content: center;
-            font-size: 26px; border-radius: 12px;
-            background: rgba(255,255,255,0.07);
-            border: 1px solid var(--room-accent, #3b82f6);
+            font-size: 22px; border-radius: 12px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0)),
+                        rgba(255,255,255,0.05);
+            border: 1.5px solid var(--room-accent, #3b82f6);
+            box-shadow: 0 0 12px color-mix(in srgb, var(--room-accent) 35%, transparent);
         }
         .rs-titles { flex: 1; min-width: 0; }
-        .rs-name { font-size: 16px; font-weight: 800; color: #fff; line-height: 1.15; }
+        .rs-name { font-size: 16px; font-weight: 900; color: #fff; line-height: 1.1; }
         .rs-lvl {
             font-family: 'Space Mono', monospace;
-            font-size: 11px; font-weight: 700;
+            font-size: 10.5px; font-weight: 800;
             color: var(--room-accent, #3b82f6);
-            margin-top: 2px;
+            margin-top: 1px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         .rs-close {
             flex: 0 0 auto;
-            width: 30px; height: 30px; border-radius: 9px;
+            width: 28px; height: 28px; border-radius: 50%;
             border: none; background: rgba(255,255,255,0.08);
-            color: #cbd5e1; font-size: 16px; line-height: 1;
+            color: #cbd5e1; font-size: 14px; line-height: 1;
             cursor: pointer; -webkit-tap-highlight-color: transparent;
         }
-        .rs-desc { font-size: 12.5px; color: #94a3b8; line-height: 1.4; margin-bottom: 10px; }
+        .rs-desc {
+            font-size: 12px; color: #94a3b8; line-height: 1.35;
+            margin: 0 2px 8px;
+        }
         .rs-stat {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 9px 12px; margin-bottom: 8px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 11px;
+            padding: 7px 12px; margin-bottom: 5px;
+            background: rgba(255,255,255,0.045);
+            border-radius: 10px;
         }
-        .rs-stat .rs-k { font-size: 11.5px; color: #94a3b8; font-weight: 600; }
+        .rs-stat .rs-k {
+            font-size: 10.5px; color: #94a3b8; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.6px;
+        }
         .rs-stat .rs-v {
-            font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 800; color: #fff;
+            font-family: 'Space Mono', monospace;
+            font-size: 13px; font-weight: 800; color: #fff;
         }
         .rs-stat .rs-v.next { color: #86efac; }
+        /* Combined "now → next" line is denser. */
+        .rs-stat.rs-stat-combo {
+            justify-content: center;
+            gap: 8px;
+        }
+        .rs-stat-combo .rs-v.now  { color: #cbd5e1; }
+        .rs-stat-combo .rs-arrow  { color: #475569; font-weight: 800; }
         .rs-progress-wrap {
             height: 8px; border-radius: 4px; overflow: hidden;
             background: rgba(255,255,255,0.08); margin: 4px 0 12px;
@@ -3784,20 +3802,25 @@
             color: #3a1c03;
         }
         .tech-node.active .tn-sub { color: #fde047; }
+        /* Researched nodes are always green — drops the branch accent. */
         .tech-node.done {
             background:
-                linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 45%),
-                color-mix(in srgb, var(--br-accent) 38%, transparent);
-            border-color: var(--br-accent);
+                linear-gradient(180deg, rgba(255,255,255,0.20) 0%, rgba(255,255,255,0) 45%),
+                rgba(34, 197, 94, 0.35);
+            border-color: #22c55e;
+            box-shadow:
+                0 3px 8px rgba(0,0,0,0.3),
+                0 0 18px rgba(74, 222, 128, 0.45);
         }
         .tech-node.done .tn-dot {
-            background: linear-gradient(180deg, color-mix(in srgb, var(--br-accent) 70%, #fff), var(--br-accent));
-            color: #fff;
+            background: linear-gradient(180deg, #bbf7d0, #22c55e);
+            color: #052e16;
             box-shadow:
-                inset 0 1px 0 rgba(255,255,255,0.55),
-                0 4px 10px color-mix(in srgb, var(--br-accent) 55%, transparent);
+                inset 0 1px 0 rgba(255,255,255,0.65),
+                0 4px 10px rgba(34, 197, 94, 0.55);
         }
-        .tech-node.done .tn-sub { color: #fff; font-weight: 800; }
+        .tech-node.done .tn-name { color: #ecfccb; }
+        .tech-node.done .tn-sub  { color: #bbf7d0; font-weight: 800; }
 
         .news-screen-title {
             font-family: 'Space Mono', monospace;
@@ -8532,9 +8555,13 @@
             // round(Attack / Defense) × random(0.9..1.1) — integer HP damage,
             // capped at 2 so a single blow can never one-shot a fresh city
             // (base HP = 3) regardless of how lopsided early-game stats are.
+            // A small "chip" chance lets weak attacks still register a 1 when
+            // the ratio rounds down to 0, so progress isn't fully blocked.
             rollPvpDamage(atk, def) {
-                const base = Math.round(atk / Math.max(1, def));
-                const dmg  = Math.round(base * (0.9 + Math.random() * 0.2));
+                if (atk <= 0) return 0;
+                const ratio = atk / Math.max(1, def);
+                let dmg = Math.round(ratio * (0.9 + Math.random() * 0.2));
+                if (dmg === 0 && Math.random() < ratio) dmg = 1;
                 return Math.max(0, Math.min(2, dmg));
             }
 
@@ -11477,7 +11504,8 @@
                 }
             }
             // Aggregate combat stats (numbers only this iteration).
-            getAttackPower()  { return this.rooms.attack.level  * 8 + this.techStatBonus('attack'); }
+            // Baseline 30 so a fresh player reliably chips at L4–L5 neighbours.
+            getAttackPower()  { return 30 + this.rooms.attack.level  * 8 + this.techStatBonus('attack'); }
             getDefensePower() { return this.rooms.defense.level * 8 + this.techStatBonus('defense'); }
             // HP is now the count of PvP hits a city of yours can survive
             // before you're kicked out — a small integer that grows with the
@@ -11695,10 +11723,11 @@
                     const label = uCost > 0 ? `Открыть · 📦 ${uCost}` : 'Открыть бесплатно';
                     action = `<button class="rs-action" data-unlock="${id}" ${canAfford ? '' : 'disabled'}>${label}</button>`;
                 } else {
-                    lvlText = `Уровень ${room.level} / ${this.MAX_ROOM_LEVEL}`;
-                    statRows = `<div class="rs-stat"><span class="rs-k">Сейчас</span><span class="rs-v">${this.roomEffectText(id)}</span></div>`;
-                    if (!maxed) {
-                        statRows += `<div class="rs-stat"><span class="rs-k">След. уровень</span><span class="rs-v next">${this.roomEffectText(id, room.level + 1)}</span></div>`;
+                    lvlText = `ур. ${room.level} / ${this.MAX_ROOM_LEVEL}`;
+                    if (maxed) {
+                        statRows = `<div class="rs-stat"><span class="rs-k">Эффект</span><span class="rs-v">${this.roomEffectText(id)}</span></div>`;
+                    } else {
+                        statRows = `<div class="rs-stat rs-stat-combo"><span class="rs-v now">${this.roomEffectText(id)}</span><span class="rs-arrow">→</span><span class="rs-v next">${this.roomEffectText(id, room.level + 1)}</span></div>`;
                     }
                     if (maxed) {
                         action = `<button class="rs-action" disabled>Максимальный уровень</button>`;
