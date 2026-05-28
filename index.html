@@ -8766,11 +8766,11 @@
                 // a refresh / when the player wanders off-rail.
                 if (this.onboardStep === 'firstRoom'
                     && this.rooms.income && this.rooms.income.unlocked) {
-                    return this.advanceOnboarding('home');
+                    return this.advanceOnboarding(null);
                 }
                 if (this.onboardStep === 'confirmRoom') {
                     if (this.rooms.income && this.rooms.income.unlocked) {
-                        return this.advanceOnboarding('home');
+                        return this.advanceOnboarding(null);
                     }
                     if (this.openRoom && this.openRoom !== 'income') {
                         this.closeRoomSheet();
@@ -11387,10 +11387,10 @@
                 // Close the sheet so the reveal animation on the tile is visible.
                 if (this.openRoom === id) this.closeRoomSheet();
                 this.updateRoomTile(id, true);   // play reveal animation
-                // Guided tour: confirming the first room (income / ТСПУ)
-                // lights the path back to the Home tab.
+                // Guided tour: confirming the first room (ТСПУ) ends the
+                // post-tutorial onboarding entirely.
                 if (id === 'income' && (this.onboardStep === 'confirmRoom' || this.onboardStep === 'firstRoom')) {
-                    this.advanceOnboarding('home');
+                    this.advanceOnboarding(null);
                 }
             }
             // Derived stat value from a room's level (display only for now).
