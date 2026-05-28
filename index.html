@@ -2452,22 +2452,67 @@
            Container is transparent to pointer events — only the tiles
            themselves swallow touches, so taps in the gaps still reach
            the globe for rotation. */
-        .world-map-stats {
+        /* ===== World balance bar (replaces the 3 old map stats) ===== */
+        .world-balance {
             position: absolute;
-            top: 68px;
-            left: 12px;
-            right: 12px;
+            top: 60px;
+            left: 16px;
+            right: 16px;
             z-index: 50;
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 6px;
-            margin-top: 0;
-            width: auto;
             pointer-events: none;
         }
-        .world-map-stats > * { pointer-events: none; }
-        .world-map-screen.active .world-map-stats > * { pointer-events: auto; }
-        body.selecting .world-map-stats { display: none; }
+        body.selecting .world-balance { display: none; }
+        .wb-track {
+            display: flex;
+            height: 22px;
+            border-radius: 999px;
+            overflow: hidden;
+            background: rgba(15, 22, 36, 0.85);
+            box-shadow:
+                0 8px 20px rgba(0,0,0,0.55),
+                0 0 0 2px rgba(255,255,255,0.10) inset,
+                0 -4px 10px rgba(0,0,0,0.4) inset,
+                0 4px 10px rgba(255,255,255,0.12) inset;
+        }
+        .wb-rkn, .wb-vpn {
+            position: relative;
+            height: 100%;
+            transition: width 0.45s cubic-bezier(0.34, 1.56, 0.4, 1);
+        }
+        .wb-rkn {
+            background: linear-gradient(90deg, #b91c1c 0%, #ef4444 60%, #f87171 100%);
+            box-shadow: 0 0 14px rgba(248, 113, 113, 0.55) inset;
+        }
+        .wb-vpn {
+            background: linear-gradient(90deg, #7dd3fc 0%, #3b82f6 60%, #1d4ed8 100%);
+            box-shadow: 0 0 14px rgba(125, 211, 252, 0.55) inset;
+        }
+        /* Glossy top sheen so the bar reads as casual / 3D, not flat. */
+        .wb-rkn::after, .wb-vpn::after {
+            content: "";
+            position: absolute; left: 6%; right: 6%; top: 2px; height: 7px;
+            border-radius: 999px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.65), rgba(255,255,255,0));
+            filter: blur(1px);
+            opacity: 0.55;
+            pointer-events: none;
+        }
+        .wb-legend {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 7px;
+            font-family: 'Space Mono', monospace;
+            font-weight: 800;
+            font-size: 12px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.65), 0 0 8px rgba(0,0,0,0.5);
+        }
+        .wb-side { display: inline-flex; align-items: center; gap: 6px; }
+        .wb-leg-rkn { color: #fecaca; }
+        .wb-leg-vpn { color: #bfdbfe; }
+        .wb-dot { width: 9px; height: 9px; border-radius: 50%; }
+        .wb-d-rkn { background: #ef4444; box-shadow: 0 0 8px rgba(248,113,113,0.85); }
+        .wb-d-vpn { background: #3b82f6; box-shadow: 0 0 8px rgba(125,211,252,0.85); }
 
         .map-stat {
             position: relative;
@@ -5062,18 +5107,18 @@
                 <div class="plate-tail"></div>
             </div>
 
-            <div class="world-map-stats">
-                <div class="map-stat">
-                    <div class="map-stat-value" id="statInfected">0</div>
-                    <div class="map-stat-label">Под сетью</div>
+            <div class="world-balance" id="worldBalance">
+                <div class="wb-track">
+                    <div class="wb-rkn" id="wbRkn"></div>
+                    <div class="wb-vpn" id="wbVpn"></div>
                 </div>
-                <div class="map-stat">
-                    <div class="map-stat-value" id="statRegions">0</div>
-                    <div class="map-stat-label">Узлов</div>
-                </div>
-                <div class="map-stat">
-                    <div class="map-stat-value" id="statWorld">0%</div>
-                    <div class="map-stat-label">Покрытие</div>
+                <div class="wb-legend">
+                    <span class="wb-side wb-leg-rkn">
+                        <span class="wb-dot wb-d-rkn"></span>РКН <span id="wbRknPct">50%</span>
+                    </span>
+                    <span class="wb-side wb-leg-vpn">
+                        <span id="wbVpnPct">50%</span> ВПН<span class="wb-dot wb-d-vpn"></span>
+                    </span>
                 </div>
             </div>
 
@@ -9472,18 +9517,67 @@
             }
 
             // Tint each city dot by its faction control split — РКН red ↔ ВПН blue.
+            // Crisp, three-state city colour: bright red if РКН dominates,
+            // bright blue for ВПН, warm amber if the city is contested
+            // (35–65 % split). Cities the player personally holds glow
+            // emerald-green and sit slightly larger with a bright ring so
+            // they pop out from the background factional colouring.
             updateCityControlColors() {
                 if (!this.globe || !this.globe.cityMeshes) return;
+                let totalRkn = 0, totalVpn = 0;
                 for (let i = 0; i < this.globe.cityMeshes.length; i++) {
                     const m = this.globe.cityMeshes[i];
                     if (!m) continue;
+                    const s = this.getCity(i);
+                    totalRkn += s.rkn;
+                    totalVpn += s.vpn;
                     const ctrl = this.cityControl(i);
-                    const t = ctrl.vpn / 100; // 0 = full РКН red, 1 = full ВПН blue
-                    const r = (248 + (56  - 248) * t) / 255;
-                    const g = (113 + (189 - 113) * t) / 255;
-                    const b = (113 + (248 - 113) * t) / 255;
-                    m.material.color.setRGB(r, g, b);
+                    let rgb;
+                    if (s.mine) {
+                        rgb = [0.13, 1.0, 0.62];  // emerald (mine)
+                    } else if (ctrl.rkn >= 35 && ctrl.rkn <= 65) {
+                        rgb = [1.0, 0.78, 0.20]; // amber (contested)
+                    } else if (ctrl.rkn > ctrl.vpn) {
+                        rgb = [0.97, 0.27, 0.27]; // bright РКН red
+                    } else {
+                        rgb = [0.22, 0.60, 0.97]; // bright ВПН blue
+                    }
+                    m.material.color.setRGB(rgb[0], rgb[1], rgb[2]);
+
+                    if (s.mine) {
+                        m.scale.setScalar(1.8);
+                        if (m.userData.ring) {
+                            m.userData.ring.visible = true;
+                            m.userData.ring.material.color.setRGB(0.13, 1.0, 0.62);
+                            m.userData.ring.scale.setScalar(1.45);
+                        }
+                    } else if (m.userData.ring) {
+                        m.userData.ring.material.color.set(0x6b7280);
+                        m.userData.ring.scale.setScalar(1);
+                        m.userData.ring.visible = !m.userData.infected;
+                    }
                 }
+                this.updateWorldBalance(totalRkn, totalVpn);
+            }
+
+            updateWorldBalance(rkn, vpn) {
+                if (rkn == null || vpn == null) {
+                    rkn = 0; vpn = 0;
+                    for (let i = 0; i < this.cities.length; i++) {
+                        const s = this.getCity(i);
+                        rkn += s.rkn;
+                        vpn += s.vpn;
+                    }
+                }
+                const total = (rkn + vpn) || 1;
+                const rknPct = rkn / total * 100;
+                const vpnPct = 100 - Math.round(rknPct);
+                const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+                const setW = (id, v) => { const e = document.getElementById(id); if (e) e.style.width = v; };
+                setW('wbRkn', rknPct.toFixed(1) + '%');
+                setW('wbVpn', (100 - rknPct).toFixed(1) + '%');
+                set('wbRknPct', Math.round(rknPct) + '%');
+                set('wbVpnPct', vpnPct + '%');
             }
 
             pickDefaultCityForContinent(continentId) {
@@ -9783,23 +9877,9 @@
             }
 
             updateMapStats() {
-                const cont = Object.values(this.continents);
-                const totalPop = cont.reduce((a, c) => a + (c.population || 0), 0);
-                const infectedPop = cont.reduce((a, c) =>
-                    a + (c.population || 0) * (c.infectionLevel || 0) / 100, 0);
-                const infectedCities = cont.reduce((n, c) => {
-                    if (c.infectionLevel <= 0) return n;
-                    return n + (c.infectedCities ? c.infectedCities.size
-                        : (c.infectionCityIdx != null ? 1 : 0));
-                }, 0);
-                const worldPct = totalPop > 0 ? (infectedPop / totalPop * 100) : 0;
-
-                const elI = document.getElementById('statInfected');
-                const elR = document.getElementById('statRegions');
-                const elW = document.getElementById('statWorld');
-                if (elI) elI.textContent = this.formatBigNumber(infectedPop);
-                if (elR) elR.textContent = String(infectedCities);
-                if (elW) elW.textContent = worldPct.toFixed(worldPct < 10 ? 2 : 1) + '%';
+                // The 3-tile infected/regions/coverage strip was replaced
+                // by the world-balance bar above the globe.
+                this.updateWorldBalance();
             }
 
             getInfectionFill(level) {
