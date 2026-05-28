@@ -4394,12 +4394,14 @@
            capture button. */
         .city-plate .plate-action.plate-action-2 {
             background: linear-gradient(170deg, #c4b5fd 0%, #8b5cf6 55%, #6d28d9 100%);
-            color: #1f0a40;
-            border-color: rgba(221, 214, 254, 0.85);
+            color: #fff;
+            border-color: rgba(221, 214, 254, 0.95);
+            text-shadow: 0 1px 2px rgba(28, 7, 75, 0.55), 0 0 10px rgba(196, 181, 253, 0.55);
             box-shadow:
                 0 6px 14px rgba(0, 0, 0, 0.45),
-                0 0 18px rgba(139, 92, 246, 0.4),
-                inset 0 1px 0 rgba(255, 255, 255, 0.45);
+                0 0 22px rgba(139, 92, 246, 0.55),
+                inset 0 1px 0 rgba(255, 255, 255, 0.55),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.25);
         }
         .city-plate .plate-action[disabled] { opacity: 0.5; cursor: default; }
 
@@ -8792,7 +8794,7 @@
                         a1.onclick = null;
                         a2.hidden = false;
                         a2.disabled = false;
-                        a2.textContent = `${this.factionCaptureLabel()} 👥`;
+                        a2.textContent = `${this.factionCaptureLabel()} 🎁`;
                         a2.onclick = (e) => { e.preventDefault(); e.stopPropagation(); this.inviteCaptureCity(idx); };
                     }
                 }
