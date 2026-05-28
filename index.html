@@ -6189,9 +6189,9 @@
                 // weighing the dot down with a heavy black outline.
                 const DOT_FILL = 0xd4f5d8;
                 const DOT_RING = 0x6b7280;
-                // Chunky 3D markers — big enough for saturated colour to read
-                // clearly against the globe texture.
-                const size = famous ? 0.028 : (capital ? 0.022 : 0.016);
+                // Crisp marker sizes — small enough that neighbouring dots
+                // don't overlap when the player zooms in.
+                const size = famous ? 0.018 : (capital ? 0.014 : 0.010);
 
                 const ringR = 1.003;
                 const dotR  = ringR + size * 0.85;
@@ -6202,10 +6202,10 @@
                 const ringMat = new THREE.MeshBasicMaterial({
                     color: DOT_RING, transparent: true, opacity: 0.85
                 });
-                // Bigger halo (~35% larger than fill) for a chunky, beaded
-                // marker — it reads as a button rather than a pinprick.
+                // Slim rim — 22 % larger than fill, just enough to read as
+                // a faction-coloured outline without bloating the marker.
                 const ring = new THREE.Mesh(
-                    new THREE.SphereGeometry(size * 1.35, 14, 12), ringMat
+                    new THREE.SphereGeometry(size * 1.22, 14, 12), ringMat
                 );
                 ring.position.copy(ringPos);
                 ring.renderOrder = 5; // draw above the influence dome
@@ -10630,19 +10630,19 @@
                     m.material.opacity = 1.0;
 
                     if (s.mine) {
-                        m.scale.setScalar(2.4);
+                        m.scale.setScalar(1.7);
                         if (m.userData.ring) {
                             m.userData.ring.visible = true;
                             m.userData.ring.material.color.setRGB(ringRgb[0], ringRgb[1], ringRgb[2]);
                             m.userData.ring.material.opacity = 0.95;
-                            m.userData.ring.scale.setScalar(1.7);
+                            m.userData.ring.scale.setScalar(1.4);
                         }
                     } else if (m.userData.ring) {
                         m.userData.ring.material.color.setRGB(ringRgb[0], ringRgb[1], ringRgb[2]);
-                        m.userData.ring.material.opacity = 0.95;
-                        m.userData.ring.scale.setScalar(1.4);
+                        m.userData.ring.material.opacity = 0.9;
+                        m.userData.ring.scale.setScalar(1);
                         m.userData.ring.visible = !m.userData.infected;
-                        m.scale.setScalar(1.5);
+                        m.scale.setScalar(1);
                     }
                 }
                 this.updateWorldBalance(totalRkn, totalVpn);
