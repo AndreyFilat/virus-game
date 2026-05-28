@@ -6362,6 +6362,67 @@
                 return group;
             }
 
+            // Translucent green spherical caps over the globe — one per
+            // city the player holds — that mark the area within capture
+            // range of any of their cities.
+            updateInfluenceZones(indices, cities, capKm) {
+                if (!this._influenceGroup) {
+                    this._influenceGroup = new THREE.Group();
+                    this.earth.add(this._influenceGroup);
+                    this._influenceMeshes = new Map();
+                }
+                const want = new Set(indices);
+                for (const [k, g] of Array.from(this._influenceMeshes.entries())) {
+                    if (!want.has(k)) {
+                        this._influenceGroup.remove(g);
+                        g.children.forEach(child => {
+                            if (child.geometry) child.geometry.dispose();
+                            if (child.material) child.material.dispose();
+                        });
+                        this._influenceMeshes.delete(k);
+                    }
+                }
+                const EARTH_KM = 6371;
+                const capAngle = (capKm || 2500) / EARTH_KM;
+                for (const idx of indices) {
+                    if (this._influenceMeshes.has(idx)) continue;
+                    const c = cities[idx];
+                    if (!c) continue;
+                    const fill = new THREE.Mesh(
+                        new THREE.SphereGeometry(1.004, 48, 24, 0, Math.PI * 2, 0, capAngle),
+                        new THREE.MeshBasicMaterial({
+                            color: 0x4ade80,
+                            transparent: true,
+                            opacity: 0.18,
+                            side: THREE.DoubleSide,
+                            depthWrite: false,
+                            blending: THREE.AdditiveBlending
+                        })
+                    );
+                    // Bright rim along the edge of the cap so the boundary reads clearly.
+                    const rimWidth = 0.012;
+                    const rim = new THREE.Mesh(
+                        new THREE.SphereGeometry(1.006, 64, 4, 0, Math.PI * 2,
+                            Math.max(0, capAngle - rimWidth), rimWidth),
+                        new THREE.MeshBasicMaterial({
+                            color: 0x86efac,
+                            transparent: true,
+                            opacity: 0.85,
+                            side: THREE.DoubleSide,
+                            depthWrite: false,
+                            blending: THREE.AdditiveBlending
+                        })
+                    );
+                    const group = new THREE.Group();
+                    group.add(fill);
+                    group.add(rim);
+                    const dir = this._latLonToLocal(c[1], c[2]).normalize();
+                    group.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
+                    this._influenceGroup.add(group);
+                    this._influenceMeshes.set(idx, group);
+                }
+            }
+
             // Render infection halos at each infected continent's anchor
             // city. Called from VirusGame.renderInfectionLayer() whenever
             // infection state changes. Pulse animation runs in _tick.
@@ -10513,6 +10574,20 @@
                     }
                 }
                 this.updateWorldBalance(totalRkn, totalVpn);
+                this.updateInfluenceZones();
+            }
+
+            // Push the list of cities the player holds to the globe so it can
+            // paint green spherical caps over the area within capture range.
+            updateInfluenceZones() {
+                if (!this.globe || !this.globe.updateInfluenceZones) return;
+                const NEIGHBOR_KM = 2500;
+                const held = [];
+                for (let i = 0; i < this.cities.length; i++) {
+                    const s = this.cityState[i];
+                    if (s && s.mine) held.push(i);
+                }
+                this.globe.updateInfluenceZones(held, this.cities, NEIGHBOR_KM);
             }
 
             updateWorldBalance(rkn, vpn) {
