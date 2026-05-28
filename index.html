@@ -11631,14 +11631,7 @@
                 const tier = document.getElementById('lcTier');
                 const pip = document.getElementById('lcPipRow');
                 if (ico) ico.textContent = lg.icon;
-                if (tier) {
-                    if (lg.next != null) {
-                        tier.innerHTML = `ЛИГА ${lg.idx} · ${lg.name.toUpperCase()}<br>
-                            <span class="lc-progress">${lg.score} / ${lg.next}</span>`;
-                    } else {
-                        tier.textContent = `ЛИГА ${lg.idx} · ${lg.name.toUpperCase()}`;
-                    }
-                }
+                if (tier) tier.textContent = `ЛИГА ${lg.idx} · ${lg.name.toUpperCase()}`;
                 if (pip) {
                     pip.innerHTML = '';
                     // Pips track progress WITHIN the current league: each
