@@ -4441,6 +4441,68 @@
         /* Centred virus on the Home screen with its own breathing pulse.
            Top is set to 42% so it lands in the visual centre of the play area
            (between the DNA counter at the top and the bottom nav). */
+        /* ===== League badge on the Home screen ===== */
+        .league-card {
+            position: absolute;
+            top: 64px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 16px 8px 10px;
+            border-radius: 18px;
+            background:
+                radial-gradient(120% 100% at 50% 0%, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0) 55%),
+                linear-gradient(170deg, var(--lc-top, #fde68a), var(--lc-mid, #f59e0b) 55%, var(--lc-bot, #b45309));
+            box-shadow:
+                0 12px 22px rgba(0,0,0,0.45),
+                0 0 0 2px rgba(255,255,255,0.22) inset,
+                0 -6px 10px rgba(0,0,0,0.22) inset;
+            color: #fff;
+            text-shadow: 0 2px 0 rgba(0,0,0,0.4);
+            z-index: 5;
+            pointer-events: none;
+            min-width: 184px;
+            max-width: 78vw;
+        }
+        .start-screen:not(.active) .league-card { display: none; }
+        .lc-ico {
+            font-size: 28px;
+            line-height: 1;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.45));
+            animation: lc-bob 3.6s ease-in-out infinite;
+        }
+        @keyframes lc-bob {
+            0%,100% { transform: translateY(0); }
+            50%     { transform: translateY(-2px); }
+        }
+        .lc-info { display: flex; flex-direction: column; gap: 4px; }
+        .lc-tier {
+            font-family: 'Space Mono', monospace;
+            font-size: 12px;
+            font-weight: 900;
+            letter-spacing: 1px;
+            line-height: 1;
+            white-space: nowrap;
+        }
+        .lc-pip-row { display: inline-flex; gap: 4px; }
+        .lc-pip {
+            width: 18px; height: 6px; border-radius: 3px;
+            background: rgba(255,255,255,0.3);
+            box-shadow: 0 1px 0 rgba(0,0,0,0.3) inset;
+        }
+        .lc-pip.filled {
+            background: #fff;
+            box-shadow: 0 0 8px rgba(255,255,255,0.85);
+        }
+        /* League tiers — bronze → diamond. */
+        .league-card.tier-1 { --lc-top: #f5d3a6; --lc-mid: #b66e2c; --lc-bot: #5c2f0d; }
+        .league-card.tier-2 { --lc-top: #f1f5f9; --lc-mid: #94a3b8; --lc-bot: #475569; }
+        .league-card.tier-3 { --lc-top: #fef9c3; --lc-mid: #eab308; --lc-bot: #854d0e; }
+        .league-card.tier-4 { --lc-top: #cffafe; --lc-mid: #06b6d4; --lc-bot: #155e75; }
+        .league-card.tier-5 { --lc-top: #e9d5ff; --lc-mid: #a855f7; --lc-bot: #5b21b6; }
+
         .home-virus {
             position: absolute;
             left: 50%;
@@ -5039,6 +5101,13 @@
                 <span class="organelle o4"></span>
                 <span class="organelle o5"></span>
                 <span class="organelle o6"></span>
+            </div>
+            <div class="league-card" id="leagueCard">
+                <div class="lc-ico" id="lcIco">🥉</div>
+                <div class="lc-info">
+                    <div class="lc-tier" id="lcTier">ЛИГА 1 · СТАЖЁР</div>
+                    <div class="lc-pip-row" id="lcPipRow"></div>
+                </div>
             </div>
             <div class="home-virus home-tap-target" id="homeTapTarget" role="button" tabindex="0" aria-label="РКН узел">
             </div>
@@ -7242,6 +7311,7 @@
                 this.updateDNACounter();
                 this.cloneHelixToMap();
                 this.updateVirusArt();
+                this.updateLeagueBadge();
                 this.renderVirusScreen();
                 this.updateDNARate();
                 this.startIncomeLoop();
@@ -10560,6 +10630,43 @@
             getDefensePower() { return this.rooms.defense.level * 8 + this.techStatBonus('defense'); }
             getHP()           { return 100 + this.rooms.hp.level * 25 + this.techStatBonus('hp'); }
 
+            // ===== PvP leagues =====
+            // Every player is bucketed into one of five leagues based on the
+            // combined power of their PvP stats (Attack + Defense + HP).
+            getPvpScore() { return this.getAttackPower() + this.getDefensePower() + this.getHP(); }
+            getLeague() {
+                const score = this.getPvpScore();
+                const tiers = [
+                    { idx: 1, name: 'Стажёр',       icon: '🥉', min: 0,    next: 250  },
+                    { idx: 2, name: 'Оперативник',  icon: '🥈', min: 250,  next: 700  },
+                    { idx: 3, name: 'Координатор',  icon: '🥇', min: 700,  next: 1500 },
+                    { idx: 4, name: 'Командир',     icon: '🏆', min: 1500, next: 3000 },
+                    { idx: 5, name: 'Магистр',      icon: '💎', min: 3000, next: null }
+                ];
+                let tier = tiers[0];
+                for (const t of tiers) if (score >= t.min) tier = t;
+                return { ...tier, score };
+            }
+            updateLeagueBadge() {
+                const card = document.getElementById('leagueCard');
+                if (!card) return;
+                const lg = this.getLeague();
+                card.className = 'league-card tier-' + lg.idx;
+                const ico = document.getElementById('lcIco');
+                const tier = document.getElementById('lcTier');
+                const pip = document.getElementById('lcPipRow');
+                if (ico) ico.textContent = lg.icon;
+                if (tier) tier.textContent = `ЛИГА ${lg.idx} · ${lg.name.toUpperCase()}`;
+                if (pip) {
+                    pip.innerHTML = '';
+                    for (let i = 1; i <= 5; i++) {
+                        const d = document.createElement('span');
+                        d.className = 'lc-pip' + (i <= lg.idx ? ' filled' : '');
+                        pip.appendChild(d);
+                    }
+                }
+            }
+
             startRoomUpgrade(id) {
                 const room = this.rooms[id];
                 if (!room || room.endsAt) return;           // already upgrading
@@ -10736,12 +10843,16 @@
 
             renderBaseStats() {
                 const el = document.getElementById('baseStats');
-                if (!el) return;
-                el.innerHTML =
-                    `<div class="base-stat"><span class="bs-ico">⚔️</span>ATK <span class="bs-val">${this.getAttackPower()}</span></div>` +
-                    `<div class="base-stat"><span class="bs-ico">🛡️</span>DEF <span class="bs-val">${this.getDefensePower()}</span></div>` +
-                    `<div class="base-stat"><span class="bs-ico">❤️</span>HP <span class="bs-val">${this.getHP()}</span></div>` +
-                    `<div class="base-stat"><span class="bs-ico">📦</span><span class="bs-val">${this.roomIncomePerSec().toFixed(1)}</span>/сек</div>`;
+                if (el) {
+                    el.innerHTML =
+                        `<div class="base-stat"><span class="bs-ico">⚔️</span>ATK <span class="bs-val">${this.getAttackPower()}</span></div>` +
+                        `<div class="base-stat"><span class="bs-ico">🛡️</span>DEF <span class="bs-val">${this.getDefensePower()}</span></div>` +
+                        `<div class="base-stat"><span class="bs-ico">❤️</span>HP <span class="bs-val">${this.getHP()}</span></div>` +
+                        `<div class="base-stat"><span class="bs-ico">📦</span><span class="bs-val">${this.roomIncomePerSec().toFixed(1)}</span>/сек</div>`;
+                }
+                // PvP league depends entirely on these stats — keep the
+                // home-screen badge in sync.
+                this.updateLeagueBadge();
             }
 
             // ---- Office-interior art helpers ----
