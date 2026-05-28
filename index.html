@@ -4678,6 +4678,17 @@
         /* Hide the league badge during the 3-tap tutorial. */
         body.tutorial-active .league-card { display: none; }
 
+        /* Clear the stage for the celebration overlay — the home button
+           and the tutorial copy fade out so only the confetti is on screen. */
+        body.celebrating .home-virus,
+        body.celebrating .home-hint,
+        body.celebrating .game-subtitle,
+        body.celebrating .home-finger {
+            opacity: 0;
+            transition: opacity 0.25s ease;
+            pointer-events: none;
+        }
+
         /* ===== League badge on the Home screen ===== */
         .league-card {
             position: absolute;
@@ -8298,10 +8309,13 @@
                 }
                 return out;
             }
-            // round(Attack / Defense) × random(0.9..1.1) — integer HP damage.
+            // round(Attack / Defense) × random(0.9..1.1) — integer HP damage,
+            // capped at 2 so a single blow can never one-shot a fresh city
+            // (base HP = 3) regardless of how lopsided early-game stats are.
             rollPvpDamage(atk, def) {
                 const base = Math.round(atk / Math.max(1, def));
-                return Math.max(0, Math.round(base * (0.9 + Math.random() * 0.2)));
+                const dmg  = Math.round(base * (0.9 + Math.random() * 0.2));
+                return Math.max(0, Math.min(2, dmg));
             }
 
             // Deterministic baseline member split per city so every city shows
@@ -8432,14 +8446,17 @@
                 const now = Date.now();
                 const cdMs = this.DEFENDER_COOLDOWN_MS();
                 const energy = Math.floor(this.energy || 0);
+                const adj = this.isCityCaptureAllowed(idx);
                 defenders.forEach(d => {
                     const card = document.createElement('div');
                     card.className = 'pd-card';
                     const cdLeft = d.lastAttackedAt ? Math.max(0, cdMs - (now - d.lastAttackedAt)) : 0;
                     const noEnergy = energy < 1;
-                    const disabled = cdLeft > 0 || noEnergy;
+                    const farAway  = !adj;
+                    const disabled = cdLeft > 0 || noEnergy || farAway;
                     let label;
-                    if (cdLeft > 0)      label = `⏳ ${Math.ceil(cdLeft / 3600000)}ч`;
+                    if (farAway)         label = '🔒 не сосед';
+                    else if (cdLeft > 0) label = `⏳ ${Math.ceil(cdLeft / 3600000)}ч`;
                     else if (noEnergy)   label = '⚡ нет энергии';
                     else                 label = 'Атаковать ⚡1';
                     card.innerHTML = `
@@ -8551,6 +8568,12 @@
                 const defenders = this.getCityDefenders(idx);
                 const d = defenders.find(x => x.id === defenderId);
                 if (!d || d.hp <= 0) return;
+                // Defenders can only be hit in cities adjacent to one of your
+                // holds (or the very first city before you have any).
+                if (!this.isCityCaptureAllowed(idx)) {
+                    this.showToast('Город слишком далеко', 'Нужен соседний с вашим', 'above-map', '📍');
+                    return;
+                }
                 const visible = this.visibleDefenders(idx);
                 if (!visible.includes(d)) {
                     this.showToast('Цель вне досягаемости', 'Каскад выбирает другую цель', 'above-map', '🚫');
@@ -8626,15 +8649,19 @@
                 if (this.gameStartTime && now - this.gameStartTime < 60000) return;
                 // На один город — не чаще раза в 5 минут.
                 const COOLDOWN_MS = 5 * 60 * 1000;
-                const held = Object.keys(this.cityState).filter(i => {
+                const allHeld = Object.keys(this.cityState).filter(i => this.cityState[i].mine);
+                const held = allHeld.filter(i => {
                     const cs = this.cityState[i];
-                    return cs.mine && (!cs.lastAttackedAt || now - cs.lastAttackedAt >= COOLDOWN_MS);
+                    return !cs.lastAttackedAt || now - cs.lastAttackedAt >= COOLDOWN_MS;
                 });
                 if (!held.length) return;
                 const idx = +held[Math.floor(Math.random() * held.length)];
                 const c = this.cities[idx];
                 if (!c) return;
                 const s = this.getCity(idx);
+                // Safety net: the player must always keep at least one city.
+                // When the player's last city has only 1 HP left, skip the raid.
+                if (allHeld.length === 1 && (s.hp || 0) <= 1) return;
                 s.lastAttackedAt = now;
                 // Attackers are simulated enemies in this city of the player's
                 // league or lower (larger idx). Cascade if none available.
@@ -8862,6 +8889,7 @@
             // Confetti + headline burst between the 3-tap tutorial and the
             // faction picker. Self-cleaning, ~2.4 s end-to-end.
             playTutorialCelebration(done) {
+                document.body.classList.add('celebrating');
                 const root = document.createElement('div');
                 root.className = 'tutorial-celebrate';
                 const headline = document.createElement('div');
@@ -8885,7 +8913,11 @@
                 document.body.appendChild(root);
                 requestAnimationFrame(() => root.classList.add('show'));
                 setTimeout(() => { root.classList.add('fade'); }, 2000);
-                setTimeout(() => { root.remove(); if (done) done(); }, 2400);
+                setTimeout(() => {
+                    root.remove();
+                    document.body.classList.remove('celebrating');
+                    if (done) done();
+                }, 2400);
             }
 
             chooseFaction(faction) {
