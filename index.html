@@ -9553,6 +9553,9 @@
 
                 // Drive the post-tutorial guided tour.
                 if (this.onboardStep === 'base' && id === 'baseScreen') {
+                    // Dismiss any leftover "Город заблокирован" toast — the
+                    // player has moved on to the Base tour.
+                    document.querySelectorAll('.placement-toast').forEach(t => t.remove());
                     this.advanceOnboarding('firstRoom');
                 } else if (this.onboardStep === 'home' && id === 'startScreen') {
                     this.advanceOnboarding(null);
