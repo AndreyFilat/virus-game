@@ -6142,19 +6142,18 @@
             }
 
             setSelectedCity(idx) {
+                // Selection no longer recolours every dot — colour is owned
+                // by VirusGame.updateCityControlColors(). We only nudge the
+                // scale and ring size so the selected city pops.
                 this._selectedCityIdx = idx;
                 this.cityMeshes.forEach((m, i) => {
                     const ud = m.userData;
-                    const infScale = ud.infected ? 1.4 : 1;
+                    const baseScale = ud.infected ? 1.4 : 1;
                     if (i === idx) {
-                        // Keep infected cities purple; only healthy
-                        // selections turn mint.
-                        m.material.color.set(ud.infected ? 0xa3e635 : 0x00ff9f);
-                        m.scale.setScalar(infScale * 1.4);
+                        m.scale.setScalar(baseScale * 1.4);
                         if (ud.ring) ud.ring.scale.setScalar(1.6);
                     } else {
-                        m.material.color.set(ud.infected ? 0xa3e635 : ud.baseColor);
-                        m.scale.setScalar(infScale);
+                        m.scale.setScalar(baseScale);
                         if (ud.ring) ud.ring.scale.setScalar(1);
                     }
                 });
@@ -7892,6 +7891,9 @@
                 if (!c) return;
                 this.mapSelectedCityIdx = idx;
                 if (this.globe) this.globe.setSelectedCity(idx);
+                // Selection now only changes scale; re-run colour pass so
+                // mine cities keep their emerald tint and enlarged size.
+                this.updateCityControlColors();
                 this.openCityControl(idx);
             }
 
@@ -8015,8 +8017,10 @@
 
                 s.mine = true;
                 s.hp = this.getHP();
-                // Your faction takes a controlling share of the city.
+                // Your faction takes a controlling share of the city; record
+                // the rising side so a future 50/50 keeps this colour.
                 s[mineKey] = Math.max(s[mineKey], s[enemyKey] + this.PVP_CAPTURE_GAIN);
+                s.lastDom = mineKey;
                 this.infectContinent(c[4], 5, idx); // keep infection progression
                 this.pvpEvent({
                     icon: this.faction === 'resist' ? '🔓' : '🔒',
@@ -8083,6 +8087,7 @@
                     const flip = Math.min(s[mineKey], this.PVP_CAPTURE_GAIN);
                     s[mineKey] = Math.max(1, s[mineKey] - flip);
                     s[enemyKey] += this.PVP_CAPTURE_GAIN;
+                    s.lastDom = enemyKey; // the enemy is the rising side
                     this.pvpEvent({ icon: '💔', title: 'Город потерян', sub: `${c[0]} перешёл к противнику`, tone: 'negative' });
                 } else {
                     this.pvpEvent({ icon: '⚔️', title: 'Атака на ваш город', sub: `${c[0]} −${dmg} обороны`, tone: 'negative' });
@@ -8095,6 +8100,7 @@
             clearMapSelection() {
                 this.mapSelectedCityIdx = null;
                 if (this.globe) this.globe.setSelectedCity(-1);
+                this.updateCityControlColors();
                 this.hideCityPlate();
             }
 
@@ -9535,12 +9541,16 @@
                     let rgb;
                     if (s.mine) {
                         rgb = [0.13, 1.0, 0.62];  // emerald (mine)
-                    } else if (ctrl.rkn >= 35 && ctrl.rkn <= 65) {
-                        rgb = [1.0, 0.78, 0.20]; // amber (contested)
-                    } else if (ctrl.rkn > ctrl.vpn) {
-                        rgb = [0.97, 0.27, 0.27]; // bright РКН red
                     } else {
-                        rgb = [0.22, 0.60, 0.97]; // bright ВПН blue
+                        // Colour = faction that last grew toward this share.
+                        // `lastDom` is set whenever a capture or loss shifts
+                        // the counts; at exact 50/50 the city keeps the
+                        // colour of the rising side. For unseen cities we
+                        // fall back to whichever currently has more members.
+                        const dom = s.lastDom || (s.rkn >= s.vpn ? 'rkn' : 'vpn');
+                        rgb = dom === 'rkn'
+                            ? [0.97, 0.27, 0.27]   // bright РКН red
+                            : [0.22, 0.60, 0.97];  // bright ВПН blue
                     }
                     m.material.color.setRGB(rgb[0], rgb[1], rgb[2]);
 
