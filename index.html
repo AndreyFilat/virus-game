@@ -76,8 +76,8 @@
         /* ===== PvP energy chip ===== */
         .energy-counter {
             position: absolute;
-            top: 38px;
-            left: 8px;
+            top: 10px;
+            right: 108px;
             z-index: 100;
             display: flex;
             align-items: center;
@@ -4301,22 +4301,30 @@
         .pc-hp-val { font-family: 'Space Mono', monospace; font-size: 9px; color: #fff; white-space: nowrap; }
 
         .pc-victories {
-            display: flex; align-items: center; gap: 6px;
-            width: 150px; margin: 6px auto 0;
+            display: inline-flex; align-items: center; gap: 6px;
+            margin: 8px auto 0;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.06);
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
         }
         .pc-victories[hidden] { display: none; }
-        .pcv-label { font-size: 9px; color: #fde68a; white-space: nowrap; }
-        .pcv-pips { flex: 1 1 auto; display: flex; gap: 3px; justify-content: center; }
+        .pcv-ico { font-size: 12px; line-height: 1; }
+        .pcv-pips { display: inline-flex; gap: 3px; }
         .pcv-pip {
-            width: 12px; height: 6px; border-radius: 2px;
-            background: rgba(255,255,255,0.18);
+            width: 10px; height: 5px; border-radius: 2px;
+            background: rgba(255,255,255,0.20);
             box-shadow: 0 1px 0 rgba(0,0,0,0.3) inset;
         }
         .pcv-pip.filled {
             background: linear-gradient(180deg, #fde68a, #f59e0b);
             box-shadow: 0 0 6px rgba(253, 224, 71, 0.85);
         }
-        .pcv-val { font-family: 'Space Mono', monospace; font-size: 9px; font-weight: 800; color: #fde047; white-space: nowrap; }
+        .pcv-val {
+            font-family: 'Space Mono', monospace;
+            font-size: 10px; font-weight: 800; color: #fde047;
+            white-space: nowrap;
+        }
 
         /* ----- Enemy defenders list inside the city plate ----- */
         .plate-defenders { margin-top: 10px; }
@@ -5457,15 +5465,15 @@
                         <div class="pc-hp-bar"><div class="pc-hp-fill" id="pcHpFill"></div></div>
                         <span class="pc-hp-val" id="pcHpVal"></span>
                     </div>
-                    <div class="pc-victories" id="pcVictories" hidden>
-                        <span class="pcv-label">🏆 Побед до захвата</span>
-                        <div class="pcv-pips" id="pcvPips"></div>
-                        <span class="pcv-val" id="pcvVal">0 / 3</span>
-                    </div>
                 </div>
                 <div class="plate-defenders" id="plateDefenders" hidden>
                     <div class="pd-title">Защитники противника</div>
                     <div class="pd-list" id="pdList"></div>
+                </div>
+                <div class="pc-victories" id="pcVictories" hidden>
+                    <span class="pcv-ico">🏆</span>
+                    <div class="pcv-pips" id="pcvPips"></div>
+                    <span class="pcv-val" id="pcvVal">0/3</span>
                 </div>
                 <button class="plate-action" id="plateAction" hidden>Распространить</button>
                 <button class="plate-action plate-action-2" id="plateAction2" hidden></button>
@@ -8453,7 +8461,7 @@
                     const wins = Math.max(0, Math.min(3, s.victories || 0));
                     if (victWrap && this.pickerMode !== 'tutorial') {
                         victWrap.hidden = false;
-                        document.getElementById('pcvVal').textContent = `${wins} / 3`;
+                        document.getElementById('pcvVal').textContent = `${wins}/3`;
                         const pips = document.getElementById('pcvPips');
                         if (pips) {
                             pips.innerHTML = '';
