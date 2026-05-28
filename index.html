@@ -9151,6 +9151,20 @@
                         s[enemyKey] += this.PVP_CAPTURE_GAIN;
                         s.lastDom = enemyKey;
                         s.victories = 0;
+                        // Drop the gold infection halo + dot pulse for the
+                        // lost city. Pick a new continent anchor if it was
+                        // the last anchor.
+                        const cont = this.continents[c[4]];
+                        if (cont && cont.infectedCities) {
+                            cont.infectedCities.delete(idx);
+                            if (cont.infectionCityIdx === idx) {
+                                cont.infectionCityIdx = cont.infectedCities.size
+                                    ? cont.infectedCities.values().next().value
+                                    : null;
+                            }
+                            if (cont.infectedCities.size === 0) cont.infectionLevel = 0;
+                        }
+                        this.renderInfections();
                         this.pvpEvent({ icon: '💔', title: 'Город потерян', sub: `${c[0]} перешёл к противнику`, tone: 'negative' });
                     } else {
                         this.pvpEvent({ icon: '⚔️', title: 'Атака на ваш город', sub: `${c[0]} −${dmg} ❤`, tone: 'negative' });
