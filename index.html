@@ -4327,28 +4327,41 @@
         .pc-hp-val { font-family: 'Space Mono', monospace; font-size: 9px; color: #fff; white-space: nowrap; }
 
         .pc-victories {
-            display: inline-flex; align-items: center; gap: 6px;
-            margin: 8px auto 0;
-            padding: 4px 10px;
+            display: inline-flex; align-items: center; gap: 8px;
+            margin: 8px auto 4px;
+            padding: 6px 14px;
             border-radius: 999px;
-            background: rgba(255,255,255,0.06);
-            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+            background: linear-gradient(170deg, rgba(253, 224, 71, 0.22), rgba(245, 158, 11, 0.18));
+            border: 1.5px solid rgba(253, 224, 71, 0.7);
+            box-shadow:
+                0 6px 14px rgba(0, 0, 0, 0.4),
+                0 0 18px rgba(253, 224, 71, 0.45),
+                inset 0 1px 0 rgba(255, 255, 255, 0.18);
         }
         .pc-victories[hidden] { display: none; }
-        .pcv-ico { font-size: 12px; line-height: 1; }
-        .pcv-pips { display: inline-flex; gap: 3px; }
+        .pcv-ico {
+            font-size: 14px; line-height: 1;
+            filter: drop-shadow(0 0 6px rgba(253, 224, 71, 0.9));
+        }
+        .pcv-pips { display: inline-flex; gap: 4px; }
         .pcv-pip {
-            width: 10px; height: 5px; border-radius: 2px;
-            background: rgba(255,255,255,0.20);
-            box-shadow: 0 1px 0 rgba(0,0,0,0.3) inset;
+            width: 14px; height: 7px; border-radius: 3px;
+            background: rgba(255, 255, 255, 0.18);
+            box-shadow: 0 1px 0 rgba(0,0,0,0.35) inset;
         }
         .pcv-pip.filled {
-            background: linear-gradient(180deg, #fde68a, #f59e0b);
-            box-shadow: 0 0 6px rgba(253, 224, 71, 0.85);
+            background: linear-gradient(180deg, #fef9c3, #f59e0b);
+            box-shadow:
+                0 0 10px rgba(253, 224, 71, 1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6);
         }
         .pcv-val {
             font-family: 'Space Mono', monospace;
-            font-size: 10px; font-weight: 800; color: #fde047;
+            font-size: 12px;
+            font-weight: 900;
+            color: #fffbe6;
+            letter-spacing: 0.4px;
+            text-shadow: 0 0 8px rgba(253, 224, 71, 0.8);
             white-space: nowrap;
         }
 
@@ -5533,6 +5546,11 @@
                  city dot on the globe. Position is updated each frame in JS. -->
             <div class="city-plate" id="cityPlate" hidden>
                 <div class="plate-name" id="plateName"></div>
+                <div class="pc-victories" id="pcVictories" hidden>
+                    <span class="pcv-ico">🏆</span>
+                    <div class="pcv-pips" id="pcvPips"></div>
+                    <span class="pcv-val" id="pcvVal">0/3</span>
+                </div>
                 <div class="plate-control" id="plateControl" hidden>
                     <div class="pc-bar">
                         <div class="pc-seg pc-rkn" id="pcRkn"></div>
@@ -5551,11 +5569,6 @@
                 <div class="plate-defenders" id="plateDefenders" hidden>
                     <div class="pd-title">Защитники противника</div>
                     <div class="pd-list" id="pdList"></div>
-                </div>
-                <div class="pc-victories" id="pcVictories" hidden>
-                    <span class="pcv-ico">🏆</span>
-                    <div class="pcv-pips" id="pcvPips"></div>
-                    <span class="pcv-val" id="pcvVal">0/3</span>
                 </div>
                 <button class="plate-action" id="plateAction" hidden>Распространить</button>
                 <button class="plate-action plate-action-2" id="plateAction2" hidden></button>
@@ -8885,26 +8898,32 @@
                 if (dmg === 0) {
                     this.pvpEvent({ icon: '🛡️', title: 'Атака отбита', sub: `${d.name} устоял`, tone: 'negative' });
                 } else {
+                    // Every successful hit counts toward city capture.
                     d.hp = Math.max(0, d.hp - dmg);
+                    s.victories = (s.victories || 0) + 1;
                     if (d.hp === 0) {
-                        // Defender kicked — count toward city capture.
+                        // Defender kicked out — also shift member counts.
                         const enemyKey = this.enemyFactionKey();
                         const mineKey  = this.myFactionKey();
                         const flip = Math.min(s[enemyKey], this.PVP_CAPTURE_GAIN);
                         s[enemyKey] = Math.max(0, s[enemyKey] - flip);
                         s[mineKey] += flip;
                         s.lastDom = mineKey;
-                        s.victories = (s.victories || 0) + 1;
                         this.pvpEvent({
                             icon: '💥',
                             title: `Защитник выбит (${s.victories}/3)`,
                             sub: `${d.name} вылетел из ${this.cities[idx][0]}`,
                             tone: 'positive'
                         });
-                        if (s.victories >= 3 && !s.mine) this.captureCityByVictories(idx);
                     } else {
-                        this.pvpEvent({ icon: '⚔️', title: 'Удар по защитнику', sub: `${d.name} −${dmg} ❤`, tone: 'positive' });
+                        this.pvpEvent({
+                            icon: '⚔️',
+                            title: `Победа (${s.victories}/3)`,
+                            sub: `${d.name} −${dmg} ❤`,
+                            tone: 'positive'
+                        });
                     }
+                    if (s.victories >= 3 && !s.mine) this.captureCityByVictories(idx);
                 }
                 if (this._plateCityIdx === idx) this.refreshCityControlPlate();
                 if (this.coralMap) this.coralMap.draw();
