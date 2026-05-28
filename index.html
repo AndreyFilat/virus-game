@@ -7053,6 +7053,7 @@
                 this.spreadCounts = { air: 0, sea: 0, land: 0 };
                 this.unlockedSpreads = { air: 0, sea: 0 }; // invite-granted uses
                 this.pendingInvite = null;
+                this.pendingInviteCity = null;
                 this.inviteRef = this.getOrCreateInviteRef();
                 this.infectionGrowthTimer = null;
 
@@ -7985,21 +7986,66 @@
                     a2.hidden = true;
                     a2.onclick = null;
                 } else {
-                    // A city not held by you: offer to capture it for a price.
+                    // A city not held by you: capture only when it's adjacent
+                    // to a city you already hold (otherwise the invite-flow
+                    // button is the only way in).
                     hpWrap.hidden = true;
-                    a2.hidden = true;
-                    a2.onclick = null;
-                    a1.hidden = false;
-                    a1.textContent = `${this.factionCaptureLabel()} 📦 ${this.PVP_CAPTURE_COST}`;
-                    a1.disabled = this.dnaPoints < this.PVP_CAPTURE_COST;
-                    a1.onclick = (e) => { e.preventDefault(); e.stopPropagation(); this.captureCity(idx); };
+                    const adj = this.isCityCaptureAllowed(idx);
+                    if (adj) {
+                        a1.hidden = false;
+                        a1.textContent = `${this.factionCaptureLabel()} 📦 ${this.PVP_CAPTURE_COST}`;
+                        a1.disabled = this.dnaPoints < this.PVP_CAPTURE_COST;
+                        a1.onclick = (e) => { e.preventDefault(); e.stopPropagation(); this.captureCity(idx); };
+                    } else {
+                        a1.hidden = false;
+                        a1.textContent = '🔒 нет соседнего города';
+                        a1.disabled = true;
+                        a1.onclick = null;
+                    }
+                    a2.hidden = false;
+                    a2.disabled = false;
+                    a2.textContent = '👥 Пригласить друга';
+                    a2.onclick = (e) => { e.preventDefault(); e.stopPropagation(); this.inviteCaptureCity(idx); };
                 }
+            }
+
+            // Great-circle distance between two cities in km (lat/lon).
+            greatCircleKm(lat1, lon1, lat2, lon2) {
+                const toRad = x => x * Math.PI / 180;
+                const R = 6371;
+                const dLat = toRad(lat2 - lat1);
+                const dLon = toRad(lon2 - lon1);
+                const a = Math.sin(dLat / 2) ** 2
+                        + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+                return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            }
+
+            // A city is capturable for Packets only if you have no holds yet
+            // (the very first pick), or if it sits within NEIGHBOR_KM of one
+            // of your held cities. The friend-invite flow bypasses this gate.
+            isCityCaptureAllowed(idx) {
+                if (this.pickerMode === 'tutorial') return true;
+                const target = this.cities[idx];
+                if (!target) return false;
+                const myCities = Object.keys(this.cityState).filter(i => this.cityState[i].mine);
+                if (myCities.length === 0) return true;
+                const NEIGHBOR_KM = 2500;
+                for (const m of myCities) {
+                    const src = this.cities[+m];
+                    if (!src) continue;
+                    if (this.greatCircleKm(src[1], src[2], target[1], target[2]) <= NEIGHBOR_KM) return true;
+                }
+                return false;
             }
 
             // Paying the price occupies the city for your faction and shifts
             // control to you. The hold gains a defensive pool of lives (= HP).
             captureCity(idx) {
                 const startingPick = this.pickerMode === 'tutorial';
+                if (!startingPick && !this.isCityCaptureAllowed(idx)) {
+                    this.showToast('Город слишком далеко', 'Нужен соседний с уже захваченным', 'above-map', '📍');
+                    return;
+                }
                 // The first city pick is free; later captures cost Packets.
                 if (!startingPick && this.dnaPoints < this.PVP_CAPTURE_COST) {
                     this.showToast('Не хватает Пакетов', `Нужно ${this.PVP_CAPTURE_COST}`, 'above-map', '🚫');
@@ -9010,6 +9056,7 @@
                 modal.classList.remove('open');
                 setTimeout(() => { modal.hidden = true; }, 280);
                 this.pendingInvite = null;
+                this.pendingInviteCity = null;
             }
 
             async shareInvite() {
@@ -9036,6 +9083,15 @@
             }
 
             completeInvite() {
+                // City-capture flow: friend invite unlocks the tapped city
+                // for free and bypasses the neighbour-adjacency rule.
+                if (this.pendingInviteCity != null) {
+                    const idx = this.pendingInviteCity;
+                    this.pendingInviteCity = null;
+                    this.closeInviteModal();
+                    this.captureCityFromInvite(idx);
+                    return;
+                }
                 const id = this.pendingInvite;
                 if (!id) return;
                 this.unlockedSpreads[id] = (this.unlockedSpreads[id] || 0) + 1;
@@ -9043,6 +9099,52 @@
                 const opt = this.spreadOptions.find(o => o.id === id);
                 this.showToast('Друг приглашён', opt ? opt.name + ' разблокирован' : '');
                 this.renderSpreadList();
+            }
+
+            // Open the invite modal in city-capture mode.
+            inviteCaptureCity(idx) {
+                const c = this.cities[idx];
+                if (!c) return;
+                const s = this.getCity(idx);
+                if (s.mine) return;
+                this.pendingInviteCity = idx;
+                this.pendingInvite = null;
+                const modal = document.getElementById('inviteModal');
+                if (!modal) return;
+                const nameEl = document.getElementById('inviteMethodName');
+                if (nameEl) nameEl.textContent = c[0];
+                const linkEl = document.getElementById('inviteLink');
+                if (linkEl) linkEl.textContent = this.getInviteLink();
+                const text = modal.querySelector('.modal-text');
+                if (text) {
+                    text.innerHTML = `Город «<span id="inviteMethodName">${c[0]}</span>» захватывается через приглашение друга. Поделись ссылкой — как только друг присоединится, город будет под твоим контролем.`;
+                }
+                modal.hidden = false;
+                requestAnimationFrame(() => modal.classList.add('open'));
+            }
+
+            // Free capture awarded by the invite flow — bypasses the cost and
+            // the neighbour-adjacency rule so the player can leap anywhere.
+            captureCityFromInvite(idx) {
+                const c = this.cities[idx];
+                const s = this.getCity(idx);
+                if (!c || s.mine) return;
+                const mineKey = this.myFactionKey();
+                const enemyKey = this.enemyFactionKey();
+                s.mine = true;
+                s.hp = this.getHP();
+                s[mineKey] = Math.max(s[mineKey], s[enemyKey] + this.PVP_CAPTURE_GAIN);
+                s.lastDom = mineKey;
+                this.infectContinent(c[4], 5, idx);
+                this.pvpEvent({
+                    icon: '👥',
+                    title: 'Друг привёл подкрепление',
+                    sub: `${c[0]} под вашим контролем`,
+                    tone: 'positive'
+                });
+                if (this.coralMap) this.coralMap.draw();
+                this.refreshCityControlPlate();
+                this.saveState();
             }
 
             infectContinent(id, level, cityIdx) {
