@@ -4690,6 +4690,16 @@
             0%, 100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0),   0 0 18px rgba(74, 222, 128, 0.7); }
             50%      { box-shadow: 0 0 0 6px rgba(74, 222, 128, 0), 0 0 30px rgba(74, 222, 128, 1.0); }
         }
+        /* Containers that own a highlighted child must rise above the mask;
+           non-highlighted siblings dim down so the chosen target reads as
+           the only thing alive on the screen. We bump z-index only — the
+           bottom nav already has position:fixed, the base grid is in flow. */
+        body.onboard-active .bottom-nav { z-index: 99996 !important; }
+        body.onboard-active #baseGrid   { z-index: 99996; position: relative; }
+        body.onboard-active .bottom-nav .nav-btn:not(.onboard-highlight),
+        body.onboard-active #baseGrid [data-room]:not(.onboard-highlight) {
+            opacity: 0.25;
+        }
         /* During the tour only the highlighted element accepts taps. */
         body.onboard-active { pointer-events: none; }
         body.onboard-active .onboard-highlight { pointer-events: auto; }
@@ -8748,7 +8758,7 @@
                     target = document.querySelector('.nav-btn[data-screen="baseScreen"]');
                     text = 'Загляни на Базу';
                 } else if (this.onboardStep === 'firstRoom') {
-                    target = document.querySelector('#baseGrid .room-tile, #baseGrid .building > *, #baseGrid > *');
+                    target = document.querySelector('#baseGrid [data-room]');
                     text = 'Открой первую комнату';
                 } else if (this.onboardStep === 'home') {
                     target = document.querySelector('.nav-btn[data-screen="startScreen"]');
