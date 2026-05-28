@@ -1711,7 +1711,7 @@
         /* Continent selection prompt */
         .selection-prompt {
             position: absolute;
-            top: 58px;
+            top: 132px;
             left: 50%;
             transform: translateX(-50%);
             background: rgba(36, 49, 66, 0.95);
@@ -2461,7 +2461,7 @@
             z-index: 50;
             pointer-events: none;
         }
-        body.selecting .world-balance { display: none; }
+        body.selecting .world-balance { /* keep visible during the city picker so the player sees the world state from the start */ }
         .wb-track {
             display: flex;
             height: 22px;
@@ -4160,11 +4160,23 @@
         .city-plate.visible .plate-action:not([hidden]) { pointer-events: auto; }
         .city-plate .plate-action:active { transform: scale(0.96); }
         .city-plate .plate-action[hidden] { display: none; }
+        /* Stack action buttons one under another, full-width, centred. */
+        .city-plate .plate-action {
+            display: flex;
+            justify-content: center;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        /* Friend-invite button — friendly violet, distinct from the red
+           capture button. */
         .city-plate .plate-action.plate-action-2 {
-            background: linear-gradient(170deg, #ff7a7a 0%, #ef4444 55%, #b91c1c 100%);
-            color: #2a0606;
-            border-color: rgba(254, 202, 202, 0.85);
-            box-shadow: 0 6px 14px rgba(0,0,0,0.45), 0 0 16px rgba(239,68,68,0.35), inset 0 1px 0 rgba(255,255,255,0.4);
+            background: linear-gradient(170deg, #c4b5fd 0%, #8b5cf6 55%, #6d28d9 100%);
+            color: #1f0a40;
+            border-color: rgba(221, 214, 254, 0.85);
+            box-shadow:
+                0 6px 14px rgba(0, 0, 0, 0.45),
+                0 0 18px rgba(139, 92, 246, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.45);
         }
         .city-plate .plate-action[disabled] { opacity: 0.5; cursor: default; }
 
@@ -7991,10 +8003,14 @@
                     // button is the only way in).
                     hpWrap.hidden = true;
                     const adj = this.isCityCaptureAllowed(idx);
+                    const isTutorialPick = this.pickerMode === 'tutorial';
                     if (adj) {
                         a1.hidden = false;
-                        a1.textContent = `${this.factionCaptureLabel()} 📦 ${this.PVP_CAPTURE_COST}`;
-                        a1.disabled = this.dnaPoints < this.PVP_CAPTURE_COST;
+                        // Starting-city pick is free; later captures cost Packets.
+                        a1.textContent = isTutorialPick
+                            ? this.factionCaptureLabel()
+                            : `${this.factionCaptureLabel()} 📦 ${this.PVP_CAPTURE_COST}`;
+                        a1.disabled = !isTutorialPick && this.dnaPoints < this.PVP_CAPTURE_COST;
                         a1.onclick = (e) => { e.preventDefault(); e.stopPropagation(); this.captureCity(idx); };
                     } else {
                         a1.hidden = false;
@@ -8002,10 +8018,18 @@
                         a1.disabled = true;
                         a1.onclick = null;
                     }
-                    a2.hidden = false;
-                    a2.disabled = false;
-                    a2.textContent = '👥 Пригласить друга';
-                    a2.onclick = (e) => { e.preventDefault(); e.stopPropagation(); this.inviteCaptureCity(idx); };
+                    // The friend-invite shortcut is only meaningful after the
+                    // tutorial — the starting-city pick is already free and
+                    // shouldn't surface a referral prompt.
+                    if (this.pickerMode === 'tutorial') {
+                        a2.hidden = true;
+                        a2.onclick = null;
+                    } else {
+                        a2.hidden = false;
+                        a2.disabled = false;
+                        a2.textContent = '👥 Пригласить друга';
+                        a2.onclick = (e) => { e.preventDefault(); e.stopPropagation(); this.inviteCaptureCity(idx); };
+                    }
                 }
             }
 
