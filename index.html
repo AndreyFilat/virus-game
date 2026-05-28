@@ -8293,15 +8293,15 @@
                 const done = this.isTechDone(branchId, i);
                 const active = this.techActive && this.techActive.key === key;
                 const available = this.isTechAvailable(branchId, i);
-                const labStat = { attack: 'Attack Power', defense: 'Defense Power', hp: 'HP-пул' }[br.stat];
+                const labStat = { attack: 'Attack Power', defense: 'Defense Power', hp: null }[br.stat];
                 const bonus = this.techBonus[br.stat][i];
-                // For HP nodes, compute the actual city-defence delta the
-                // research will add (HP-пул bonus / 200, floored).
-                let bonusText = `+${bonus} ${labStat}`;
+                // HP nodes report the city-life gain directly (0.01 HP per
+                // point of bonus). Attack/Defence still show the raw power.
+                let bonusText;
                 if (br.stat === 'hp') {
-                    const curTech = this.techStatBonus('hp');
-                    const cityGain = Math.floor((curTech + bonus) / 200) - Math.floor(curTech / 200);
-                    if (cityGain > 0) bonusText += ` (+${cityGain} жизни города)`;
+                    bonusText = `+${(bonus * 0.01).toFixed(2)} жизни городам`;
+                } else {
+                    bonusText = `+${bonus} ${labStat}`;
                 }
 
                 let lvlText, statRows, progress = '', action;
@@ -8766,7 +8766,7 @@
                     hpWrap.hidden = false;
                     document.querySelector('#pcHp .pc-hp-label').textContent = '❤️ Жизни';
                     document.getElementById('pcHpFill').style.width = pct.toFixed(0) + '%';
-                    document.getElementById('pcHpVal').textContent = `${Math.ceil(s.hp)}/${maxHp}`;
+                    document.getElementById('pcHpVal').textContent = `${s.hp.toFixed(1)}/${maxHp.toFixed(1)}`;
                     if (victWrap) victWrap.hidden = true;
                     a1.hidden = true;
                     a1.onclick = null;
@@ -11655,7 +11655,7 @@
                     case 'attack':   return `ATK ${30 + lvl * 8}`;
                     case 'contrib':  return `+${(lvl * 5)}%/ч энергии, лимит +${Math.floor(lvl / 10)}`;
                     case 'defense':  return `DEF ${lvl * 8}`;
-                    case 'hp':       return `Жизни +${Math.floor(lvl / 10)} · регенерация ${(0.5 + lvl * 0.05).toFixed(2)} HP/ч`;
+                    case 'hp':       return `Жизни +${(lvl * 0.1).toFixed(1)} · регенерация ${(0.5 + lvl * 0.05).toFixed(2)}/ч`;
                     default:         return '';
                 }
             }
@@ -11663,11 +11663,14 @@
             // Baseline 30 so a fresh player reliably chips at L4–L5 neighbours.
             getAttackPower()  { return 30 + this.rooms.attack.level  * 8 + this.techStatBonus('attack'); }
             getDefensePower() { return this.rooms.defense.level * 8 + this.techStatBonus('defense'); }
-            // HP is now the count of PvP hits a city of yours can survive
-            // before you're kicked out — a small integer that grows with the
-            // HP room and the HP-branch tech.
+            // HP is the count of PvP hits a city of yours can survive before
+            // you're kicked out. Granular fractional steps so every upgrade
+            // shows visible movement on the plate.
+            //   +0.1 city HP per HP-room level (max +10 at lvl 100)
+            //   +0.01 city HP per point of HP-branch tech bonus
+            //   base 3
             getHP() {
-                return 3 + Math.floor(this.rooms.hp.level / 10) + Math.floor(this.techStatBonus('hp') / 200);
+                return 3 + this.rooms.hp.level * 0.1 + this.techStatBonus('hp') * 0.01;
             }
 
             // ===== PvP energy =====
