@@ -4920,8 +4920,14 @@
             font-size: 12px;
             font-weight: 900;
             letter-spacing: 1px;
-            line-height: 1;
+            line-height: 1.15;
             white-space: nowrap;
+        }
+        .lc-progress {
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.4px;
+            opacity: 0.85;
         }
         .lc-pip-row { display: inline-flex; gap: 4px; }
         .lc-pip {
@@ -11607,11 +11613,11 @@
                 const score = this.getPvpScore();
                 // Listed from top down — first match (descending min) wins.
                 const tiers = [
-                    { idx: 1, name: 'Магистр',     icon: '💎', min: 3000 },
-                    { idx: 2, name: 'Командир',    icon: '🏆', min: 1500 },
-                    { idx: 3, name: 'Координатор', icon: '🎯', min: 700  },
-                    { idx: 4, name: 'Оперативник', icon: '🕶️', min: 250  },
-                    { idx: 5, name: 'Стажёр',      icon: '🌱', min: 0    }
+                    { idx: 1, name: 'Магистр',     icon: '💎', min: 3000, next: null },
+                    { idx: 2, name: 'Командир',    icon: '🏆', min: 1500, next: 3000 },
+                    { idx: 3, name: 'Координатор', icon: '🎯', min: 700,  next: 1500 },
+                    { idx: 4, name: 'Оперативник', icon: '🕶️', min: 250,  next: 700  },
+                    { idx: 5, name: 'Стажёр',      icon: '🌱', min: 0,    next: 250  }
                 ];
                 const tier = tiers.find(t => score >= t.min);
                 return { ...tier, score };
@@ -11625,11 +11631,25 @@
                 const tier = document.getElementById('lcTier');
                 const pip = document.getElementById('lcPipRow');
                 if (ico) ico.textContent = lg.icon;
-                if (tier) tier.textContent = `ЛИГА ${lg.idx} · ${lg.name.toUpperCase()}`;
+                if (tier) {
+                    if (lg.next != null) {
+                        tier.innerHTML = `ЛИГА ${lg.idx} · ${lg.name.toUpperCase()}<br>
+                            <span class="lc-progress">${lg.score} / ${lg.next}</span>`;
+                    } else {
+                        tier.textContent = `ЛИГА ${lg.idx} · ${lg.name.toUpperCase()}`;
+                    }
+                }
                 if (pip) {
                     pip.innerHTML = '';
-                    // 5 pips light up from the top — the player at Лига 1 fills all 5.
-                    const filled = 6 - lg.idx;
+                    // Pips track progress WITHIN the current league: each
+                    // pip ≈ 20 % of the way to the next tier. Any progress
+                    // lights at least one pip so upgrading shows feedback.
+                    let filled = 5;
+                    if (lg.next != null) {
+                        const range = lg.next - lg.min;
+                        const pct = Math.max(0, Math.min(1, (lg.score - lg.min) / range));
+                        filled = pct === 0 ? 0 : Math.max(1, Math.ceil(pct * 5));
+                    }
                     for (let i = 1; i <= 5; i++) {
                         const d = document.createElement('span');
                         d.className = 'lc-pip' + (i <= filled ? ' filled' : '');
