@@ -4401,52 +4401,25 @@
         .home-virus.tutorial-done:not(.tapped) {
             animation: none;
         }
+        /* Light press pulse — a quick scale-up + green glow, then back. */
         .home-virus.tapped {
-            animation: home-virus-tap 0.5s cubic-bezier(0.34, 1.56, 0.4, 1);
+            animation: home-virus-pulse 0.36s ease-out;
         }
-        @keyframes home-virus-tap {
+        @keyframes home-virus-pulse {
             0%   {
                 transform: translate(-50%, -50%) scale(1);
                 filter: drop-shadow(0 14px 36px rgba(0, 0, 0, 0.7))
-                        drop-shadow(0 0 28px rgba(248, 113, 113, 0.55));
+                        drop-shadow(0 0 28px rgba(74, 222, 128, 0.55));
             }
-            18%  {
-                transform: translate(-50%, -49%) scale(0.9);
-                filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.65))
-                        drop-shadow(0 0 56px rgba(248, 113, 113, 1));
-            }
-            55%  {
-                transform: translate(-50%, -51%) scale(1.06);
-                filter: drop-shadow(0 16px 40px rgba(0, 0, 0, 0.72))
-                        drop-shadow(0 0 50px rgba(248, 113, 113, 0.85));
+            50%  {
+                transform: translate(-50%, -50%) scale(1.08);
+                filter: drop-shadow(0 16px 40px rgba(0, 0, 0, 0.7))
+                        drop-shadow(0 0 50px rgba(74, 222, 128, 1));
             }
             100% {
                 transform: translate(-50%, -50%) scale(1);
                 filter: drop-shadow(0 14px 36px rgba(0, 0, 0, 0.7))
-                        drop-shadow(0 0 28px rgba(248, 113, 113, 0.55));
-            }
-        }
-        body.faction-resist .home-virus.tapped { animation: home-virus-tap-resist 0.5s cubic-bezier(0.34, 1.56, 0.4, 1); }
-        @keyframes home-virus-tap-resist {
-            0%   {
-                transform: translate(-50%, -50%) scale(1);
-                filter: drop-shadow(0 14px 36px rgba(0, 0, 0, 0.7))
-                        drop-shadow(0 0 28px rgba(59, 130, 246, 0.55));
-            }
-            18%  {
-                transform: translate(-50%, -49%) scale(0.9);
-                filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.65))
-                        drop-shadow(0 0 56px rgba(96, 165, 250, 1));
-            }
-            55%  {
-                transform: translate(-50%, -51%) scale(1.06);
-                filter: drop-shadow(0 16px 40px rgba(0, 0, 0, 0.72))
-                        drop-shadow(0 0 50px rgba(96, 165, 250, 0.9));
-            }
-            100% {
-                transform: translate(-50%, -50%) scale(1);
-                filter: drop-shadow(0 14px 36px rgba(0, 0, 0, 0.7))
-                        drop-shadow(0 0 28px rgba(59, 130, 246, 0.55));
+                        drop-shadow(0 0 28px rgba(74, 222, 128, 0.55));
             }
         }
 
@@ -4944,10 +4917,10 @@
             <div class="home-virus home-tap-target" id="homeTapTarget" role="button" tabindex="0" aria-label="РКН узел">
             </div>
             <div class="home-hint" id="homeHint" hidden>
-                <div class="home-hint-text">Тапай по узлу<br>чтобы расти</div>
+                <div class="home-hint-text">Тапай по кнопке - копи ресурс</div>
             </div>
             <div class="home-finger" id="homeFinger" hidden>👇</div>
-            <p class="game-subtitle">Тапай по узлу — копи Пакеты</p>
+            <p class="game-subtitle">Тапай по кнопке - копи ресурс</p>
         </div>
         
         <!-- Global World Map Screen -->
@@ -6834,6 +6807,7 @@
                 // is their share. `mine` marks a city the player has captured
                 // for their faction, `hp` is its defensive pool against PvP.
                 this.cityState = {};            // idx -> { rkn, vpn, mine, hp }
+                this.pvpLog = [];               // archived PvP / control-transfer events
                 this.PVP_CAPTURE_COST = 120;    // Packets to occupy a city
                 this.PVP_CAPTURE_GAIN = 6;      // members your faction gains on (re)capture
                 this.ENEMY_ATK_BASE = 26;       // base incoming PvP damage
@@ -7401,7 +7375,7 @@
                 if (!this.isTechAvailable(branchId, i)) return;
                 const cost = this.techCost[i];
                 if (this.dnaPoints < cost) {
-                    this.showToast('Не хватает Пакетов', `Нужно ${cost}`, 'above-map');
+                    this.showToast('Не хватает Пакетов', `Нужно ${cost}`, 'above-map', '🚫');
                     return;
                 }
                 this.dnaPoints -= cost;
@@ -7917,7 +7891,7 @@
             // control to you. The hold gains a defensive pool of lives (= HP).
             captureCity(idx) {
                 if (this.dnaPoints < this.PVP_CAPTURE_COST) {
-                    this.showToast('Не хватает Пакетов', `Нужно ${this.PVP_CAPTURE_COST}`, 'above-map');
+                    this.showToast('Не хватает Пакетов', `Нужно ${this.PVP_CAPTURE_COST}`, 'above-map', '🚫');
                     return;
                 }
                 const c = this.cities[idx];
@@ -7933,11 +7907,12 @@
                 // Your faction takes a controlling share of the city.
                 s[mineKey] = Math.max(s[mineKey], s[enemyKey] + this.PVP_CAPTURE_GAIN);
                 this.infectContinent(c[4], 5, idx); // keep infection progression
-                this.showToast(
-                    this.faction === 'resist' ? 'Город разблокирован' : 'Город заблокирован',
-                    c[0], 'above-map',
-                    this.faction === 'resist' ? '🔓' : '🔒'
-                );
+                this.pvpEvent({
+                    icon: this.faction === 'resist' ? '🔓' : '🔒',
+                    title: this.faction === 'resist' ? 'Город разблокирован' : 'Город заблокирован',
+                    sub: c[0],
+                    tone: 'positive'
+                });
                 if (this.coralMap) this.coralMap.draw();
                 this.refreshCityControlPlate();
                 this.saveState();
@@ -7965,9 +7940,9 @@
                     const flip = Math.min(s[mineKey], this.PVP_CAPTURE_GAIN);
                     s[mineKey] = Math.max(1, s[mineKey] - flip);
                     s[enemyKey] += this.PVP_CAPTURE_GAIN;
-                    this.showToast('Город потерян!', `${c[0]} перешёл к противнику`, 'above-map', '💔');
+                    this.pvpEvent({ icon: '💔', title: 'Город потерян', sub: `${c[0]} перешёл к противнику`, tone: 'negative' });
                 } else {
-                    this.showToast('Атака на ваш город', `${c[0]} · −${dmg} обороны`, 'above-map', '⚔️');
+                    this.pvpEvent({ icon: '⚔️', title: 'Атака на ваш город', sub: `${c[0]} · −${dmg} обороны`, tone: 'negative' });
                 }
                 if (this._plateCityIdx === idx) this.refreshCityControlPlate();
                 if (this.coralMap) this.coralMap.draw();
@@ -8165,29 +8140,25 @@
                 this.faction = faction;
                 this.saveFaction();
                 this.applyFactionTheme();
-                // Faction-select → map screen directly (no city picker).
+                this.updateFactionCopy();
                 document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-                const map = document.getElementById('worldMapScreen');
-                if (map) map.classList.add('active');
-                document.querySelectorAll('.nav-btn').forEach(b => {
-                    b.classList.toggle('active', b.dataset.screen === 'worldMapScreen');
-                });
-                // Strip any leftover picker chrome and bring the globe up.
-                document.body.classList.remove('selecting', 'tutorial-active');
-                const ws = document.getElementById('worldMapScreen');
-                if (ws) ws.classList.remove('selecting', 'intro', 'placing');
+                document.body.classList.remove('tutorial-active');
                 const nav = document.querySelector('.bottom-nav');
                 if (nav) nav.classList.remove('locked');
-                const prompt = document.getElementById('selectionPrompt');
-                if (prompt) prompt.style.display = 'none';
+                // After faction selection, prompt the player to pick their
+                // starting city. confirmContinent finishes the tutorial setup.
                 this.pickerMode = null;
-                this.ensureGlobe();
-                this.renderCities();
-                if (this.globe) {
-                    this.globe.resetView();
-                    this.globe.updateInfections(this.continents, this.cities);
+                if (!this.startingContinent) {
+                    this.enterContinentPicker('tutorial');
+                } else {
+                    this.switchScreen('worldMapScreen');
+                    this.ensureGlobe();
+                    if (this.globe) {
+                        this.globe.resetView();
+                        this.globe.updateInfections(this.continents, this.cities);
+                        this.updateCityControlColors();
+                    }
                 }
-                this.updateFactionCopy();
             }
 
             applyFactionTheme() {
@@ -8259,49 +8230,21 @@
                 return this.renderCasualButton({ cls, variant, label, palette, characters });
             }
 
-            factionPalette(faction) {
-                if (faction === 'resist') {
-                    return {
-                        halo: '59, 130, 246',
-                        border:  '#0a1330',
-                        rimDark: '#1d4ed8',
-                        rimMid:  '#3b82f6',
-                        rimLite: '#bfdbfe',
-                        faceTop: '#dbeafe',
-                        faceMid: '#3b82f6',
-                        faceBot: '#1e40af',
-                        sparkle: '#fde047',
-                        innerRim:'rgba(191,219,254,0.85)',
-                        glow:    'rgba(96,165,250,0.6)'
-                    };
-                }
-                if (faction === 'neutral') {
-                    return {
-                        halo: '125, 211, 252',
-                        border:  '#0b1424',
-                        rimDark: '#334155',
-                        rimMid:  '#64748b',
-                        rimLite: '#cbd5e1',
-                        faceTop: '#e2e8f0',
-                        faceMid: '#64748b',
-                        faceBot: '#1e293b',
-                        sparkle: '#bae6fd',
-                        innerRim:'rgba(203,213,225,0.85)',
-                        glow:    'rgba(125,211,252,0.55)'
-                    };
-                }
+            // The home tap-button is themed green in every state — the
+            // faction identity comes from the label/character on the face.
+            factionPalette() {
                 return {
-                    halo: '220, 38, 38',
-                    border:  '#2c0606',
-                    rimDark: '#7f1d1d',
-                    rimMid:  '#ef4444',
-                    rimLite: '#fecaca',
-                    faceTop: '#fee2e2',
-                    faceMid: '#ef4444',
-                    faceBot: '#991b1b',
+                    halo: '34, 197, 94',
+                    border:  '#0a2a16',
+                    rimDark: '#166534',
+                    rimMid:  '#22c55e',
+                    rimLite: '#bbf7d0',
+                    faceTop: '#dcfce7',
+                    faceMid: '#22c55e',
+                    faceBot: '#15803d',
                     sparkle: '#fde047',
-                    innerRim:'rgba(254,202,202,0.85)',
-                    glow:    'rgba(248,113,113,0.65)'
+                    innerRim:'rgba(187,247,208,0.85)',
+                    glow:    'rgba(74,222,128,0.6)'
                 };
             }
 
@@ -8405,20 +8348,6 @@
                     <ellipse class="cb-gloss" cx="82"  cy="72" rx="22" ry="10" fill="#fff" opacity="0.5"  transform="rotate(-22 82 72)"/>
                     <ellipse class="cb-gloss" cx="82"  cy="72" rx="12" ry="5"  fill="#fff" opacity="0.85" transform="rotate(-22 82 72)"/>
                     <ellipse class="cb-gloss" cx="146" cy="142" rx="14" ry="6" fill="#fff" opacity="0.18" transform="rotate(-22 146 142)"/>${labelLayer}
-
-                    <!-- Decorative sparkles around the button -->
-                    <g fill="${p.sparkle}" opacity="0.85">
-                        <circle cx="32" cy="66"  r="2.5"/>
-                        <circle cx="188" cy="58" r="3"/>
-                        <circle cx="200" cy="130" r="2"/>
-                        <circle cx="24" cy="140" r="2.4"/>
-                        <circle cx="180" cy="170" r="1.8"/>
-                    </g>
-                    <g fill="#fff" opacity="0.55">
-                        <circle cx="48"  cy="48"  r="1.2"/>
-                        <circle cx="172" cy="38" r="1.6"/>
-                        <circle cx="40"  cy="172" r="1.4"/>
-                    </g>
                 </svg>`;
             }
 
@@ -8428,7 +8357,7 @@
                 // every string in the file.
                 const subtitle = document.querySelector('.start-screen .game-subtitle');
                 if (subtitle) {
-                    subtitle.textContent = 'Тапай по узлу — копи Пакеты';
+                    subtitle.textContent = 'Тапай по кнопке - копи ресурс';
                 }
                 if (this.faction === 'resist') {
                     document.title = 'Свобода: Кибер-Коралл';
@@ -8615,6 +8544,7 @@
                             }
                         }
                         this.globe.updateInfections(this.continents, this.cities);
+                        this.updateCityControlColors();
                     }
                     const ws = document.getElementById('worldMapScreen');
                     if (ws && !this.pickerMode) ws.classList.add('show-zoom-ctrl');
@@ -9420,7 +9350,25 @@
                 });
                 // The 2D map is gone — push infection state to the globe.
                 this.ensureGlobe();
-                if (this.globe) this.globe.updateInfections(this.continents, this.cities);
+                if (this.globe) {
+                    this.globe.updateInfections(this.continents, this.cities);
+                    this.updateCityControlColors();
+                }
+            }
+
+            // Tint each city dot by its faction control split — РКН red ↔ ВПН blue.
+            updateCityControlColors() {
+                if (!this.globe || !this.globe.cityMeshes) return;
+                for (let i = 0; i < this.globe.cityMeshes.length; i++) {
+                    const m = this.globe.cityMeshes[i];
+                    if (!m) continue;
+                    const ctrl = this.cityControl(i);
+                    const t = ctrl.vpn / 100; // 0 = full РКН red, 1 = full ВПН blue
+                    const r = (248 + (56  - 248) * t) / 255;
+                    const g = (113 + (189 - 113) * t) / 255;
+                    const b = (113 + (248 - 113) * t) / 255;
+                    m.material.color.setRGB(r, g, b);
+                }
             }
 
             pickDefaultCityForContinent(continentId) {
@@ -9940,6 +9888,7 @@
                         lastTickAt: this.lastTickAt || Date.now(),
                         continents: continentsData,
                         cityState: this.cityState,
+                        pvpLog: this.pvpLog,
                         newsByDay: this.newsByDay,
                         activeBuffs: this.activeBuffs
                     };
@@ -9960,6 +9909,7 @@
                     if (data.techResearched) this.techResearched = data.techResearched;
                     if (data.techActive) this.techActive = data.techActive;
                     if (data.cityState) this.cityState = data.cityState;
+                    if (Array.isArray(data.pvpLog)) this.pvpLog = data.pvpLog;
                     if (data.rooms) {
                         this.roomOrder.forEach(id => {
                             const s = data.rooms[id];
@@ -10129,15 +10079,41 @@
                 return `осталось ${m} мин`;
             }
 
+            formatAgo(ms) {
+                if (ms < 30000) return 'только что';
+                const s = Math.floor(ms / 1000);
+                if (s < 60) return `${s} с назад`;
+                const m = Math.floor(s / 60);
+                if (m < 60) return `${m} мин назад`;
+                const h = Math.floor(m / 60);
+                if (h < 24) return `${h} ч назад`;
+                return `${Math.floor(h / 24)} дн назад`;
+            }
+
             renderNewsFeed() {
                 const feed = document.getElementById('newsFeed');
                 if (!feed) return;
                 const items = this.newsByDay[this.todayKey()] || [];
-                if (items.length === 0) {
+                const events = this.pvpLog || [];
+                if (items.length === 0 && events.length === 0) {
                     feed.innerHTML = '<div class="news-empty">Сводки появятся после первой блокировки.</div>';
                     return;
                 }
                 feed.innerHTML = '';
+                events.forEach(ev => {
+                    const card = document.createElement('div');
+                    card.className = 'news-card ' + (ev.tone || 'negative');
+                    card.innerHTML =
+                        '<div class="news-head">' +
+                            `<span class="news-icon">${ev.icon || '⚔️'}</span>` +
+                            '<div class="news-meta">' +
+                                `<div class="news-h"><span class="news-scope local">Событие</span>${ev.title}</div>` +
+                                `<div class="news-time">${this.formatAgo(Date.now() - ev.ts)}</div>` +
+                            '</div>' +
+                        '</div>' +
+                        (ev.text ? `<div class="news-text">${ev.text}</div>` : '');
+                    feed.appendChild(card);
+                });
                 items.forEach(item => {
                     const t = item.template;
                     const card = document.createElement('div');
@@ -10219,7 +10195,7 @@
                 if (!room || room.unlocked) return;
                 const cost = this.roomUnlockCost(id);
                 if (this.dnaPoints < cost) {
-                    this.showToast('Не хватает Пакетов', `Нужно ${cost}`, 'above-map');
+                    this.showToast('Не хватает Пакетов', `Нужно ${cost}`, 'above-map', '🚫');
                     return;
                 }
                 this.dnaPoints -= cost;
@@ -10259,7 +10235,7 @@
                 if (room.level >= this.MAX_ROOM_LEVEL) return;
                 const cost = this.roomCost(id);
                 if (this.dnaPoints < cost) {
-                    this.showToast('Не хватает Пакетов', `Нужно ${cost}`, 'above-map');
+                    this.showToast('Не хватает Пакетов', `Нужно ${cost}`, 'above-map', '🚫');
                     return;
                 }
                 this.dnaPoints -= cost;
@@ -10727,15 +10703,34 @@
                 el.classList.add('visible');
             }
 
-            showToast(title, sub, variant, icon) {
+            showToast(title, sub, variant, icon, duration) {
+                const dur = duration || 1700;
                 const toast = document.createElement('div');
                 toast.className = 'placement-toast' + (variant ? ' ' + variant : '');
                 const iconHTML = icon
                     ? `<div class="toast-icon">${icon}</div>`
                     : `<img class="toast-icon-img" src="${this.getCurrentVirusImage()}" alt=""/>`;
                 toast.innerHTML = `${iconHTML}<div class="toast-title">${title}</div>${sub ? `<div class="toast-sub">${sub}</div>` : ''}`;
+                toast.style.animationDuration = dur + 'ms';
                 document.body.appendChild(toast);
-                setTimeout(() => toast.remove(), 1700);
+                setTimeout(() => toast.remove(), dur);
+            }
+
+            // PvP / control-transfer events get a longer-lived toast AND get
+            // archived in the news feed so the player can review them later.
+            pvpEvent({ icon, title, sub, tone }) {
+                this.showToast(title, sub, 'above-map', icon, 5000);
+                this.pushNews({ icon, title, text: sub, tone: tone || 'negative' });
+            }
+
+            pushNews(entry) {
+                if (!this.pvpLog) this.pvpLog = [];
+                this.pvpLog.unshift({ ts: Date.now(), ...entry });
+                if (this.pvpLog.length > 60) this.pvpLog.length = 60;
+                this.saveState();
+                if (document.getElementById('newsScreen').classList.contains('active')) {
+                    this.renderNewsFeed();
+                }
             }
 
             // Floating "+N" that pops above the button and rises. Coloured
@@ -10762,12 +10757,13 @@
             }
 
             // Comic speech bubble that pops from the character on tap.
+            // Suppressed before a faction is picked, and for the ВПН (Свобода)
+            // faction — only РКН shows the "Запретить!" outburst.
             showCharacterSpeech(x, y) {
-                const phrase = this.faction === 'resist' ? 'Обойти!' : 'Запретить!';
+                if (!this.faction || this.faction === 'resist') return;
                 const el = document.createElement('div');
                 el.className = 'char-speech';
-                el.textContent = phrase;
-                // Anchor to the upper-right of the button face.
+                el.textContent = 'Запретить!';
                 el.style.left = (x + 70) + 'px';
                 el.style.top  = (y - 70) + 'px';
                 document.body.appendChild(el);
