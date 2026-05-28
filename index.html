@@ -4679,16 +4679,20 @@
         }
         .onboard-tip.visible { opacity: 1; }
         .onboard-tip[hidden] { display: none; }
-        /* The highlighted target rises above the dim mask and pulses. */
+        /* The highlighted target rises above the dim mask and pulses with
+           a bright green halo + a permanent outline so every step reads
+           the same way (nav button, room tile, or anything else). */
         .onboard-highlight {
             position: relative;
             z-index: 99995 !important;
-            animation: onboard-glow 1.4s ease-in-out infinite;
+            outline: 3px solid rgba(74, 222, 128, 0.95);
+            outline-offset: 3px;
             border-radius: 14px;
+            animation: onboard-glow 1.4s ease-in-out infinite;
         }
         @keyframes onboard-glow {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0),   0 0 18px rgba(74, 222, 128, 0.7); }
-            50%      { box-shadow: 0 0 0 6px rgba(74, 222, 128, 0), 0 0 30px rgba(74, 222, 128, 1.0); }
+            0%, 100% { box-shadow: 0 0 22px 4px rgba(74, 222, 128, 0.7),  0 0 0 0 rgba(74, 222, 128, 0); }
+            50%      { box-shadow: 0 0 36px 6px rgba(74, 222, 128, 1.0), 0 0 0 10px rgba(74, 222, 128, 0); }
         }
         /* Containers that own a highlighted child must rise above the mask;
            non-highlighted siblings dim down so the chosen target reads as
@@ -4700,6 +4704,9 @@
         body.onboard-active #baseGrid [data-room]:not(.onboard-highlight) {
             opacity: 0.25;
         }
+        /* The building has overflow:hidden which clips the highlight's
+           outline + glow on room tiles. Open it up during the tour. */
+        body.onboard-active .building { overflow: visible !important; }
         /* During the tour only the highlighted element accepts taps. */
         body.onboard-active { pointer-events: none; }
         body.onboard-active .onboard-highlight { pointer-events: auto; }
@@ -11348,6 +11355,9 @@
                 // Close the sheet so the reveal animation on the tile is visible.
                 if (this.openRoom === id) this.closeRoomSheet();
                 this.updateRoomTile(id, true);   // play reveal animation
+                // Guided tour: only after the player actually confirms the
+                // first room do we lead them to the Home tab.
+                if (this.onboardStep === 'firstRoom') this.advanceOnboarding('home');
             }
             // Derived stat value from a room's level (display only for now).
             roomEffectText(id, levelOverride) {
@@ -11539,9 +11549,6 @@
             // ----- Room detail sheet -----
             openRoomSheet(id) {
                 this.openRoom = id;
-                // Guided tour: opening any room from the first-room step
-                // moves the player toward the Home tab.
-                if (this.onboardStep === 'firstRoom') this.advanceOnboarding('home');
                 const back = document.getElementById('roomSheet');
                 back.style.setProperty('--room-accent', this.roomAccent(id));
                 this.renderRoomSheet(id);
