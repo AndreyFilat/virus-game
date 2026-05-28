@@ -2274,27 +2274,33 @@
             opacity: 0.7;
             pointer-events: none;
         }
-        /* Character portraits cropped from the loading-screen artwork. */
+        /* Character portraits cropped from the loading-screen artwork —
+           a waist-up crop with the dramatic background masked into the
+           card so the figure looks like a sticker, not a tile. */
         .faction-card .faction-char {
             position: static;
             transform: none;
-            width: 110px;
-            height: 130px;
+            width: 160px;
+            height: 200px;
             display: block;
-            margin: 0 auto 4px;
-            border-radius: 18px;
+            margin: -4px auto -8px;
             background-image: url('assets/loading_vs.png');
             background-repeat: no-repeat;
-            background-size: 280% auto;
-            box-shadow:
-                0 8px 18px rgba(0, 0, 0, 0.5),
-                inset 0 0 0 2px rgba(255, 255, 255, 0.18);
-            filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.45));
+            background-size: 200% auto;
+            -webkit-mask-image: radial-gradient(ellipse 38% 75% at 50% 48%,
+                                                 #000 55%,
+                                                 rgba(0,0,0,0.6) 75%,
+                                                 transparent 100%);
+            mask-image: radial-gradient(ellipse 38% 75% at 50% 48%,
+                                         #000 55%,
+                                         rgba(0,0,0,0.6) 75%,
+                                         transparent 100%);
+            filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.55));
             animation: faction-icon-bob 3.6s ease-in-out infinite;
         }
         /* Position the background to crop one character per card. */
-        .faction-card .faction-char-rkn    { background-position: 22% 18%; }
-        .faction-card .faction-char-resist { background-position: 78% 18%; }
+        .faction-card .faction-char-rkn    { background-position: 18% 38%; }
+        .faction-card .faction-char-resist { background-position: 82% 38%; }
         @keyframes faction-icon-bob {
             0%, 100% { transform: translateY(0); }
             50%      { transform: translateY(-3px); }
@@ -6152,18 +6158,20 @@
                 const ringPos = dir.clone().multiplyScalar(ringR);
                 const dotPos  = dir.clone().multiplyScalar(dotR);
 
-                const ringMat = new THREE.MeshBasicMaterial({ color: DOT_RING });
+                const ringMat = new THREE.MeshBasicMaterial({ color: DOT_RING, transparent: true });
                 // Thin rim — only ~12% larger than the fill so the outline
                 // reads as a faint border, not a halo.
                 const ring = new THREE.Mesh(
                     new THREE.SphereGeometry(size * 1.12, 12, 10), ringMat
                 );
                 ring.position.copy(ringPos);
+                ring.renderOrder = 5; // draw above the influence dome
                 this.cityGroup.add(ring);
 
-                const mat = new THREE.MeshBasicMaterial({ color: DOT_FILL });
+                const mat = new THREE.MeshBasicMaterial({ color: DOT_FILL, transparent: true });
                 const mesh = new THREE.Mesh(new THREE.SphereGeometry(size, 14, 12), mat);
                 mesh.position.copy(dotPos);
+                mesh.renderOrder = 6; // dots sit on top of their own rings + the dome
                 // Level-of-detail threshold expressed as a fraction of the
                 // base camera distance. Famous markers stay visible across
                 // the whole zoom range; capitals appear at default zoom or
@@ -6417,6 +6425,10 @@
                         })
                     );
                     const group = new THREE.Group();
+                    // Draw the dome before the city dots so the dots stay
+                    // crisp on top.
+                    fill.renderOrder = -1;
+                    rim.renderOrder  = -1;
                     group.add(fill);
                     group.add(rim);
                     const dir = this._latLonToLocal(c[1], c[2]).normalize();
