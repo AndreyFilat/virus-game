@@ -9561,11 +9561,13 @@
                 // the highlight target is in the DOM when showOnboarding runs.
                 if (id === 'baseScreen') this.renderBaseScreen();
 
-                // Drive the post-tutorial guided tour. Tapping the
-                // highlighted База tab is enough to end it.
-                if (this.onboardStep === 'base' && id === 'baseScreen') {
+                // Drive the post-tutorial guided tour. Reaching the Base
+                // screen — by any means — ends the onboarding regardless
+                // of which legacy step is still in save state.
+                if (this.onboardStep && id === 'baseScreen') {
                     document.querySelectorAll('.placement-toast').forEach(t => t.remove());
-                    this.advanceOnboarding(null);
+                    this.clearOnboarding();
+                    this.saveState();
                 }
 
                 if (id === 'evolutionScreen') this.renderVirusScreen();
