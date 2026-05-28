@@ -8743,7 +8743,11 @@
                     this.clearOnboarding();
                     return;
                 }
-                setTimeout(() => this.showOnboarding(), 350);
+                // Lock interactivity to the tour rail immediately so the
+                // player can't tap a wrong tile while the highlight is
+                // still being positioned.
+                document.body.classList.add('onboard-active');
+                this.showOnboarding();
             }
             clearOnboarding() {
                 this.onboardStep = null;
@@ -8768,10 +8772,10 @@
                     target = document.querySelector('.nav-btn[data-screen="baseScreen"]');
                     text = 'Загляни на Базу';
                 } else if (this.onboardStep === 'firstRoom') {
-                    target = document.querySelector('#baseGrid [data-room]');
+                    target = document.querySelector('#baseGrid [data-room="income"]');
                     text = 'Открой первую комнату';
                 } else if (this.onboardStep === 'confirmRoom') {
-                    target = document.querySelector('#roomSheet [data-unlock]');
+                    target = document.querySelector('#roomSheet [data-unlock="income"]');
                     text = 'Подтверди открытие';
                 } else if (this.onboardStep === 'home') {
                     target = document.querySelector('.nav-btn[data-screen="startScreen"]');
@@ -9557,10 +9561,12 @@
                 // the player has to tap a city to bring it back.
                 if (id !== 'worldMapScreen') this.hideCityPlate();
 
+                // Render the base/news screens BEFORE the onboarding hook so
+                // the highlight target is in the DOM when showOnboarding runs.
+                if (id === 'baseScreen') this.renderBaseScreen();
+
                 // Drive the post-tutorial guided tour.
                 if (this.onboardStep === 'base' && id === 'baseScreen') {
-                    // Dismiss any leftover "Город заблокирован" toast — the
-                    // player has moved on to the Base tour.
                     document.querySelectorAll('.placement-toast').forEach(t => t.remove());
                     this.advanceOnboarding('firstRoom');
                 } else if (this.onboardStep === 'home' && id === 'startScreen') {
@@ -9576,7 +9582,6 @@
                     this.updateNewsBadge();
                     this.renderNewsFeed();
                 }
-                if (id === 'baseScreen') this.renderBaseScreen();
                 if (id === 'worldMapScreen') {
                     this.renderCities();
                     this.updateMapZoomedClass();
@@ -11364,9 +11369,9 @@
                 // Close the sheet so the reveal animation on the tile is visible.
                 if (this.openRoom === id) this.closeRoomSheet();
                 this.updateRoomTile(id, true);   // play reveal animation
-                // Guided tour: confirming the first room lights the path
-                // back to the Home tab.
-                if (this.onboardStep === 'confirmRoom' || this.onboardStep === 'firstRoom') {
+                // Guided tour: confirming the first room (income / ТСПУ)
+                // lights the path back to the Home tab.
+                if (id === 'income' && (this.onboardStep === 'confirmRoom' || this.onboardStep === 'firstRoom')) {
                     this.advanceOnboarding('home');
                 }
             }
@@ -11560,9 +11565,11 @@
             // ----- Room detail sheet -----
             openRoomSheet(id) {
                 this.openRoom = id;
-                // Onboarding: once the player taps the highlighted room,
-                // the tour moves on to the confirm button inside the sheet.
-                if (this.onboardStep === 'firstRoom') this.advanceOnboarding('confirmRoom');
+                // Onboarding: only the highlighted starter room (income / ТСПУ)
+                // advances the tour to the confirm step.
+                if (this.onboardStep === 'firstRoom' && id === 'income') {
+                    this.advanceOnboarding('confirmRoom');
+                }
                 const back = document.getElementById('roomSheet');
                 back.style.setProperty('--room-accent', this.roomAccent(id));
                 this.renderRoomSheet(id);
