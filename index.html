@@ -4300,6 +4300,24 @@
         .pc-hp-fill { height: 100%; background: linear-gradient(90deg, #f472b6, #ec4899); transition: width 0.3s ease; }
         .pc-hp-val { font-family: 'Space Mono', monospace; font-size: 9px; color: #fff; white-space: nowrap; }
 
+        .pc-victories {
+            display: flex; align-items: center; gap: 6px;
+            width: 150px; margin: 6px auto 0;
+        }
+        .pc-victories[hidden] { display: none; }
+        .pcv-label { font-size: 9px; color: #fde68a; white-space: nowrap; }
+        .pcv-pips { flex: 1 1 auto; display: flex; gap: 3px; justify-content: center; }
+        .pcv-pip {
+            width: 12px; height: 6px; border-radius: 2px;
+            background: rgba(255,255,255,0.18);
+            box-shadow: 0 1px 0 rgba(0,0,0,0.3) inset;
+        }
+        .pcv-pip.filled {
+            background: linear-gradient(180deg, #fde68a, #f59e0b);
+            box-shadow: 0 0 6px rgba(253, 224, 71, 0.85);
+        }
+        .pcv-val { font-family: 'Space Mono', monospace; font-size: 9px; font-weight: 800; color: #fde047; white-space: nowrap; }
+
         /* ----- Enemy defenders list inside the city plate ----- */
         .plate-defenders { margin-top: 10px; }
         .plate-defenders[hidden] { display: none; }
@@ -4679,7 +4697,7 @@
         body.tutorial-active .league-card { display: none; }
 
         /* Clear the stage for the celebration overlay — the home button,
-           the league badge and the tutorial copy fade out so only the
+           the league badge and the tutorial copy stay hidden so only the
            confetti is on screen. */
         body.celebrating .home-virus,
         body.celebrating .home-hint,
@@ -4687,9 +4705,7 @@
         body.celebrating .home-finger,
         body.celebrating .league-card,
         body.celebrating .char-speech {
-            opacity: 0;
-            transition: opacity 0.25s ease;
-            pointer-events: none;
+            display: none !important;
         }
 
         /* ===== League badge on the Home screen ===== */
@@ -5440,6 +5456,11 @@
                         <span class="pc-hp-label">❤️ Оборона</span>
                         <div class="pc-hp-bar"><div class="pc-hp-fill" id="pcHpFill"></div></div>
                         <span class="pc-hp-val" id="pcHpVal"></span>
+                    </div>
+                    <div class="pc-victories" id="pcVictories" hidden>
+                        <span class="pcv-label">🏆 Побед до захвата</span>
+                        <div class="pcv-pips" id="pcvPips"></div>
+                        <span class="pcv-val" id="pcvVal">0 / 3</span>
                     </div>
                 </div>
                 <div class="plate-defenders" id="plateDefenders" hidden>
@@ -8410,6 +8431,7 @@
                 pcRknTxt.textContent = `РКН ${rknPct}%`;
                 pcVpnTxt.textContent = `ВПН ${100 - rknPct}%`;
 
+                const victWrap = document.getElementById('pcVictories');
                 if (s.mine) {
                     // A city you hold: show your remaining lives at it.
                     const maxHp = this.getHP();
@@ -8418,6 +8440,7 @@
                     document.querySelector('#pcHp .pc-hp-label').textContent = '❤️ Жизни';
                     document.getElementById('pcHpFill').style.width = pct.toFixed(0) + '%';
                     document.getElementById('pcHpVal').textContent = `${Math.ceil(s.hp)}/${maxHp}`;
+                    if (victWrap) victWrap.hidden = true;
                     a1.hidden = true;
                     a1.onclick = null;
                     a2.hidden = true;
@@ -8426,6 +8449,23 @@
                     // A city not held by you. Capture happens by 3 defender
                     // victories (automatic) or the friend-invite shortcut.
                     hpWrap.hidden = true;
+                    // PvP victories toward auto-capture (3 needed).
+                    const wins = Math.max(0, Math.min(3, s.victories || 0));
+                    if (victWrap && this.pickerMode !== 'tutorial') {
+                        victWrap.hidden = false;
+                        document.getElementById('pcvVal').textContent = `${wins} / 3`;
+                        const pips = document.getElementById('pcvPips');
+                        if (pips) {
+                            pips.innerHTML = '';
+                            for (let i = 1; i <= 3; i++) {
+                                const d = document.createElement('span');
+                                d.className = 'pcv-pip' + (i <= wins ? ' filled' : '');
+                                pips.appendChild(d);
+                            }
+                        }
+                    } else if (victWrap) {
+                        victWrap.hidden = true;
+                    }
                     const isTutorialPick = this.pickerMode === 'tutorial';
                     if (isTutorialPick) {
                         // First-city pick: a single free button captures.
@@ -8741,6 +8781,8 @@
                 if (ctrlEl) ctrlEl.hidden = true;
                 if (action2El) { action2El.hidden = true; action2El.onclick = null; }
                 if (defEl) defEl.hidden = true;
+                const victEl = document.getElementById('pcVictories');
+                if (victEl) victEl.hidden = true;
                 if (actionLabel) {
                     actionEl.textContent = actionLabel;
                     actionEl.hidden = false;
