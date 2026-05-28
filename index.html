@@ -8018,12 +8018,21 @@
             // HP (pool) and Defense Power (mitigation) decide how many attacks
             // a city survives before the player loses control of it.
             enemyAttackOnPlayer() {
-                const held = Object.keys(this.cityState).filter(i => this.cityState[i].mine);
+                const now = Date.now();
+                // Грейс-период: первая атака — не раньше 60 секунд после старта.
+                if (this.gameStartTime && now - this.gameStartTime < 60000) return;
+                // На один город — не чаще раза в 5 минут.
+                const COOLDOWN_MS = 5 * 60 * 1000;
+                const held = Object.keys(this.cityState).filter(i => {
+                    const cs = this.cityState[i];
+                    return cs.mine && (!cs.lastAttackedAt || now - cs.lastAttackedAt >= COOLDOWN_MS);
+                });
                 if (!held.length) return;
                 const idx = +held[Math.floor(Math.random() * held.length)];
                 const c = this.cities[idx];
                 if (!c) return;
                 const s = this.getCity(idx);
+                s.lastAttackedAt = now;
                 const enemyLvl = (this.continents[c[4]] && this.continents[c[4]].enemyLevel) || 0;
                 const incoming = this.ENEMY_ATK_BASE + enemyLvl * 6;
                 const dmg = Math.max(1, incoming - this.getDefensePower());
@@ -8038,7 +8047,7 @@
                     s[enemyKey] += this.PVP_CAPTURE_GAIN;
                     this.pvpEvent({ icon: '💔', title: 'Город потерян', sub: `${c[0]} перешёл к противнику`, tone: 'negative' });
                 } else {
-                    this.pvpEvent({ icon: '⚔️', title: 'Атака на ваш город', sub: `${c[0]} · −${dmg} обороны`, tone: 'negative' });
+                    this.pvpEvent({ icon: '⚔️', title: 'Атака на ваш город', sub: `${c[0]} −${dmg} обороны`, tone: 'negative' });
                 }
                 if (this._plateCityIdx === idx) this.refreshCityControlPlate();
                 if (this.coralMap) this.coralMap.draw();
@@ -8697,6 +8706,10 @@
                         this.globe.centerOnLatLon(50, 15);   // Europe centred, north pole up
                     }
                     this.globe.setSelectedCity(-1);
+                    // Tint every city dot by its faction control share so the
+                    // picker shows the world's contested state out of the box.
+                    this.globe.updateInfections(this.continents, this.cities);
+                    this.updateCityControlColors();
                 }
                 document.querySelectorAll('.city-group.selected').forEach(g => g.classList.remove('selected'));
                 const prompt = document.getElementById('selectionPrompt');
