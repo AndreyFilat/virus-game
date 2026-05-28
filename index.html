@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#0d1421">
-    <title>РКН: Кибер-Коралл</title>
+    <title>РКН vs ВПН</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -372,24 +372,49 @@
         /* Debug reset — hidden later. */
         .debug-reset {
             position: fixed;
-            top: calc(env(safe-area-inset-top, 0px) + 14px);
-            left: 14px;
+            top: calc(env(safe-area-inset-top, 0px) + 8px);
+            left: 8px;
             z-index: 99999;
-            padding: 10px 14px;
-            font-size: 13px;
-            font-weight: 800;
-            letter-spacing: 0.5px;
+            padding: 4px 8px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.4px;
             color: #fff;
-            background: #dc2626;
-            border: 2px solid #fecaca;
-            border-radius: 8px;
+            background: rgba(220, 38, 38, 0.85);
+            border: 1px solid rgba(254, 202, 202, 0.7);
+            border-radius: 6px;
             cursor: pointer;
-            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.5);
+            box-shadow: 0 2px 6px rgba(220, 38, 38, 0.35);
             pointer-events: auto !important;
             -webkit-tap-highlight-color: rgba(255, 255, 255, 0.3);
             touch-action: manipulation;
+            opacity: 0.65;
         }
         .debug-reset:active { background: #b91c1c; transform: scale(0.94); }
+
+        /* ===== Loading screen ===== */
+        .loading-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 1000000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #000;
+            transition: opacity 0.45s ease;
+        }
+        .loading-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .loading-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            user-select: none;
+            -webkit-user-select: none;
+            pointer-events: none;
+        }
 
         /* DNA Bubbles */
         .dna-bubbles {
@@ -1686,7 +1711,7 @@
         /* Continent selection prompt */
         .selection-prompt {
             position: absolute;
-            top: 22px;
+            top: 58px;
             left: 50%;
             transform: translateX(-50%);
             background: rgba(36, 49, 66, 0.95);
@@ -1702,6 +1727,12 @@
             transition: opacity 0.3s ease;
             white-space: nowrap;
         }
+        /* Hide the secondary gray sub-line on the city picker plate. */
+        .selection-prompt .selection-sub { display: none; }
+        /* Hide the placement helix animation + label everywhere — the city
+           picker now lands you directly on the globe, no virus ceremony. */
+        .map-helix-slot,
+        .virus-created-label { display: none !important; }
 
         .world-map-screen.selecting .selection-prompt {
             opacity: 1;
@@ -2154,74 +2185,87 @@
         .faction-cards {
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 22px;
             width: 100%;
             max-width: 360px;
-            margin: 6px auto 0;
+            margin: 30px auto 0;
         }
         .faction-card {
             position: relative;
-            background: rgba(15, 22, 36, 0.78);
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            padding: 18px 18px 18px 100px;
-            text-align: left;
+            border: none;
+            border-radius: 28px;
+            padding: 22px 22px 24px;
+            text-align: center;
             cursor: pointer;
-            transition: transform 0.15s ease, border-color 0.2s, background 0.2s;
+            transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.4, 1), filter 0.2s, box-shadow 0.2s;
             -webkit-tap-highlight-color: transparent;
-            min-height: 112px;
+            color: #fff;
+            overflow: hidden;
+        }
+        .faction-card::before {
+            content: "";
+            position: absolute; inset: 0;
+            border-radius: inherit;
+            background: linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 50%);
+            pointer-events: none;
         }
         .faction-card .faction-icon {
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 78px;
-            height: 78px;
-            overflow: visible;
+            position: static;
+            transform: none;
+            width: 110px;
+            height: 110px;
+            display: block;
+            margin: 0 auto 6px;
+            filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.45));
+            animation: faction-icon-bob 3.6s ease-in-out infinite;
+        }
+        @keyframes faction-icon-bob {
+            0%, 100% { transform: translateY(0); }
+            50%      { transform: translateY(-4px); }
         }
         .faction-card .faction-name {
-            font-family: 'Space Mono', monospace;
-            font-weight: 700;
-            font-size: 19px;
+            font-family: 'Nunito', 'Space Mono', sans-serif;
+            font-weight: 900;
+            font-size: 26px;
             color: #fff;
             letter-spacing: 1px;
-            margin-bottom: 4px;
+            margin-top: 4px;
+            text-shadow: 0 2px 0 rgba(0, 0, 0, 0.35), 0 0 18px rgba(255, 255, 255, 0.2);
         }
         .faction-card .faction-desc {
-            font-size: 12.5px;
-            color: #94a3b8;
-            line-height: 1.4;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.88);
+            line-height: 1.45;
+            margin-top: 6px;
+            font-weight: 600;
         }
         .faction-card.faction-rkn-card {
-            box-shadow: 0 0 22px rgba(220, 38, 38, 0.22), inset 0 0 12px rgba(220, 38, 38, 0.08);
-            border-color: rgba(220, 38, 38, 0.45);
+            background: linear-gradient(160deg, #ff7a7a 0%, #ef4444 45%, #b91c1c 100%);
+            box-shadow:
+                0 14px 28px rgba(220, 38, 38, 0.4),
+                0 0 0 2px rgba(254, 202, 202, 0.45) inset,
+                0 0 32px rgba(248, 113, 113, 0.35);
         }
-        .faction-card.faction-rkn-card:hover,
         .faction-card.faction-rkn-card:active {
-            background: rgba(35, 12, 12, 0.92);
-            border-color: rgba(220, 38, 38, 0.85);
-            box-shadow: 0 0 32px rgba(220, 38, 38, 0.45), inset 0 0 18px rgba(220, 38, 38, 0.18);
-            transform: scale(0.99);
+            transform: scale(0.97);
+            box-shadow:
+                0 8px 18px rgba(220, 38, 38, 0.5),
+                0 0 0 2px rgba(254, 202, 202, 0.6) inset,
+                0 0 42px rgba(248, 113, 113, 0.55);
         }
         .faction-card.faction-resist-card {
-            box-shadow: 0 0 22px rgba(34, 197, 94, 0.22), inset 0 0 12px rgba(34, 197, 94, 0.08);
-            border-color: rgba(34, 197, 94, 0.45);
+            background: linear-gradient(160deg, #7dd3fc 0%, #3b82f6 45%, #1d4ed8 100%);
+            box-shadow:
+                0 14px 28px rgba(59, 130, 246, 0.4),
+                0 0 0 2px rgba(191, 219, 254, 0.45) inset,
+                0 0 32px rgba(125, 211, 252, 0.35);
         }
-        .faction-card.faction-resist-card:hover,
         .faction-card.faction-resist-card:active {
-            background: rgba(8, 28, 18, 0.92);
-            border-color: rgba(34, 197, 94, 0.85);
-            box-shadow: 0 0 32px rgba(34, 197, 94, 0.45), inset 0 0 18px rgba(34, 197, 94, 0.18);
-            transform: scale(0.99);
-        }
-        .faction-hint {
-            color: #64748b;
-            font-size: 11.5px;
-            text-align: center;
-            padding: 0 20px;
-            margin-top: 8px;
-            line-height: 1.5;
+            transform: scale(0.97);
+            box-shadow:
+                0 8px 18px rgba(59, 130, 246, 0.5),
+                0 0 0 2px rgba(191, 219, 254, 0.6) inset,
+                0 0 42px rgba(125, 211, 252, 0.55);
         }
 
         /* Cyber-noir backdrop for the Home screen — replaces the medical bg. */
@@ -4401,26 +4445,21 @@
         .home-virus.tutorial-done:not(.tapped) {
             animation: none;
         }
-        /* Light press pulse — a quick scale-up + green glow, then back. */
-        .home-virus.tapped {
-            animation: home-virus-pulse 0.36s ease-out;
-        }
+        /* Light press pulse — a quick scale-up + faction-coloured glow. */
+        .home-virus.tapped { animation: home-virus-pulse 0.36s ease-out; }
+        body.faction-rkn    .home-virus.tapped { animation: home-virus-pulse-rkn    0.36s ease-out; }
+        body.faction-resist .home-virus.tapped { animation: home-virus-pulse-resist 0.36s ease-out; }
         @keyframes home-virus-pulse {
-            0%   {
-                transform: translate(-50%, -50%) scale(1);
-                filter: drop-shadow(0 14px 36px rgba(0, 0, 0, 0.7))
-                        drop-shadow(0 0 28px rgba(74, 222, 128, 0.55));
-            }
-            50%  {
-                transform: translate(-50%, -50%) scale(1.08);
-                filter: drop-shadow(0 16px 40px rgba(0, 0, 0, 0.7))
-                        drop-shadow(0 0 50px rgba(74, 222, 128, 1));
-            }
-            100% {
-                transform: translate(-50%, -50%) scale(1);
-                filter: drop-shadow(0 14px 36px rgba(0, 0, 0, 0.7))
-                        drop-shadow(0 0 28px rgba(74, 222, 128, 0.55));
-            }
+            0%, 100% { transform: translate(-50%, -50%) scale(1);    filter: drop-shadow(0 14px 36px rgba(0,0,0,0.7)) drop-shadow(0 0 28px rgba(74, 222, 128, 0.55)); }
+            50%      { transform: translate(-50%, -50%) scale(1.08); filter: drop-shadow(0 16px 40px rgba(0,0,0,0.7)) drop-shadow(0 0 50px rgba(74, 222, 128, 1)); }
+        }
+        @keyframes home-virus-pulse-rkn {
+            0%, 100% { transform: translate(-50%, -50%) scale(1);    filter: drop-shadow(0 14px 36px rgba(0,0,0,0.7)) drop-shadow(0 0 28px rgba(248, 113, 113, 0.55)); }
+            50%      { transform: translate(-50%, -50%) scale(1.08); filter: drop-shadow(0 16px 40px rgba(0,0,0,0.7)) drop-shadow(0 0 50px rgba(248, 113, 113, 1)); }
+        }
+        @keyframes home-virus-pulse-resist {
+            0%, 100% { transform: translate(-50%, -50%) scale(1);    filter: drop-shadow(0 14px 36px rgba(0,0,0,0.7)) drop-shadow(0 0 28px rgba(96, 165, 250, 0.55)); }
+            50%      { transform: translate(-50%, -50%) scale(1.08); filter: drop-shadow(0 16px 40px rgba(0,0,0,0.7)) drop-shadow(0 0 50px rgba(96, 165, 250, 1)); }
         }
 
         /* Floating point-gain text that rises from the tap location and
@@ -4835,6 +4874,10 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 </head>
 <body>
+    <div class="loading-screen" id="loadingScreen">
+        <img class="loading-image" src="assets/loading_vs.png" alt="Загрузка"
+             onerror="this.style.display='none'"/>
+    </div>
     <button id="debugResetBtn" class="debug-reset" title="Сбросить прогресс">⟲ DEBUG v14</button>
     <div class="game-container">
         <!-- DNA Counter (always visible) -->
@@ -4853,7 +4896,6 @@
         <!-- Start Screen -->
         <!-- Faction-select Screen (shown once on first launch) -->
         <div class="screen faction-select-screen" id="factionSelectScreen">
-            <h1 class="faction-title">КИБЕР-КОРАЛЛ</h1>
             <p class="faction-subtitle">Выбери сторону</p>
             <div class="faction-cards">
                 <button class="faction-card faction-rkn-card" data-faction="rkn">
@@ -4901,7 +4943,6 @@
                     <div class="faction-desc">Растяни сеть обхода. Прокопай туннели. Сопротивляйся блокировкам.</div>
                 </button>
             </div>
-            <p class="faction-hint">Выбор повлияет на цвета сети и сторону, за которую ты играешь</p>
         </div>
 
         <!-- Home Screen -->
@@ -7769,7 +7810,7 @@
                 const cityName = city[0];
                 const arrive = () => {
                     this.infectContinent(targetId, 5, cityIdx);
-                    this.showToast('Город заражён', cityName, 'above-map');
+                    this.showToast(this.faction === 'resist' ? 'Город разблокирован' : 'Город заблокирован', cityName, 'above-map', this.faction === 'resist' ? '🔓' : '🔒');
                     this.clearMapSelection();
                 };
                 if (sourceId) {
@@ -7890,7 +7931,9 @@
             // Paying the price occupies the city for your faction and shifts
             // control to you. The hold gains a defensive pool of lives (= HP).
             captureCity(idx) {
-                if (this.dnaPoints < this.PVP_CAPTURE_COST) {
+                const startingPick = this.pickerMode === 'tutorial';
+                // The first city pick is free; later captures cost Packets.
+                if (!startingPick && this.dnaPoints < this.PVP_CAPTURE_COST) {
                     this.showToast('Не хватает Пакетов', `Нужно ${this.PVP_CAPTURE_COST}`, 'above-map', '🚫');
                     return;
                 }
@@ -7899,8 +7942,10 @@
                 if (s.mine) return;
                 const mineKey = this.myFactionKey();
                 const enemyKey = this.enemyFactionKey();
-                this.dnaPoints -= this.PVP_CAPTURE_COST;
-                this.updateDNACounter();
+                if (!startingPick) {
+                    this.dnaPoints -= this.PVP_CAPTURE_COST;
+                    this.updateDNACounter();
+                }
 
                 s.mine = true;
                 s.hp = this.getHP();
@@ -7916,6 +7961,29 @@
                 if (this.coralMap) this.coralMap.draw();
                 this.refreshCityControlPlate();
                 this.saveState();
+
+                if (startingPick) {
+                    // First-city pick — finalise the tutorial and drop the
+                    // picker chrome so the player lands on the live globe.
+                    this.startingContinent = c[4];
+                    this.startingCityIdx = idx;
+                    this.tutorialDone = true;
+                    try { localStorage.setItem('tutorialDone', '1'); } catch (e) {}
+                    this.pickerMode = null;
+                    document.body.classList.remove('selecting', 'tutorial-active');
+                    const ws = document.getElementById('worldMapScreen');
+                    if (ws) ws.classList.remove('selecting', 'intro', 'placing');
+                    const wrap = document.querySelector('.world-map-wrapper');
+                    if (wrap) wrap.classList.remove('selecting');
+                    const nav = document.querySelector('.bottom-nav');
+                    if (nav) nav.classList.remove('locked');
+                    const prompt = document.getElementById('selectionPrompt');
+                    if (prompt) prompt.style.display = 'none';
+                    const cb = document.getElementById('confirmContinent');
+                    if (cb) cb.classList.remove('visible');
+                    this.afterTutorialSetup();
+                    this.saveState();
+                }
             }
 
             // Incoming PvP from the enemy faction against a random held city.
@@ -8230,9 +8298,40 @@
                 return this.renderCasualButton({ cls, variant, label, palette, characters });
             }
 
-            // The home tap-button is themed green in every state — the
-            // faction identity comes from the label/character on the face.
-            factionPalette() {
+            // Home button palette: red for РКН, blue for ВПН (Свобода),
+            // and a neutral green for the pre-faction tutorial state.
+            factionPalette(faction) {
+                if (faction === 'rkn') {
+                    return {
+                        halo: '220, 38, 38',
+                        border:  '#2c0606',
+                        rimDark: '#7f1d1d',
+                        rimMid:  '#ef4444',
+                        rimLite: '#fecaca',
+                        faceTop: '#fee2e2',
+                        faceMid: '#ef4444',
+                        faceBot: '#991b1b',
+                        sparkle: '#fde047',
+                        innerRim:'rgba(254,202,202,0.85)',
+                        glow:    'rgba(248,113,113,0.65)'
+                    };
+                }
+                if (faction === 'resist') {
+                    return {
+                        halo: '59, 130, 246',
+                        border:  '#0a1330',
+                        rimDark: '#1d4ed8',
+                        rimMid:  '#3b82f6',
+                        rimLite: '#bfdbfe',
+                        faceTop: '#dbeafe',
+                        faceMid: '#3b82f6',
+                        faceBot: '#1e40af',
+                        sparkle: '#fde047',
+                        innerRim:'rgba(191,219,254,0.85)',
+                        glow:    'rgba(96,165,250,0.6)'
+                    };
+                }
+                // Pre-selection / neutral state — friendly green.
                 return {
                     halo: '34, 197, 94',
                     border:  '#0a2a16',
@@ -8360,9 +8459,9 @@
                     subtitle.textContent = 'Тапай по кнопке - копи ресурс';
                 }
                 if (this.faction === 'resist') {
-                    document.title = 'Свобода: Кибер-Коралл';
+                    document.title = 'Свобода';
                 } else if (this.faction === 'rkn') {
-                    document.title = 'РКН: Кибер-Коралл';
+                    document.title = 'РКН vs ВПН';
                 }
             }
 
@@ -8567,7 +8666,7 @@
                 if (this.globe) {
                     this.globe.resetView();
                     if (mode === 'tutorial') {
-                        this.globe.centerOnLatLon(0, 25);
+                        this.globe.centerOnLatLon(50, 15);   // Europe centred, north pole up
                     }
                     this.globe.setSelectedCity(-1);
                 }
@@ -8598,7 +8697,7 @@
                     if (sub)   sub.textContent   = '';
                 } else {
                     const opt = this.spreadOptions.find(o => o.id === mode);
-                    if (title) title.textContent = (opt ? opt.name : 'Новое заражение');
+                    if (title) title.textContent = (opt ? opt.name : 'Новое подключение');
                     if (sub)   sub.textContent   = '';
                 }
 
@@ -8609,20 +8708,10 @@
                 const screen = document.getElementById('worldMapScreen');
                 const wrapper = document.querySelector('.world-map-wrapper');
 
-                if (mode === 'tutorial') {
-                    // Phase 1: helix bursts in centered, map hidden
-                    screen.classList.add('intro');
-                    // Phase 2: helix docks, map fades in, continents enable
-                    setTimeout(() => {
-                        screen.classList.remove('intro');
-                        screen.classList.add('selecting');
-                        wrapper.classList.add('selecting');
-                    }, 1200);
-                } else {
-                    // Spread picker: go straight to the picker with no intro
-                    screen.classList.add('selecting');
-                    wrapper.classList.add('selecting');
-                }
+                // Go straight into picker mode for every flow — no helix
+                // intro / placement ceremony.
+                screen.classList.add('selecting');
+                wrapper.classList.add('selecting');
             }
 
             selectContinent(zone) {
@@ -8712,7 +8801,7 @@
                 const sourceId = this.findNearestInfected(targetId);
                 const onArrive = () => {
                     this.infectContinent(targetId, 5, cityIdx);
-                    this.showToast('Город заражён', cityName, 'above-map');
+                    this.showToast(this.faction === 'resist' ? 'Город разблокирован' : 'Город заблокирован', cityName, 'above-map', this.faction === 'resist' ? '🔓' : '🔒');
                     finish();
                 };
                 if (sourceId) {
@@ -8841,7 +8930,7 @@
             async shareInvite() {
                 const link = this.getInviteLink();
                 const data = {
-                    title: 'РКН: Кибер-Коралл',
+                    title: 'РКН vs ВПН',
                     text: 'Помоги мне расширить сеть блокировок — присоединяйся!',
                     url: link
                 };
@@ -9218,33 +9307,25 @@
             handleCityTap(idx) {
                 const c = this.cities[idx];
                 if (!c) return;
-                if (!this.pickerMode) {
+                if (!this.pickerMode || this.pickerMode === 'tutorial') {
+                    // Both normal play and the starting-city picker use the
+                    // full city-control plate (name, control %, capture button).
                     this.setMapSelectedCity(idx);
                     return;
                 }
                 const continent = c[4];
-                const valid = this.getValidTargets(this.pickerMode === 'tutorial' ? 'any' : this.pickerMode);
+                const valid = this.getValidTargets(this.pickerMode);
                 const cont = this.continents[continent];
                 const cityAlreadyInfected = cont && cont.infectedCities
                     && cont.infectedCities.has(idx);
-                // Internal spread: tapping an uninfected city inside a
-                // continent that's already been hit. We still allow this
-                // (manual reinforcement) but only outside tutorial.
                 const internalSpread = !cityAlreadyInfected
-                    && this.pickerMode !== 'tutorial'
                     && cont && cont.infectionLevel > 0;
                 const isValid = valid.has(continent) || internalSpread;
                 if (isValid) {
                     this.selectedCityIdx = idx;
                     this.selectedContinent = continent;
                     if (this.globe) this.globe.setSelectedCity(idx);
-                    const label = this.pickerMode === 'tutorial' ? 'Разместить' : 'Заразить';
-                    this.showCityPlate(idx, c[0], label, () => this.confirmContinent());
-                    // Fallback: also show the persistent bottom confirm button
-                    // so the player has a way through even if the floating
-                    // plate gets occluded or fails to layout. Strip any
-                    // lingering `intro` / `placing` class that would otherwise
-                    // suppress it via !important CSS.
+                    this.showCityPlate(idx, c[0], 'Заразить', () => this.confirmContinent());
                     const ws = document.getElementById('worldMapScreen');
                     if (ws) { ws.classList.remove('intro'); ws.classList.remove('placing'); }
                     const cb = document.getElementById('confirmContinent');
@@ -9260,7 +9341,7 @@
                     if (cb) cb.classList.remove('visible');
                     let reason;
                     if (cityAlreadyInfected) {
-                        reason = 'Город уже заражён';
+                        reason = 'Город уже под контролем';
                     } else if (this.pickerMode === 'land') {
                         reason = 'Сухопутный путь сюда не доходит';
                     } else if (this.pickerMode === 'water') {
@@ -9425,7 +9506,7 @@
                     if (sub && z > 1.05) {
                         sub.textContent = this.pickerMode === 'tutorial'
                             ? 'Выбери город для размещения узла'
-                            : 'Выбери город для заражения';
+                            : 'Выбери город';
                     }
                 }
             }
@@ -10707,10 +10788,10 @@
                 const dur = duration || 1700;
                 const toast = document.createElement('div');
                 toast.className = 'placement-toast' + (variant ? ' ' + variant : '');
-                const iconHTML = icon
-                    ? `<div class="toast-icon">${icon}</div>`
-                    : `<img class="toast-icon-img" src="${this.getCurrentVirusImage()}" alt=""/>`;
-                toast.innerHTML = `${iconHTML}<div class="toast-title">${title}</div>${sub ? `<div class="toast-sub">${sub}</div>` : ''}`;
+                // Default icon is a packet (📦); callers can override with a
+                // theme-specific glyph. No virus art ever shows in toasts.
+                const ico = icon || '📦';
+                toast.innerHTML = `<div class="toast-icon">${ico}</div><div class="toast-title">${title}</div>${sub ? `<div class="toast-sub">${sub}</div>` : ''}`;
                 toast.style.animationDuration = dur + 'ms';
                 document.body.appendChild(toast);
                 setTimeout(() => toast.remove(), dur);
@@ -11004,6 +11085,16 @@
         // Initialize game
         const game = new VirusGame();
         if (typeof window !== 'undefined') window.game = game;
+
+        // Dismiss the startup splash once the game is initialised. We wait a
+        // beat so the splash isn't a single-frame flash.
+        setTimeout(() => {
+            const splash = document.getElementById('loadingScreen');
+            if (splash) {
+                splash.classList.add('hidden');
+                setTimeout(() => splash.remove(), 600);
+            }
+        }, 1500);
         
         // Prevent zoom on double tap (iOS Safari) — only block when target isn't interactive
         let lastTouchEnd = 0;
