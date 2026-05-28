@@ -73,6 +73,33 @@
         }
         
         /* DNA Counter */
+        /* ===== PvP energy chip ===== */
+        .energy-counter {
+            position: absolute;
+            top: 50px;
+            right: 12px;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px 4px 6px;
+            border-radius: 14px;
+            background: linear-gradient(170deg, rgba(45, 58, 80, 0.95), rgba(20, 28, 42, 0.95));
+            backdrop-filter: blur(12px);
+            border: 1.5px solid rgba(250, 204, 21, 0.55);
+            box-shadow:
+                0 5px 14px rgba(0,0,0,0.4),
+                0 0 14px rgba(250, 204, 21, 0.28),
+                inset 0 1px 0 rgba(255,255,255,0.12);
+            font-family: 'Space Mono', monospace;
+            font-weight: 800;
+            font-size: 12px;
+            color: #fff7c8;
+        }
+        .energy-counter .energy-icon { font-size: 14px; line-height: 1; filter: drop-shadow(0 0 6px rgba(250,204,21,0.75)); }
+        .energy-counter .energy-val  { letter-spacing: 0.5px; }
+        .energy-counter .energy-sep  { opacity: 0.55; margin: 0 1px; }
+
         .dna-counter {
             position: absolute;
             top: 10px;
@@ -411,6 +438,9 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
+            /* Crop the bottom 17 % of the artwork so the baked-in
+               "LOADING…" text + progress bar don't show. */
+            clip-path: inset(0 0 17% 0);
             user-select: none;
             -webkit-user-select: none;
             pointer-events: none;
@@ -3598,79 +3628,144 @@
         }
 
         /* ===== Tech tree ===== */
+        /* ===== Tech tree — casual chunky tiles ===== */
         .tech-tree {
             display: flex;
-            gap: 8px;
+            gap: 10px;
             width: 100%;
             max-width: 480px;
             margin: 0 auto;
-            padding: 4px 2px 10px;
+            padding: 6px 4px 14px;
         }
         .tech-branch {
             flex: 1 1 0;
             min-width: 0;
-            background: rgba(255,255,255,0.045);
-            border-radius: 14px;
-            border-top: 3px solid var(--br-accent, #3b82f6);
-            padding: 9px 5px 11px;
+            position: relative;
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 36%),
+                rgba(20, 28, 42, 0.7);
+            border-radius: 18px;
+            padding: 10px 6px 12px;
+            box-shadow:
+                0 8px 18px rgba(0,0,0,0.45),
+                0 0 0 1px rgba(255,255,255,0.05) inset,
+                0 0 28px color-mix(in srgb, var(--br-accent, #3b82f6) 18%, transparent);
         }
-        .tech-branch-head { text-align: center; margin-bottom: 8px; }
-        .tbh-ico { font-size: 19px; line-height: 1; display: block; }
-        .tbh-name { font-size: 11px; font-weight: 800; color: #fff; display: block; margin-top: 2px; line-height: 1.1; }
-        .tbh-stat { font-size: 8.5px; color: #93a3b8; font-family: 'Space Mono', monospace; }
+        .tech-branch::before {
+            content: "";
+            position: absolute; left: 0; right: 0; top: 0;
+            height: 4px;
+            border-radius: 18px 18px 0 0;
+            background: linear-gradient(90deg, transparent, var(--br-accent, #3b82f6), transparent);
+        }
+        .tech-branch-head { text-align: center; margin-bottom: 10px; }
+        .tbh-ico {
+            display: inline-flex;
+            align-items: center; justify-content: center;
+            width: 30px; height: 30px;
+            border-radius: 50%;
+            background: var(--br-accent, #3b82f6);
+            font-size: 18px;
+            box-shadow:
+                0 6px 12px color-mix(in srgb, var(--br-accent) 55%, transparent),
+                0 0 0 2px rgba(255,255,255,0.18) inset;
+        }
+        .tbh-name { font-size: 12px; font-weight: 900; color: #fff; display: block; margin-top: 5px; line-height: 1.1; letter-spacing: 0.4px; }
+        .tbh-stat { font-size: 9px; color: #cbd5e1; font-family: 'Space Mono', monospace; opacity: 0.75; }
         .tech-nodes { display: flex; flex-direction: column; align-items: center; }
-        .tech-link { width: 3px; height: 13px; background: rgba(255,255,255,0.12); }
-        .tech-link.lit { background: var(--br-accent, #3b82f6); }
+        .tech-link {
+            width: 4px; height: 16px;
+            background: rgba(255,255,255,0.10);
+            border-radius: 2px;
+        }
+        .tech-link.lit {
+            background: linear-gradient(180deg, var(--br-accent), color-mix(in srgb, var(--br-accent) 50%, #ffffff));
+            box-shadow: 0 0 8px color-mix(in srgb, var(--br-accent) 70%, transparent);
+        }
         .tech-node {
             position: relative;
             width: 100%;
-            border: 1.5px solid transparent;
-            border-radius: 11px;
-            padding: 7px 4px 8px;
+            border: 2px solid transparent;
+            border-radius: 14px;
+            padding: 9px 5px 10px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 3px;
+            gap: 4px;
             overflow: hidden;
             cursor: pointer;
             -webkit-tap-highlight-color: transparent;
-            background: rgba(255,255,255,0.05);
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0) 45%),
+                rgba(255,255,255,0.04);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+            transition: transform 0.12s ease;
         }
         .tech-node:active { transform: scale(0.96); }
         .tn-dot {
-            width: 21px; height: 21px; border-radius: 50%;
+            width: 26px; height: 26px; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
-            font-size: 10px; font-weight: 800;
-            background: rgba(255,255,255,0.1); color: #cbd5e1;
+            font-size: 12px; font-weight: 900;
+            background: rgba(255,255,255,0.12);
+            color: #cbd5e1;
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,0.35),
+                inset 0 -2px 4px rgba(0,0,0,0.25),
+                0 2px 4px rgba(0,0,0,0.35);
         }
-        .tn-name { font-size: 9.5px; font-weight: 700; line-height: 1.12; text-align: center; color: #e2e8f0; }
-        .tn-sub { font-size: 8.5px; font-family: 'Space Mono', monospace; color: #94a3b8; }
-        .tn-prog { position: absolute; left: 0; bottom: 0; height: 3px; background: linear-gradient(90deg,#fde047,#f97316); }
+        .tn-name { font-size: 10.5px; font-weight: 800; line-height: 1.15; text-align: center; color: #f1f5f9; }
+        .tn-sub { font-size: 9.5px; font-family: 'Space Mono', monospace; color: #94a3b8; font-weight: 700; }
+        .tn-prog {
+            position: absolute; left: 0; bottom: 0; height: 4px;
+            background: linear-gradient(90deg, #fde047, #f97316);
+            box-shadow: 0 0 8px rgba(253, 224, 71, 0.65);
+        }
 
-        .tech-node.locked { opacity: 0.55; }
+        .tech-node.locked { opacity: 0.45; filter: saturate(0.3); }
         .tech-node.avail {
-            background: color-mix(in srgb, var(--br-accent) 16%, transparent);
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.20) 0%, rgba(255,255,255,0) 45%),
+                color-mix(in srgb, var(--br-accent) 22%, transparent);
             border-color: var(--br-accent);
             animation: techAvailPulse 2.4s ease-in-out infinite;
         }
-        .tech-node.avail .tn-dot { background: var(--br-accent); color: #fff; }
+        .tech-node.avail .tn-dot {
+            background: linear-gradient(180deg, color-mix(in srgb, var(--br-accent) 70%, #fff), var(--br-accent));
+            color: #fff;
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,0.55),
+                0 4px 10px color-mix(in srgb, var(--br-accent) 55%, transparent);
+        }
         .tech-node.avail .tn-sub { color: #fff; }
         @keyframes techAvailPulse {
-            0%,100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--br-accent) 45%, transparent); }
-            50%     { box-shadow: 0 0 0 4px transparent; }
+            0%,100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--br-accent) 50%, transparent), 0 3px 8px rgba(0,0,0,0.3); }
+            50%     { box-shadow: 0 0 0 6px transparent, 0 3px 8px rgba(0,0,0,0.3); }
         }
         .tech-node.active {
-            background: rgba(253,224,71,0.12);
+            background:
+                linear-gradient(180deg, rgba(253,224,71,0.28) 0%, rgba(253,224,71,0) 50%),
+                rgba(253,224,71,0.12);
             border-color: rgba(253,224,71,0.7);
         }
-        .tech-node.active .tn-dot { background: #fde047; color: #3a1c03; }
+        .tech-node.active .tn-dot {
+            background: linear-gradient(180deg, #fef9c3, #f59e0b);
+            color: #3a1c03;
+        }
         .tech-node.active .tn-sub { color: #fde047; }
         .tech-node.done {
-            background: color-mix(in srgb, var(--br-accent) 26%, transparent);
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 45%),
+                color-mix(in srgb, var(--br-accent) 38%, transparent);
             border-color: var(--br-accent);
         }
-        .tech-node.done .tn-dot { background: var(--br-accent); color: #fff; }
-        .tech-node.done .tn-sub { color: #fff; font-weight: 700; }
+        .tech-node.done .tn-dot {
+            background: linear-gradient(180deg, color-mix(in srgb, var(--br-accent) 70%, #fff), var(--br-accent));
+            color: #fff;
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,0.55),
+                0 4px 10px color-mix(in srgb, var(--br-accent) 55%, transparent);
+        }
+        .tech-node.done .tn-sub { color: #fff; font-weight: 800; }
 
         .news-screen-title {
             font-family: 'Space Mono', monospace;
@@ -5106,6 +5201,14 @@
                 </div>
             </div>
         </div>
+
+        <!-- PvP energy: cost of each "Атаковать" tap. Regenerates over time. -->
+        <div class="energy-counter" id="energyCounter">
+            <div class="energy-icon">⚡</div>
+            <div class="energy-val">
+                <span id="energyNow">3</span><span class="energy-sep">/</span><span id="energyMax">3</span>
+            </div>
+        </div>
         
         <!-- Start Screen -->
         <!-- Faction-select Screen (shown once on first launch) -->
@@ -5991,7 +6094,7 @@
                 const v = new THREE.Vector3().crossVectors(dir, u).normalize();
                 const sparks = [];
                 const sparkPhases = [];
-                const SPARK_COUNT = 12;
+                const SPARK_COUNT = 0; // particles hidden — quieter infected dots
                 for (let i = 0; i < SPARK_COUNT; i++) {
                     const sp = mk(this._getSparkTexture(), THREE.AdditiveBlending);
                     const r0 = 0.012 + Math.sqrt(Math.random()) * 0.055;
@@ -6018,7 +6121,7 @@
                 // the territory a "swarming pathogen" texture.
                 const spores = [];
                 const sporePhases = [];
-                const SPORE_COUNT = 32;
+                const SPORE_COUNT = 0; // particles hidden — no swarming spore cloud
                 for (let i = 0; i < SPORE_COUNT; i++) {
                     const sp = mk(this._getSporeTexture(), THREE.AdditiveBlending);
                     const r0 = 0.018 + Math.sqrt(Math.random()) * 0.095;
@@ -7220,8 +7323,8 @@
                                 desc: 'Скорость исследований (−% времени)', stat: 'research' },
                     attack:   { rkn: 'Аналитический центр', vpn: 'Маршрутизация',          icon: '⚔️',
                                 desc: 'Attack Power (сила в PvP)', stat: 'attack' },
-                    contrib:  { rkn: 'Регуляторный отдел',  vpn: 'Раздача ключей',         icon: '📈',
-                                desc: 'Пассивный рост вклада в регионах', stat: 'contrib' },
+                    contrib:  { rkn: 'Регуляторный отдел',  vpn: 'Раздача ключей',         icon: '⚡',
+                                desc: 'Восстановление и лимит энергии для PvP-атак', stat: 'energy' },
                     defense:  { rkn: 'Реестр запрещённого', vpn: 'Маскировка трафика',     icon: '🛡️',
                                 desc: 'Defense Power (защита в PvP)', stat: 'defense' },
                     hp:       { rkn: 'PR-отдел',            vpn: 'Чаты пользователей',     icon: '❤️',
@@ -7243,6 +7346,9 @@
                 // Passive DNA income from levelled ability cards.
                 // Each card contributes `level * ceil(baseCost/6)` DNA per hour.
                 this.lastIncomeTick = Date.now();
+                // PvP energy — capped at getEnergyMax(), regenerates over time.
+                this.energy = 3;
+                this.lastEnergyTick = Date.now();
                 this.dnaFraction = 0;
                 this.incomeTimer = null;
 
@@ -7380,6 +7486,8 @@
                 this.bindFactionPicker();
                 this.applyFactionTheme();
                 this.updateDNACounter();
+                this.tickEnergyRegen();
+                this.updateEnergyUI();
                 this.cloneHelixToMap();
                 this.updateVirusArt();
                 this.updateLeagueBadge();
@@ -8205,36 +8313,27 @@
                     a2.hidden = true;
                     a2.onclick = null;
                 } else {
-                    // A city not held by you: capture only when it's adjacent
-                    // to a city you already hold (otherwise the invite-flow
-                    // button is the only way in).
+                    // A city not held by you. Capture happens by 3 defender
+                    // victories (automatic) or the friend-invite shortcut.
                     hpWrap.hidden = true;
-                    const adj = this.isCityCaptureAllowed(idx);
                     const isTutorialPick = this.pickerMode === 'tutorial';
-                    if (adj) {
+                    if (isTutorialPick) {
+                        // First-city pick: a single free button captures.
                         a1.hidden = false;
-                        // Starting-city pick is free; later captures cost Packets.
-                        a1.textContent = isTutorialPick
-                            ? this.factionCaptureLabel()
-                            : `${this.factionCaptureLabel()} 📦 ${this.PVP_CAPTURE_COST}`;
-                        a1.disabled = !isTutorialPick && this.dnaPoints < this.PVP_CAPTURE_COST;
+                        a1.textContent = this.factionCaptureLabel();
+                        a1.disabled = false;
                         a1.onclick = (e) => { e.preventDefault(); e.stopPropagation(); this.captureCity(idx); };
-                    } else {
-                        a1.hidden = false;
-                        a1.textContent = '🔒 нет соседнего города';
-                        a1.disabled = true;
-                        a1.onclick = null;
-                    }
-                    // The friend-invite shortcut is only meaningful after the
-                    // tutorial — the starting-city pick is already free and
-                    // shouldn't surface a referral prompt.
-                    if (this.pickerMode === 'tutorial') {
                         a2.hidden = true;
                         a2.onclick = null;
                     } else {
+                        // Outside the tutorial there is no Packets capture —
+                        // only the friend-invite shortcut, presented with the
+                        // faction's capture verb and a 👥 icon in place of price.
+                        a1.hidden = true;
+                        a1.onclick = null;
                         a2.hidden = false;
                         a2.disabled = false;
-                        a2.textContent = '👥 Пригласить друга';
+                        a2.textContent = `${this.factionCaptureLabel()} 👥`;
                         a2.onclick = (e) => { e.preventDefault(); e.stopPropagation(); this.inviteCaptureCity(idx); };
                     }
                 }
@@ -8257,21 +8356,26 @@
                 }
                 const now = Date.now();
                 const cdMs = this.DEFENDER_COOLDOWN_MS();
+                const energy = Math.floor(this.energy || 0);
                 defenders.forEach(d => {
                     const card = document.createElement('div');
                     card.className = 'pd-card';
                     const cdLeft = d.lastAttackedAt ? Math.max(0, cdMs - (now - d.lastAttackedAt)) : 0;
-                    const disabled = cdLeft > 0;
-                    const cdLabel = disabled ? `⏳ ${Math.ceil(cdLeft / 3600000)}ч` : '⚔ Бить';
+                    const noEnergy = energy < 1;
+                    const disabled = cdLeft > 0 || noEnergy;
+                    let label;
+                    if (cdLeft > 0)      label = `⏳ ${Math.ceil(cdLeft / 3600000)}ч`;
+                    else if (noEnergy)   label = '⚡ нет энергии';
+                    else                 label = 'Атаковать ⚡1';
                     card.innerHTML = `
                         <div class="pd-meta">
                             <div class="pd-name-row">
                                 <span class="pd-name">${d.name}</span>
                                 <span class="pd-league lg-${d.league}">Л${d.league}</span>
                             </div>
-                            <div class="pd-stats">⚔ ${d.atk}  🛡 ${d.def}  <span class="pd-s-hp${d.hp === 0 ? ' dead' : ''}">❤ ${d.hp}/${d.maxHp}</span></div>
+                            <div class="pd-stats"><span class="pd-s-hp${d.hp === 0 ? ' dead' : ''}">❤ ${d.hp}/${d.maxHp}</span></div>
                         </div>
-                        <button class="pd-hit" ${disabled ? 'disabled' : ''}>${cdLabel}</button>`;
+                        <button class="pd-hit" ${disabled ? 'disabled' : ''}>${label}</button>`;
                     if (!disabled) {
                         const btn = card.querySelector('.pd-hit');
                         this.tap(btn, () => this.attackDefender(idx, d.id));
@@ -8312,25 +8416,16 @@
             // Paying the price occupies the city for your faction and shifts
             // control to you. The hold gains a defensive pool of lives (= HP).
             captureCity(idx) {
+                // Only the tutorial starting-city pick still uses this path —
+                // everywhere else capture happens via 3 defender victories or
+                // the friend-invite shortcut. The pick is free.
                 const startingPick = this.pickerMode === 'tutorial';
-                if (!startingPick && !this.isCityCaptureAllowed(idx)) {
-                    this.showToast('Город слишком далеко', 'Нужен соседний с уже захваченным', 'above-map', '📍');
-                    return;
-                }
-                // The first city pick is free; later captures cost Packets.
-                if (!startingPick && this.dnaPoints < this.PVP_CAPTURE_COST) {
-                    this.showToast('Не хватает Пакетов', `Нужно ${this.PVP_CAPTURE_COST}`, 'above-map', '🚫');
-                    return;
-                }
+                if (!startingPick) return;
                 const c = this.cities[idx];
                 const s = this.getCity(idx);
                 if (s.mine) return;
                 const mineKey = this.myFactionKey();
                 const enemyKey = this.enemyFactionKey();
-                if (!startingPick) {
-                    this.dnaPoints -= this.PVP_CAPTURE_COST;
-                    this.updateDNACounter();
-                }
 
                 s.mine = true;
                 s.hp = this.getHP();
@@ -8373,13 +8468,14 @@
                 }
             }
 
-            // Player attacks one of the city's enemy defenders.
+            // Player attacks one of the city's enemy defenders. Costs 1 ⚡;
+            // every kicked defender counts as a victory, and 3 victories on
+            // the same city captures it automatically.
             attackDefender(idx, defenderId) {
                 const s = this.getCity(idx);
                 const defenders = this.getCityDefenders(idx);
                 const d = defenders.find(x => x.id === defenderId);
                 if (!d || d.hp <= 0) return;
-                const myL = this.getLeague().idx;
                 const visible = this.visibleDefenders(idx);
                 if (!visible.includes(d)) {
                     this.showToast('Цель вне досягаемости', 'Каскад выбирает другую цель', 'above-map', '🚫');
@@ -8391,6 +8487,10 @@
                     this.showToast('Кулдаун атаки', `${d.name} · ещё ${leftH} ч`, 'above-map', '⏳');
                     return;
                 }
+                if (!this.spendEnergy(1)) {
+                    this.showToast('Не хватает энергии', '1 ед / 1 час восстанавливается', 'above-map', '⚡');
+                    return;
+                }
                 const dmg = this.rollPvpDamage(this.getAttackPower(), d.def);
                 d.lastAttackedAt = now;
                 if (dmg === 0) {
@@ -8398,14 +8498,21 @@
                 } else {
                     d.hp = Math.max(0, d.hp - dmg);
                     if (d.hp === 0) {
-                        // Defender kicked — enemy faction's control drops.
+                        // Defender kicked — count toward city capture.
                         const enemyKey = this.enemyFactionKey();
                         const mineKey  = this.myFactionKey();
                         const flip = Math.min(s[enemyKey], this.PVP_CAPTURE_GAIN);
                         s[enemyKey] = Math.max(0, s[enemyKey] - flip);
                         s[mineKey] += flip;
                         s.lastDom = mineKey;
-                        this.pvpEvent({ icon: '💥', title: 'Защитник выбит', sub: `${d.name} вылетел из ${this.cities[idx][0]}`, tone: 'positive' });
+                        s.victories = (s.victories || 0) + 1;
+                        this.pvpEvent({
+                            icon: '💥',
+                            title: `Защитник выбит (${s.victories}/3)`,
+                            sub: `${d.name} вылетел из ${this.cities[idx][0]}`,
+                            tone: 'positive'
+                        });
+                        if (s.victories >= 3 && !s.mine) this.captureCityByVictories(idx);
                     } else {
                         this.pvpEvent({ icon: '⚔️', title: 'Удар по защитнику', sub: `${d.name} −${dmg} ❤`, tone: 'positive' });
                     }
@@ -8413,6 +8520,27 @@
                 if (this._plateCityIdx === idx) this.refreshCityControlPlate();
                 if (this.coralMap) this.coralMap.draw();
                 this.saveState();
+            }
+
+            // Auto-capture after 3 defender victories at the same city.
+            captureCityByVictories(idx) {
+                const c = this.cities[idx];
+                const s = this.getCity(idx);
+                if (!c || s.mine) return;
+                const mineKey  = this.myFactionKey();
+                const enemyKey = this.enemyFactionKey();
+                s.mine = true;
+                s.hp = this.getHP();
+                s[mineKey] = Math.max(s[mineKey], s[enemyKey] + this.PVP_CAPTURE_GAIN);
+                s.lastDom = mineKey;
+                s.victories = 0;
+                this.infectContinent(c[4], 5, idx);
+                this.pvpEvent({
+                    icon: this.faction === 'resist' ? '🔓' : '🔒',
+                    title: this.faction === 'resist' ? 'Город разблокирован' : 'Город заблокирован',
+                    sub: c[0],
+                    tone: 'positive'
+                });
             }
 
             // Incoming PvP: enemy faction defenders periodically raid your
@@ -8454,6 +8582,7 @@
                         s[mineKey] = Math.max(1, s[mineKey] - flip);
                         s[enemyKey] += this.PVP_CAPTURE_GAIN;
                         s.lastDom = enemyKey;
+                        s.victories = 0;
                         this.pvpEvent({ icon: '💔', title: 'Город потерян', sub: `${c[0]} перешёл к противнику`, tone: 'negative' });
                     } else {
                         this.pvpEvent({ icon: '⚔️', title: 'Атака на ваш город', sub: `${c[0]} −${dmg} ❤`, tone: 'negative' });
@@ -10507,6 +10636,8 @@
                     });
                     const data = {
                         dnaPoints: this.dnaPoints,
+                        energy: this.energy,
+                        lastEnergyTick: this.lastEnergyTick,
                         virusLevel: this.virusLevel,
                         virusStats: this.virusStats,
                         techResearched: this.techResearched,
@@ -10533,6 +10664,8 @@
                     if (!raw) return;
                     const data = JSON.parse(raw);
                     if (typeof data.dnaPoints === 'number') this.dnaPoints = data.dnaPoints;
+                    if (typeof data.energy === 'number') this.energy = data.energy;
+                    if (typeof data.lastEnergyTick === 'number') this.lastEnergyTick = data.lastEnergyTick;
                     if (typeof data.virusLevel === 'number') this.virusLevel = data.virusLevel;
                     if (data.virusStats) {
                         this.virusStats = Object.assign({}, this.virusStats, data.virusStats);
@@ -10849,7 +10982,7 @@
                     case 'income':   return `+${(lvl * 0.5).toFixed(1)} пак/сек`;
                     case 'research': return `−${Math.min(60, lvl * 0.6).toFixed(0)}% времени`;
                     case 'attack':   return `ATK ${lvl * 8}`;
-                    case 'contrib':  return `+${(lvl * 2)}%/ч вклад`;
+                    case 'contrib':  return `+${(lvl * 5)}%/ч энергии, лимит +${Math.floor(lvl / 10)}`;
                     case 'defense':  return `DEF ${lvl * 8}`;
                     case 'hp':       return `HP ${lvl * 25}`;
                     default:         return '';
@@ -10863,6 +10996,44 @@
             // HP room and the HP-branch tech.
             getHP() {
                 return 3 + Math.floor(this.rooms.hp.level / 10) + Math.floor(this.techStatBonus('hp') / 200);
+            }
+
+            // ===== PvP energy =====
+            // Each attack costs 1 ⚡. Base cap = 3, base regen = 1 / hour.
+            // The contrib room scales both: regen +5 %/level, cap +1 / 10 lvl.
+            getEnergyMax() {
+                return 3 + Math.floor((this.rooms.contrib && this.rooms.contrib.level || 0) / 10);
+            }
+            // Returns energy units gained per hour at current upgrades.
+            getEnergyRegenPerHour() {
+                const lvl = this.rooms.contrib && this.rooms.contrib.level || 0;
+                return 1 + lvl * 0.05;
+            }
+            // Add accumulated regen since last tick, capped at max.
+            tickEnergyRegen() {
+                const now = Date.now();
+                const dt = (now - (this.lastEnergyTick || now)) / 3600000; // hours
+                this.lastEnergyTick = now;
+                if (dt <= 0) return;
+                const max = this.getEnergyMax();
+                const next = Math.min(max, (this.energy || 0) + this.getEnergyRegenPerHour() * dt);
+                if (next !== this.energy) {
+                    this.energy = next;
+                    this.updateEnergyUI();
+                }
+            }
+            updateEnergyUI() {
+                const now = document.getElementById('energyNow');
+                const max = document.getElementById('energyMax');
+                if (now) now.textContent = Math.floor(this.energy);
+                if (max) max.textContent = this.getEnergyMax();
+            }
+            spendEnergy(cost) {
+                if ((this.energy || 0) < cost) return false;
+                this.energy -= cost;
+                this.updateEnergyUI();
+                this.saveState();
+                return true;
             }
 
             // ===== PvP leagues =====
@@ -10881,9 +11052,9 @@
                 const tiers = [
                     { idx: 1, name: 'Магистр',     icon: '💎', min: 3000 },
                     { idx: 2, name: 'Командир',    icon: '🏆', min: 1500 },
-                    { idx: 3, name: 'Координатор', icon: '🥇', min: 700  },
-                    { idx: 4, name: 'Оперативник', icon: '🥈', min: 250  },
-                    { idx: 5, name: 'Стажёр',      icon: '🥉', min: 0    }
+                    { idx: 3, name: 'Координатор', icon: '🎯', min: 700  },
+                    { idx: 4, name: 'Оперативник', icon: '🕶️', min: 250  },
+                    { idx: 5, name: 'Стажёр',      icon: '🌱', min: 0    }
                 ];
                 const tier = tiers.find(t => score >= t.min);
                 return { ...tier, score };
@@ -11340,6 +11511,7 @@
 
             tickPassiveIncome() {
                 this.tickRooms();
+                this.tickEnergyRegen();
                 this.tickResearch();
                 const now = Date.now();
                 const dt = now - this.lastIncomeTick;
