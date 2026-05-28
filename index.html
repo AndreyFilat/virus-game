@@ -4678,12 +4678,15 @@
         /* Hide the league badge during the 3-tap tutorial. */
         body.tutorial-active .league-card { display: none; }
 
-        /* Clear the stage for the celebration overlay — the home button
-           and the tutorial copy fade out so only the confetti is on screen. */
+        /* Clear the stage for the celebration overlay — the home button,
+           the league badge and the tutorial copy fade out so only the
+           confetti is on screen. */
         body.celebrating .home-virus,
         body.celebrating .home-hint,
         body.celebrating .game-subtitle,
-        body.celebrating .home-finger {
+        body.celebrating .home-finger,
+        body.celebrating .league-card,
+        body.celebrating .char-speech {
             opacity: 0;
             transition: opacity 0.25s ease;
             pointer-events: none;
