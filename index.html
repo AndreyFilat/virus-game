@@ -7764,6 +7764,7 @@
                 // PvP energy — capped at getEnergyMax(), regenerates over time.
                 this.energy = 3;
                 this.lastEnergyTick = Date.now();
+                this.lastHpTick = Date.now();
                 this.dnaFraction = 0;
                 this.incomeTimer = null;
 
@@ -7903,6 +7904,7 @@
                 this.updateDNACounter();
                 this.tickEnergyRegen();
                 this.updateEnergyUI();
+                this.tickHpRegen();
                 // Resume the post-tutorial guided tour if it was in progress.
                 if (this.onboardStep) setTimeout(() => this.showOnboarding(), 600);
                 this.cloneHelixToMap();
@@ -11302,6 +11304,7 @@
                         dnaPoints: this.dnaPoints,
                         energy: this.energy,
                         lastEnergyTick: this.lastEnergyTick,
+                        lastHpTick: this.lastHpTick,
                         onboardStep: this.onboardStep || null,
                         virusLevel: this.virusLevel,
                         virusStats: this.virusStats,
@@ -11331,6 +11334,7 @@
                     if (typeof data.dnaPoints === 'number') this.dnaPoints = data.dnaPoints;
                     if (typeof data.energy === 'number') this.energy = data.energy;
                     if (typeof data.lastEnergyTick === 'number') this.lastEnergyTick = data.lastEnergyTick;
+                    if (typeof data.lastHpTick === 'number') this.lastHpTick = data.lastHpTick;
                     if (typeof data.onboardStep === 'string') this.onboardStep = data.onboardStep;
                     if (typeof data.virusLevel === 'number') this.virusLevel = data.virusLevel;
                     if (data.virusStats) {
@@ -11651,7 +11655,7 @@
                     case 'attack':   return `ATK ${30 + lvl * 8}`;
                     case 'contrib':  return `+${(lvl * 5)}%/ч энергии, лимит +${Math.floor(lvl / 10)}`;
                     case 'defense':  return `DEF ${lvl * 8}`;
-                    case 'hp':       return `Жизни города +${Math.floor(lvl / 10)}`;
+                    case 'hp':       return `Жизни +${Math.floor(lvl / 10)} · регенерация ${(0.5 + lvl * 0.05).toFixed(2)} HP/ч`;
                     default:         return '';
                 }
             }
@@ -11702,6 +11706,28 @@
                 this.updateEnergyUI();
                 this.saveState();
                 return true;
+            }
+
+            // HP regen rate (per hour) — scales with the HP room level so an
+            // upgraded base heals its cities faster.
+            getHpRegenPerHour() {
+                return 0.5 + (this.rooms.hp.level || 0) * 0.05;
+            }
+            tickHpRegen() {
+                const now = Date.now();
+                const dt = (now - (this.lastHpTick || now)) / 3600000; // hours
+                this.lastHpTick = now;
+                if (dt <= 0) return;
+                const max = this.getHP();
+                const rate = this.getHpRegenPerHour();
+                let changed = false;
+                for (const i in this.cityState) {
+                    const s = this.cityState[i];
+                    if (!s || !s.mine || s.hp >= max) continue;
+                    s.hp = Math.min(max, s.hp + rate * dt);
+                    changed = true;
+                }
+                if (changed && this._plateCityIdx != null) this.refreshCityControlPlate();
             }
 
             // ===== PvP leagues =====
@@ -12206,6 +12232,7 @@
             tickPassiveIncome() {
                 this.tickRooms();
                 this.tickEnergyRegen();
+                this.tickHpRegen();
                 this.tickResearch();
                 const now = Date.now();
                 const dt = now - this.lastIncomeTick;
