@@ -11631,7 +11631,12 @@
                 const tier = document.getElementById('lcTier');
                 const pip = document.getElementById('lcPipRow');
                 if (ico) ico.textContent = lg.icon;
-                if (tier) tier.textContent = `ЛИГА ${lg.idx} · ${lg.name.toUpperCase()}`;
+                if (tier) {
+                    // Wipe any stale children from earlier versions of this
+                    // render before assigning the plain title.
+                    tier.innerHTML = '';
+                    tier.textContent = `ЛИГА ${lg.idx} · ${lg.name.toUpperCase()}`;
+                }
                 if (pip) {
                     pip.innerHTML = '';
                     // Pips track progress WITHIN the current league: each
