@@ -8268,16 +8268,21 @@
                 const pick = a => Math.round(a[0] + rnd() * (a[1] - a[0]));
                 return { atk: pick(R.atk), def: pick(R.def), hp: pick(R.hp) };
             }
-            seedCityDefenders(idx) {
+            seedCityDefenders(idx, opts) {
                 const s = this.getCity(idx);
                 let seed = ((idx + 1) * 0x9E3779B9 ^ 0x12345) >>> 0;
                 const rnd = () => { seed = (seed * 1103515245 + 12345) >>> 0; return seed / 4294967296; };
                 const names = this.DEFENDER_NAMES();
+                const easy = opts && opts.easy;
                 const out = [];
                 for (let i = 0; i < 6; i++) {
                     const r = rnd();
-                    // Weighted toward lower leagues so most defenders are 3-5.
-                    const league = r < 0.06 ? 1 : r < 0.20 ? 2 : r < 0.46 ? 3 : r < 0.76 ? 4 : 5;
+                    // Default distribution: weighted toward L3-L5. Easy mode
+                    // (cities next to the player's starting hold) is all
+                    // L4-L5 so beginners face approachable targets.
+                    const league = easy
+                        ? (r < 0.55 ? 5 : 4)
+                        : (r < 0.06 ? 1 : r < 0.20 ? 2 : r < 0.46 ? 3 : r < 0.76 ? 4 : 5);
                     const st = this.defenderStatsForLeague(league, rnd);
                     out.push({
                         id: idx + ':' + i,
@@ -8289,6 +8294,19 @@
                     });
                 }
                 s.defenders = out;
+            }
+
+            // Re-seed defenders in neighbours of the player's starting city
+            // so the post-tutorial map has a friendlier L4-L5 ring around them.
+            seedEasyNeighborDefenders(startIdx) {
+                const start = this.cities[startIdx];
+                if (!start) return;
+                const NEIGHBOR_KM = 2500;
+                this.cities.forEach((c, i) => {
+                    if (i === startIdx) return;
+                    if (this.greatCircleKm(start[1], start[2], c[1], c[2]) > NEIGHBOR_KM) return;
+                    this.seedCityDefenders(i, { easy: true });
+                });
             }
             getCityDefenders(idx) {
                 const s = this.getCity(idx);
@@ -8541,6 +8559,7 @@
                     // picker chrome so the player lands on the live globe.
                     this.startingContinent = c[4];
                     this.startingCityIdx = idx;
+                    this.seedEasyNeighborDefenders(idx);
                     this.tutorialDone = true;
                     try { localStorage.setItem('tutorialDone', '1'); } catch (e) {}
                     this.pickerMode = null;
