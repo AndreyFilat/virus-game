@@ -7700,17 +7700,10 @@
             }
 
             renderSpreadList() {
+                // The under-globe Заблокировать / Разблокировать button is
+                // gone — city capture is now driven from the per-city plate.
                 const list = document.getElementById('spreadList');
-                if (!list) return;
-                list.innerHTML = '';
-                // Single primary action — opens the modal with the full
-                // method list. Verb/icon depend on the chosen faction.
-                const btn = document.createElement('button');
-                btn.className = 'open-spread-btn';
-                btn.innerHTML = `<span class="open-spread-icon">${this.factionActionIcon()}</span>` +
-                                `<span>${this.factionActionLabel()}</span>`;
-                this.tap(btn, () => this.showSpreadModal());
-                list.appendChild(btn);
+                if (list) list.innerHTML = '';
             }
 
             showSpreadModal() {
