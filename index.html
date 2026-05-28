@@ -8762,23 +8762,10 @@
             }
             showOnboarding() {
                 if (!this.onboardStep) return;
-                // Self-correct stale states so the tour can't get stuck on
-                // a refresh / when the player wanders off-rail.
-                if (this.onboardStep === 'firstRoom'
-                    && this.rooms.income && this.rooms.income.unlocked) {
+                // The post-tutorial tour is a single step now — defensively
+                // drop any legacy step that snuck through save state.
+                if (this.onboardStep !== 'base') {
                     return this.advanceOnboarding(null);
-                }
-                if (this.onboardStep === 'confirmRoom') {
-                    if (this.rooms.income && this.rooms.income.unlocked) {
-                        return this.advanceOnboarding(null);
-                    }
-                    if (this.openRoom && this.openRoom !== 'income') {
-                        this.closeRoomSheet();
-                        return this.advanceOnboarding('firstRoom');
-                    }
-                    if (!this.openRoom) {
-                        return this.advanceOnboarding('firstRoom');
-                    }
                 }
                 document.querySelectorAll('.onboard-highlight').forEach(el => el.classList.remove('onboard-highlight'));
                 const overlay = document.getElementById('onboardOverlay');
@@ -8789,15 +8776,6 @@
                 if (this.onboardStep === 'base') {
                     target = document.querySelector('.nav-btn[data-screen="baseScreen"]');
                     text = 'Загляни на Базу';
-                } else if (this.onboardStep === 'firstRoom') {
-                    target = document.querySelector('#baseGrid [data-room="income"]');
-                    text = 'Открой первую комнату';
-                } else if (this.onboardStep === 'confirmRoom') {
-                    target = document.querySelector('#roomSheet [data-unlock="income"]');
-                    text = 'Подтверди открытие';
-                } else if (this.onboardStep === 'home') {
-                    target = document.querySelector('.nav-btn[data-screen="startScreen"]');
-                    text = 'Вернись на Дом';
                 }
                 if (!target) {
                     // Target not yet in the DOM — retry shortly.
@@ -9583,11 +9561,10 @@
                 // the highlight target is in the DOM when showOnboarding runs.
                 if (id === 'baseScreen') this.renderBaseScreen();
 
-                // Drive the post-tutorial guided tour.
+                // Drive the post-tutorial guided tour. Tapping the
+                // highlighted База tab is enough to end it.
                 if (this.onboardStep === 'base' && id === 'baseScreen') {
                     document.querySelectorAll('.placement-toast').forEach(t => t.remove());
-                    this.advanceOnboarding('firstRoom');
-                } else if (this.onboardStep === 'home' && id === 'startScreen') {
                     this.advanceOnboarding(null);
                 }
 
@@ -11387,11 +11364,6 @@
                 // Close the sheet so the reveal animation on the tile is visible.
                 if (this.openRoom === id) this.closeRoomSheet();
                 this.updateRoomTile(id, true);   // play reveal animation
-                // Guided tour: confirming the first room (ТСПУ) ends the
-                // post-tutorial onboarding entirely.
-                if (id === 'income' && (this.onboardStep === 'confirmRoom' || this.onboardStep === 'firstRoom')) {
-                    this.advanceOnboarding(null);
-                }
             }
             // Derived stat value from a room's level (display only for now).
             roomEffectText(id, levelOverride) {
@@ -11582,18 +11554,7 @@
 
             // ----- Room detail sheet -----
             openRoomSheet(id) {
-                // Onboarding rail: while the tour is on the room-tile or
-                // confirm step, only ТСПУ may open. Anything else is
-                // bounced back to the firstRoom highlight.
-                if ((this.onboardStep === 'firstRoom' || this.onboardStep === 'confirmRoom')
-                    && id !== 'income') {
-                    this.advanceOnboarding('firstRoom');
-                    return;
-                }
                 this.openRoom = id;
-                if (this.onboardStep === 'firstRoom' && id === 'income') {
-                    this.advanceOnboarding('confirmRoom');
-                }
                 const back = document.getElementById('roomSheet');
                 back.style.setProperty('--room-accent', this.roomAccent(id));
                 this.renderRoomSheet(id);
