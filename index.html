@@ -2238,8 +2238,8 @@
         .faction-card {
             position: relative;
             border: none;
-            border-radius: 24px;
-            padding: 14px 16px 16px;
+            border-radius: 22px;
+            padding: 10px 14px 12px;
             text-align: center;
             cursor: pointer;
             transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.4, 1), box-shadow 0.2s;
@@ -2280,27 +2280,27 @@
         .faction-card .faction-char {
             position: static;
             transform: none;
-            width: 160px;
-            height: 200px;
+            width: 110px;
+            height: 110px;
             display: block;
-            margin: -4px auto -8px;
+            margin: 0 auto -2px;
             background-image: url('assets/loading_vs.png');
             background-repeat: no-repeat;
-            background-size: 200% auto;
-            -webkit-mask-image: radial-gradient(ellipse 38% 75% at 50% 48%,
+            background-size: 260% auto;
+            -webkit-mask-image: radial-gradient(ellipse 42% 80% at 50% 48%,
                                                  #000 55%,
                                                  rgba(0,0,0,0.6) 75%,
                                                  transparent 100%);
-            mask-image: radial-gradient(ellipse 38% 75% at 50% 48%,
+            mask-image: radial-gradient(ellipse 42% 80% at 50% 48%,
                                          #000 55%,
                                          rgba(0,0,0,0.6) 75%,
                                          transparent 100%);
-            filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.55));
+            filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.55));
             animation: faction-icon-bob 3.6s ease-in-out infinite;
         }
         /* Position the background to crop one character per card. */
-        .faction-card .faction-char-rkn    { background-position: 18% 38%; }
-        .faction-card .faction-char-resist { background-position: 82% 38%; }
+        .faction-card .faction-char-rkn    { background-position: 19% 32%; }
+        .faction-card .faction-char-resist { background-position: 81% 32%; }
         @keyframes faction-icon-bob {
             0%, 100% { transform: translateY(0); }
             50%      { transform: translateY(-3px); }
@@ -2308,17 +2308,17 @@
         .faction-card .faction-name {
             font-family: 'Nunito', 'Space Mono', sans-serif;
             font-weight: 900;
-            font-size: 22px;
+            font-size: 20px;
             color: #fff;
             letter-spacing: 0.6px;
-            margin-top: 2px;
+            margin-top: 0;
             text-shadow: 0 2px 0 rgba(0, 0, 0, 0.35), 0 0 14px rgba(255, 255, 255, 0.18);
         }
         .faction-card .faction-desc {
-            font-size: 11.5px;
+            font-size: 11px;
             color: rgba(255, 255, 255, 0.94);
-            line-height: 1.32;
-            margin-top: 3px;
+            line-height: 1.28;
+            margin-top: 2px;
             font-weight: 600;
         }
         .faction-card.faction-rkn-card {
@@ -10592,33 +10592,35 @@
                     totalRkn += s.rkn;
                     totalVpn += s.vpn;
                     const ctrl = this.cityControl(i);
-                    let rgb;
+                    let rgb, ringRgb;
                     if (s.mine) {
-                        rgb = [0.13, 1.0, 0.62];  // emerald (mine)
+                        rgb     = [0.40, 1.00, 0.70];  // bright emerald (mine)
+                        ringRgb = [0.20, 1.00, 0.55];  // saturated rim
                     } else {
-                        // Colour = faction that last grew toward this share.
-                        // `lastDom` is set whenever a capture or loss shifts
-                        // the counts; at exact 50/50 the city keeps the
-                        // colour of the rising side. For unseen cities we
-                        // fall back to whichever currently has more members.
                         const dom = s.lastDom || (s.rkn >= s.vpn ? 'rkn' : 'vpn');
-                        rgb = dom === 'rkn'
-                            ? [0.97, 0.27, 0.27]   // bright РКН red
-                            : [0.22, 0.60, 0.97];  // bright ВПН blue
+                        if (dom === 'rkn') {
+                            rgb     = [1.00, 0.50, 0.55]; // pink-red
+                            ringRgb = [1.00, 0.20, 0.30];
+                        } else {
+                            rgb     = [0.50, 0.80, 1.00]; // sky blue
+                            ringRgb = [0.20, 0.55, 1.00];
+                        }
                     }
                     m.material.color.setRGB(rgb[0], rgb[1], rgb[2]);
 
                     if (s.mine) {
-                        m.scale.setScalar(1.8);
+                        m.scale.setScalar(2.0);
                         if (m.userData.ring) {
                             m.userData.ring.visible = true;
-                            m.userData.ring.material.color.setRGB(0.13, 1.0, 0.62);
-                            m.userData.ring.scale.setScalar(1.45);
+                            m.userData.ring.material.color.setRGB(ringRgb[0], ringRgb[1], ringRgb[2]);
+                            m.userData.ring.scale.setScalar(1.55);
                         }
                     } else if (m.userData.ring) {
-                        m.userData.ring.material.color.set(0x6b7280);
-                        m.userData.ring.scale.setScalar(1);
+                        // Coloured halo matching the dot so it reads on a busy globe.
+                        m.userData.ring.material.color.setRGB(ringRgb[0], ringRgb[1], ringRgb[2]);
+                        m.userData.ring.scale.setScalar(1.25);
                         m.userData.ring.visible = !m.userData.infected;
+                        m.scale.setScalar(1.25);
                     }
                 }
                 this.updateWorldBalance(totalRkn, totalVpn);
