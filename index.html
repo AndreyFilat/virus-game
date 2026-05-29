@@ -1818,94 +1818,188 @@
 
         /* Leaders screen — leaderboard list with a league filter row. */
         .leaders-screen {
-            padding: calc(env(safe-area-inset-top, 0px) + 70px) 18px 96px;
+            padding: calc(env(safe-area-inset-top, 0px) + 16px) 14px 96px;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
+            display: flex;
+            flex-direction: column;
         }
         .leaders-title {
             font-family: 'Nunito', sans-serif;
             font-weight: 900;
-            font-size: 26px;
+            font-size: 22px;
             text-align: center;
             color: #f8fafc;
             margin: 0 0 12px;
             letter-spacing: 0.5px;
+            opacity: 0.85;
         }
-        .leaders-leagues {
-            display: flex;
-            gap: 6px;
-            overflow-x: auto;
-            padding: 0 2px 10px;
-            margin: 0 -2px 14px;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
-        }
-        .leaders-leagues::-webkit-scrollbar { display: none; }
-        .lg-chip {
-            flex: 0 0 auto;
-            display: inline-flex;
+        /* League header pager — arrow · big tier card · arrow. */
+        .lg-header {
+            display: grid;
+            grid-template-columns: 48px 1fr 48px;
             align-items: center;
-            gap: 6px;
-            padding: 8px 13px;
-            border-radius: 999px;
-            border: 1px solid rgba(255, 255, 255, 0.16);
-            background: rgba(20, 24, 36, 0.72);
-            color: #cbd5e1;
-            font-family: 'Nunito', sans-serif;
-            font-weight: 700;
-            font-size: 13px;
+            gap: 10px;
+            margin: 0 0 16px;
+        }
+        .lg-arrow {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: 1.5px solid rgba(255,255,255,0.18);
+            background: rgba(20, 24, 36, 0.85);
+            color: #f8fafc;
+            font-size: 24px;
+            font-weight: 800;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
             -webkit-tap-highlight-color: transparent;
-            white-space: nowrap;
-            transition: transform 0.14s, background 0.18s, color 0.18s;
+            transition: transform 0.14s, opacity 0.18s;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.45);
         }
-        .lg-chip .lg-chip-ico { font-size: 14px; }
-        .lg-chip.active {
-            background: linear-gradient(170deg, #a855f7, #6d28d9);
-            border-color: rgba(221, 214, 254, 0.5);
+        .lg-arrow:active { transform: scale(0.92); }
+        .lg-arrow[disabled] { opacity: 0.35; cursor: not-allowed; }
+        .lg-tier-card {
+            position: relative;
+            border-radius: 18px;
+            padding: 14px 16px;
+            display: grid;
+            grid-template-columns: 56px 1fr;
+            align-items: center;
+            gap: 14px;
             color: #fff;
-            box-shadow: 0 4px 14px rgba(168, 85, 247, 0.35);
+            background: linear-gradient(170deg, var(--lc-top), var(--lc-mid) 55%, var(--lc-bot));
+            border: 1px solid rgba(255,255,255,0.18);
+            box-shadow:
+                0 10px 24px rgba(0,0,0,0.5),
+                inset 0 1px 0 rgba(255,255,255,0.25),
+                inset 0 -2px 0 rgba(0,0,0,0.25);
+            overflow: hidden;
         }
-        .lg-chip:active { transform: scale(0.96); }
+        .lg-tier-card::before {
+            content: "";
+            position: absolute; inset: 0;
+            background:
+                radial-gradient(circle at 80% -10%, rgba(255,255,255,0.35), transparent 40%),
+                radial-gradient(circle at 10% 120%, rgba(0,0,0,0.25),   transparent 40%);
+            pointer-events: none;
+        }
+        .lg-tier-card.tier-1 { --lc-top: #f5d3a6; --lc-mid: #b66e2c; --lc-bot: #5c2f0d; }
+        .lg-tier-card.tier-2 { --lc-top: #f1f5f9; --lc-mid: #94a3b8; --lc-bot: #475569; }
+        .lg-tier-card.tier-3 { --lc-top: #fef9c3; --lc-mid: #eab308; --lc-bot: #854d0e; }
+        .lg-tier-card.tier-4 { --lc-top: #cffafe; --lc-mid: #06b6d4; --lc-bot: #155e75; }
+        .lg-tier-card.tier-5 { --lc-top: #e9d5ff; --lc-mid: #a855f7; --lc-bot: #5b21b6; }
+        .lg-tier-ico {
+            width: 56px; height: 56px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.18);
+            border: 2px solid rgba(255,255,255,0.45);
+            font-size: 30px;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: inset 0 -3px 0 rgba(0,0,0,0.25);
+        }
+        .lg-tier-name {
+            font-family: 'Nunito', sans-serif;
+            font-weight: 900;
+            font-size: 22px;
+            letter-spacing: 0.4px;
+            line-height: 1.05;
+            text-shadow: 0 2px 0 rgba(0,0,0,0.35);
+        }
+        .lg-tier-sub {
+            font-family: 'Nunito', sans-serif;
+            font-weight: 700;
+            font-size: 12px;
+            opacity: 0.85;
+            text-transform: uppercase;
+            letter-spacing: 1.4px;
+        }
 
         .leaders-feed {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 10px;
+            flex: 1;
         }
         .lb-row {
             display: grid;
-            grid-template-columns: 36px 1fr auto;
+            grid-template-columns: 44px 1fr auto;
             align-items: center;
             gap: 12px;
-            padding: 10px 14px;
-            border-radius: 14px;
+            padding: 12px 14px;
+            border-radius: 16px;
             border: 1px solid rgba(255, 255, 255, 0.08);
-            background: linear-gradient(170deg, rgba(28, 36, 52, 0.85), rgba(18, 22, 32, 0.85));
+            background: linear-gradient(170deg, rgba(34, 42, 60, 0.92), rgba(20, 24, 36, 0.92));
             color: #e2e8f0;
+            box-shadow:
+                0 4px 14px rgba(0,0,0,0.35),
+                inset 0 1px 0 rgba(255,255,255,0.06);
         }
         .lb-row.me {
             border-color: rgba(74, 222, 128, 0.55);
-            background: linear-gradient(170deg, rgba(34, 84, 56, 0.88), rgba(16, 36, 26, 0.88));
-            box-shadow: 0 4px 14px rgba(74, 222, 128, 0.25);
+            background: linear-gradient(170deg, rgba(34, 84, 56, 0.92), rgba(16, 36, 26, 0.92));
+            box-shadow:
+                0 4px 14px rgba(74, 222, 128, 0.25),
+                inset 0 1px 0 rgba(255,255,255,0.10);
         }
         .lb-rank {
-            font-family: 'Space Mono', monospace;
-            font-weight: 700;
-            font-size: 16px;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 900;
+            font-size: 18px;
             color: #cbd5e1;
             text-align: center;
+            display: flex; align-items: center; justify-content: center;
+            min-height: 36px;
         }
-        .lb-row.rank-1 .lb-rank { color: #fbbf24; }
-        .lb-row.rank-2 .lb-rank { color: #cbd5e1; }
-        .lb-row.rank-3 .lb-rank { color: #f59e0b; }
+        .lb-rank .lb-medal {
+            font-size: 28px;
+            line-height: 1;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+        }
+        .lb-name-wrap {
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
         .lb-name {
             font-family: 'Nunito', sans-serif;
             font-weight: 700;
-            font-size: 15px;
+            font-size: 16px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+        }
+        .lb-name .lb-you-tag {
+            margin-left: 6px;
+            font-size: 10px;
+            font-weight: 800;
+            background: rgba(74, 222, 128, 0.25);
+            color: #bbf7d0;
+            padding: 2px 6px;
+            border-radius: 6px;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+        }
+        .lb-bar {
+            position: relative;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255,255,255,0.08);
+            overflow: hidden;
+        }
+        .lb-bar-fill {
+            position: absolute; inset: 0;
+            transform-origin: left;
+            background: linear-gradient(90deg, #f59e0b, #fcd34d);
+            box-shadow: 0 0 8px rgba(251,191,36,0.4);
+        }
+        .lb-row.me .lb-bar-fill {
+            background: linear-gradient(90deg, #22c55e, #86efac);
+            box-shadow: 0 0 8px rgba(74,222,128,0.5);
         }
         .lb-cities {
             display: inline-flex;
@@ -1913,10 +2007,19 @@
             gap: 5px;
             font-family: 'Space Mono', monospace;
             font-weight: 700;
-            font-size: 14px;
+            font-size: 16px;
             color: #fef3c7;
+            min-width: 52px;
+            justify-content: flex-end;
         }
         .lb-cities-ico { font-size: 14px; }
+        .lb-empty {
+            text-align: center;
+            color: rgba(226,232,240,0.65);
+            padding: 40px 14px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 14px;
+        }
 
         .continent-zone {
             fill: transparent;
@@ -6080,7 +6183,6 @@
 
         <!-- Leaders screen — leaderboard of players in your faction. -->
         <div class="screen leaders-screen" id="leadersScreen">
-            <h2 class="leaders-title">Лидеры</h2>
             <div class="leaders-leagues" id="leadersLeagues"></div>
             <div class="leaders-feed" id="leadersFeed"></div>
         </div>
@@ -12264,9 +12366,11 @@
             }
 
             renderLeaders() {
-                const leagues = document.getElementById('leadersLeagues');
-                const feed    = document.getElementById('leadersFeed');
-                if (!leagues || !feed) return;
+                const header = document.getElementById('leadersLeagues');
+                const feed   = document.getElementById('leadersFeed');
+                if (!header || !feed) return;
+                // Tiers listed from top (1) to bottom (5). Left arrow moves up
+                // a league (toward 1), right arrow moves down.
                 const tiers = [
                     { idx: 1, name: 'Магистр',     icon: '💎' },
                     { idx: 2, name: 'Командир',    icon: '🏆' },
@@ -12275,39 +12379,55 @@
                     { idx: 5, name: 'Стажёр',      icon: '🌱' }
                 ];
                 if (this._leadersTier == null) this._leadersTier = this.getLeague().idx;
+                const tier = tiers.find(t => t.idx === this._leadersTier) || tiers[tiers.length - 1];
+                const atTop    = tier.idx === 1;
+                const atBottom = tier.idx === tiers.length;
 
-                leagues.innerHTML = tiers.map(t =>
-                    `<button class="lg-chip ${this._leadersTier === t.idx ? 'active' : ''}" data-tier="${t.idx}">
-                        <span class="lg-chip-ico">${t.icon}</span>${t.name}
-                    </button>`
-                ).join('');
-                leagues.querySelectorAll('.lg-chip').forEach(chip => {
-                    this.tap(chip, () => {
-                        this._leadersTier = parseInt(chip.dataset.tier, 10);
-                        this.renderLeaders();
-                    });
-                });
+                header.className = 'lg-header';
+                header.innerHTML =
+                    `<button class="lg-arrow" id="lgPrev" ${atTop ? 'disabled' : ''} aria-label="Выше лигой">‹</button>
+                     <div class="lg-tier-card tier-${tier.idx}">
+                        <div class="lg-tier-ico">${tier.icon}</div>
+                        <div>
+                            <div class="lg-tier-sub">Лига ${tier.idx}</div>
+                            <div class="lg-tier-name">${tier.name}</div>
+                        </div>
+                     </div>
+                     <button class="lg-arrow" id="lgNext" ${atBottom ? 'disabled' : ''} aria-label="Ниже лигой">›</button>`;
 
-                const pool = this.getLeaderPool().filter(p => p.tier === this._leadersTier);
+                const prev = document.getElementById('lgPrev');
+                const next = document.getElementById('lgNext');
+                if (prev && !atTop)    this.tap(prev, () => { this._leadersTier = tier.idx - 1; this.renderLeaders(); });
+                if (next && !atBottom) this.tap(next, () => { this._leadersTier = tier.idx + 1; this.renderLeaders(); });
+
+                const pool = this.getLeaderPool().filter(p => p.tier === tier.idx);
                 const myLeague = this.getLeague().idx;
                 const myCities = this.getMyCityCount();
                 const rows = pool.slice();
-                if (this._leadersTier === myLeague) {
+                if (tier.idx === myLeague) {
                     rows.push({ id: 'me', name: 'Вы', tier: myLeague, cities: myCities, isMe: true });
                 }
                 rows.sort((a, b) => b.cities - a.cities || a.name.localeCompare(b.name));
 
                 if (rows.length === 0) {
-                    feed.innerHTML = `<div class="news-empty">В этой лиге пока никого нет.</div>`;
+                    feed.innerHTML = `<div class="lb-empty">В этой лиге пока никого нет.</div>`;
                     return;
                 }
+                const max = Math.max(1, rows[0].cities);
                 feed.innerHTML = rows.map((p, i) => {
                     const rank = i + 1;
-                    const cls = ['lb-row', 'rank-' + Math.min(rank, 99), p.isMe ? 'me' : ''].join(' ').trim();
-                    const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '#' + rank;
+                    const cls = ['lb-row', p.isMe ? 'me' : ''].join(' ').trim();
+                    const rankCell = rank <= 3
+                        ? `<span class="lb-medal">${rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉'}</span>`
+                        : `#${rank}`;
+                    const pct = Math.max(4, Math.round((p.cities / max) * 100));
+                    const youTag = p.isMe ? '<span class="lb-you-tag">Вы</span>' : '';
                     return `<div class="${cls}">
-                        <div class="lb-rank">${medal}</div>
-                        <div class="lb-name">${p.name}</div>
+                        <div class="lb-rank">${rankCell}</div>
+                        <div class="lb-name-wrap">
+                            <div class="lb-name">${p.name}${youTag}</div>
+                            <div class="lb-bar"><div class="lb-bar-fill" style="width:${pct}%"></div></div>
+                        </div>
                         <div class="lb-cities"><span class="lb-cities-ico">📍</span>${p.cities}</div>
                     </div>`;
                 }).join('');
