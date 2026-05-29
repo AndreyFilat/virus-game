@@ -5101,6 +5101,22 @@
         body.theme-virus.faction-resist .home-virus.tapped {
             animation: home-virus-pulse 0.36s ease-out;
         }
+        /* Bare-character home sprites: virus theme renders the character on
+           its own (no button casing), so let it occupy more of the screen.
+           Antibody side renders ~20% smaller than virus side. */
+        body.theme-virus .home-virus {
+            width: 92%;
+            max-width: 460px;
+        }
+        body.theme-virus.faction-resist .home-virus {
+            max-width: 368px;
+        }
+        /* The default rule freezes the idle bob once .tutorial-done is set
+           (after РКН picks a faction). For the virus theme we want the
+           idle breathing to keep going forever. */
+        body.theme-virus .home-virus.tutorial-done:not(.tapped) {
+            animation: home-virus-breathe 6s ease-in-out infinite;
+        }
         .home-node-svg {
             display: block;
             width: 100%;
@@ -9819,10 +9835,13 @@
                 else if (this.faction === 'rkn' && chars.rkn) cfg = chars.rkn;
                 else cfg = chars.rkn || { defaultSrc: 'assets/virus.png' };
                 const src = cfg.defaultSrc;
+                // Overflow the viewBox so the sprite body fills the visible
+                // container — virus.png / antibody_blue.png both carry a lot
+                // of transparent padding that `meet` would otherwise show.
                 return `<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="${cls}">
                     <image class="cb-char cb-char-default" href="${src}"
-                           x="0" y="0" width="220" height="220"
-                           preserveAspectRatio="xMidYMid meet"
+                           x="-30" y="-30" width="280" height="280"
+                           preserveAspectRatio="xMidYMid slice"
                            onerror="this.style.display='none'"/>
                 </svg>`;
             }
