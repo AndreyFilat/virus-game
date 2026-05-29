@@ -478,6 +478,14 @@
             -webkit-user-select: none;
             pointer-events: none;
         }
+        /* The virus loading screen is laid out for the full viewport — no
+           scale crop, just object-fit: cover. */
+        html.theme-virus .loading-image,
+        body.theme-virus .loading-image {
+            transform: none;
+            object-fit: cover;
+            object-position: center center;
+        }
 
         /* DNA Bubbles */
         .dna-bubbles {
