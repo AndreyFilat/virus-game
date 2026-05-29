@@ -5091,6 +5091,13 @@
             opacity: 0.8;
             mix-blend-mode: screen;
         }
+        /* Hide the РКН-era drifting halos and any floating bubbles around
+           the home tap target — the virus theme keeps the area clean. */
+        body.theme-virus .start-screen .cell-bg,
+        body.theme-virus .start-screen .dna-bubbles,
+        body.theme-virus .start-screen .dna-bubble {
+            display: none !important;
+        }
         body.theme-virus.faction-resist .home-virus {
             filter: drop-shadow(0 14px 36px rgba(0, 0, 0, 0.7))
                     drop-shadow(0 0 28px rgba(74, 222, 128, 0.55));
