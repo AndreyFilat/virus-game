@@ -1760,6 +1760,164 @@
         .map-zoom-btn:active { transform: scale(0.93); }
         .map-zoom-btn.map-zoom-reset { font-size: 15px; }
 
+        /* Floating News entry on the world map — bottom-left of the globe. */
+        .map-news-btn {
+            position: absolute;
+            left: 12px;
+            bottom: 96px;
+            z-index: 60;
+            width: 48px;
+            height: 48px;
+            padding: 6px;
+            border-radius: 14px;
+            border: 1.5px solid rgba(251, 191, 36, 0.5);
+            background: linear-gradient(170deg, rgba(45, 58, 80, 0.95), rgba(20, 28, 42, 0.95));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            box-shadow:
+                0 6px 16px rgba(0, 0, 0, 0.45),
+                0 0 14px rgba(251, 191, 36, 0.18),
+                inset 0 1px 0 rgba(255, 255, 255, 0.12),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.35);
+            transition: transform 0.15s ease, box-shadow 0.2s;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .world-map-screen.active .map-news-btn {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .map-news-btn:active { transform: scale(0.93); }
+        .map-news-btn svg { width: 100%; height: 100%; display: block; }
+
+        /* Universal X-close button used on full-screen sheets (news, etc.) */
+        .screen-close-btn {
+            position: absolute;
+            top: calc(env(safe-area-inset-top, 0px) + 12px);
+            right: 14px;
+            z-index: 50;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(20, 24, 36, 0.85);
+            color: #e2e8f0;
+            font-size: 22px;
+            font-weight: 800;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .screen-close-btn:active { transform: scale(0.92); }
+
+        /* Leaders screen — leaderboard list with a league filter row. */
+        .leaders-screen {
+            padding: calc(env(safe-area-inset-top, 0px) + 70px) 18px 96px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .leaders-title {
+            font-family: 'Nunito', sans-serif;
+            font-weight: 900;
+            font-size: 26px;
+            text-align: center;
+            color: #f8fafc;
+            margin: 0 0 12px;
+            letter-spacing: 0.5px;
+        }
+        .leaders-leagues {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding: 0 2px 10px;
+            margin: 0 -2px 14px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        .leaders-leagues::-webkit-scrollbar { display: none; }
+        .lg-chip {
+            flex: 0 0 auto;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 13px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            background: rgba(20, 24, 36, 0.72);
+            color: #cbd5e1;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            white-space: nowrap;
+            transition: transform 0.14s, background 0.18s, color 0.18s;
+        }
+        .lg-chip .lg-chip-ico { font-size: 14px; }
+        .lg-chip.active {
+            background: linear-gradient(170deg, #a855f7, #6d28d9);
+            border-color: rgba(221, 214, 254, 0.5);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(168, 85, 247, 0.35);
+        }
+        .lg-chip:active { transform: scale(0.96); }
+
+        .leaders-feed {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .lb-row {
+            display: grid;
+            grid-template-columns: 36px 1fr auto;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: linear-gradient(170deg, rgba(28, 36, 52, 0.85), rgba(18, 22, 32, 0.85));
+            color: #e2e8f0;
+        }
+        .lb-row.me {
+            border-color: rgba(74, 222, 128, 0.55);
+            background: linear-gradient(170deg, rgba(34, 84, 56, 0.88), rgba(16, 36, 26, 0.88));
+            box-shadow: 0 4px 14px rgba(74, 222, 128, 0.25);
+        }
+        .lb-rank {
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            font-size: 16px;
+            color: #cbd5e1;
+            text-align: center;
+        }
+        .lb-row.rank-1 .lb-rank { color: #fbbf24; }
+        .lb-row.rank-2 .lb-rank { color: #cbd5e1; }
+        .lb-row.rank-3 .lb-rank { color: #f59e0b; }
+        .lb-name {
+            font-family: 'Nunito', sans-serif;
+            font-weight: 700;
+            font-size: 15px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .lb-cities {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            font-size: 14px;
+            color: #fef3c7;
+        }
+        .lb-cities-ico { font-size: 14px; }
+
         .continent-zone {
             fill: transparent;
             stroke: transparent;
@@ -5825,6 +5983,26 @@
             <!-- DNA helix shown during placement flow -->
             <div class="map-helix-slot" id="mapHelixSlot"></div>
             <div class="virus-created-label" id="virusCreatedLabel">Узел установлен</div>
+
+            <!-- Floating News entry — sits bottom-left of the globe. -->
+            <button class="map-news-btn" id="mapNewsBtn" aria-label="Новости">
+                <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <defs>
+                        <linearGradient id="mnbPaper" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#fefce8"/>
+                            <stop offset="100%" stop-color="#a16207"/>
+                        </linearGradient>
+                    </defs>
+                    <rect x="6.5" y="4" width="20" height="24" rx="1.6" fill="url(#mnbPaper)" stroke="#78350f" stroke-width="1"/>
+                    <rect x="8.5" y="6.2" width="16" height="3.6" fill="#78350f" rx="0.5"/>
+                    <line x1="9" y1="12.4" x2="17.5" y2="12.4" stroke="#78350f" stroke-width="0.8" stroke-linecap="round"/>
+                    <line x1="9" y1="14.4" x2="19.5" y2="14.4" stroke="#78350f" stroke-width="0.8" stroke-linecap="round"/>
+                    <line x1="9" y1="16.4" x2="16.5" y2="16.4" stroke="#78350f" stroke-width="0.8" stroke-linecap="round"/>
+                    <line x1="9" y1="20"   x2="23"   y2="20"   stroke="#78350f" stroke-width="0.6" stroke-linecap="round" opacity="0.7"/>
+                    <line x1="9" y1="22"   x2="21"   y2="22"   stroke="#78350f" stroke-width="0.6" stroke-linecap="round" opacity="0.7"/>
+                    <line x1="9" y1="24"   x2="22"   y2="24"   stroke="#78350f" stroke-width="0.6" stroke-linecap="round" opacity="0.7"/>
+                </svg>
+            </button>
         </div>
 
         <!-- Map Screen -->
@@ -5893,10 +6071,18 @@
 
         <!-- News Screen -->
         <div class="screen news-screen" id="newsScreen">
+            <button class="screen-close-btn" id="newsCloseBtn" aria-label="Закрыть">×</button>
             <h2 class="news-screen-title">Сводки из сети</h2>
             <div class="news-feed" id="newsFeed">
                 <div class="news-empty">Захватите хотя бы один регион, чтобы получать сводки.</div>
             </div>
+        </div>
+
+        <!-- Leaders screen — leaderboard of players in your faction. -->
+        <div class="screen leaders-screen" id="leadersScreen">
+            <h2 class="leaders-title">Лидеры</h2>
+            <div class="leaders-leagues" id="leadersLeagues"></div>
+            <div class="leaders-feed" id="leadersFeed"></div>
         </div>
 
         <!-- Base Screen -->
@@ -5980,6 +6166,34 @@
                 </span>
                 <span>Карта</span>
             </button>
+            <button class="nav-btn" data-screen="leadersScreen" id="navLeaders">
+                <span class="nav-icon">
+                    <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <defs>
+                            <linearGradient id="navLeadGold" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stop-color="#fde68a"/>
+                                <stop offset="55%" stop-color="#f59e0b"/>
+                                <stop offset="100%" stop-color="#92400e"/>
+                            </linearGradient>
+                            <linearGradient id="navLeadSilver" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stop-color="#f1f5f9"/>
+                                <stop offset="100%" stop-color="#475569"/>
+                            </linearGradient>
+                            <linearGradient id="navLeadBronze" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stop-color="#fcd34d"/>
+                                <stop offset="100%" stop-color="#7c2d12"/>
+                            </linearGradient>
+                        </defs>
+                        <rect x="9"  y="16" width="6"  height="11" fill="url(#navLeadSilver)" stroke="#1f2937" stroke-width="0.7"/>
+                        <rect x="15" y="11" width="6"  height="16" fill="url(#navLeadGold)"   stroke="#7c2d12" stroke-width="0.8"/>
+                        <rect x="21" y="19" width="6"  height="8"  fill="url(#navLeadBronze)" stroke="#7c2d12" stroke-width="0.7"/>
+                        <path d="M18 5 L19 8 L22 8 L19.5 10 L20.5 13 L18 11 L15.5 13 L16.5 10 L14 8 L17 8 Z"
+                              fill="#fde68a" stroke="#7c2d12" stroke-width="0.6" stroke-linejoin="round"/>
+                        <line x1="6" y1="27" x2="29" y2="27" stroke="#0f172a" stroke-width="1"/>
+                    </svg>
+                </span>
+                <span>Лидеры</span>
+            </button>
             <button class="nav-btn active" data-screen="startScreen" id="navHome">
                 <span class="nav-icon">
                     <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -6012,35 +6226,6 @@
                     </svg>
                 </span>
                 <span>Дом</span>
-            </button>
-            <button class="nav-btn" data-screen="newsScreen" id="navNews">
-                <span class="nav-icon">
-                    <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                        <defs>
-                            <linearGradient id="navPaper" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" stop-color="#fefce8"/>
-                                <stop offset="100%" stop-color="#a16207"/>
-                            </linearGradient>
-                            <linearGradient id="navPaperBack" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" stop-color="#e5e7eb"/>
-                                <stop offset="100%" stop-color="#4b5563"/>
-                            </linearGradient>
-                        </defs>
-                        <rect x="3.5" y="6" width="22" height="22" rx="1.2" fill="url(#navPaperBack)" stroke="#374151" stroke-width="0.6"/>
-                        <rect x="6.5" y="4" width="22" height="22" rx="1.2" fill="url(#navPaper)" stroke="#78350f" stroke-width="0.8"/>
-                        <rect x="8.5" y="6.2" width="18" height="3.6" fill="#78350f" rx="0.5"/>
-                        <line x1="9" y1="12.4" x2="17.5" y2="12.4" stroke="#78350f" stroke-width="0.7" stroke-linecap="round"/>
-                        <line x1="9" y1="14.4" x2="19.5" y2="14.4" stroke="#78350f" stroke-width="0.7" stroke-linecap="round"/>
-                        <line x1="9" y1="16.4" x2="16.5" y2="16.4" stroke="#78350f" stroke-width="0.7" stroke-linecap="round"/>
-                        <rect x="18.5" y="12" width="7.5" height="5" fill="#16a34a" stroke="#14532d" stroke-width="0.6" rx="0.4"/>
-                        <circle cx="21.5" cy="14.5" r="1" fill="#fef08a"/>
-                        <line x1="9" y1="19.2" x2="25.5" y2="19.2" stroke="#78350f" stroke-width="0.55" stroke-linecap="round" opacity="0.65"/>
-                        <line x1="9" y1="21.2" x2="23.5" y2="21.2" stroke="#78350f" stroke-width="0.55" stroke-linecap="round" opacity="0.65"/>
-                        <line x1="9" y1="23.2" x2="24.5" y2="23.2" stroke="#78350f" stroke-width="0.55" stroke-linecap="round" opacity="0.65"/>
-                    </svg>
-                </span>
-                <span>Новости</span>
-                <span class="nav-badge" hidden>0</span>
             </button>
             <button class="nav-btn" data-screen="evolutionScreen" id="navVirus">
                 <span class="nav-icon">
@@ -10178,6 +10363,13 @@
                 const backBtn = document.getElementById('backToMap');
                 if (backBtn) this.tap(backBtn, () => this.switchScreen('worldMapScreen'));
 
+                // Floating News entry on the map screen.
+                const mapNewsBtn = document.getElementById('mapNewsBtn');
+                if (mapNewsBtn) this.tap(mapNewsBtn, () => this.switchScreen('newsScreen'));
+                // Close-X on full-screen news sheet → back to map.
+                const newsClose = document.getElementById('newsCloseBtn');
+                if (newsClose) this.tap(newsClose, () => this.switchScreen('worldMapScreen'));
+
                 // Continent zones
                 document.querySelectorAll('.continent-zone').forEach(zone => {
                     this.tap(zone, () => {
@@ -10260,6 +10452,9 @@
                 if (id === 'newsScreen') {
                     this.updateNewsBadge();
                     this.renderNewsFeed();
+                }
+                if (id === 'leadersScreen') {
+                    this.renderLeaders();
                 }
                 if (id === 'worldMapScreen') {
                     this.renderCities();
@@ -12010,9 +12205,112 @@
             }
 
             updateNewsBadge() {
-                // Daily news no longer has an unread counter — keep the badge hidden.
-                const badge = document.querySelector('#navNews .nav-badge');
-                if (badge) badge.hidden = true;
+                // News no longer lives in the bottom nav. Keep this stub for
+                // any legacy callers (it's now a no-op).
+            }
+
+            // ---- Leaderboard --------------------------------------------
+            // Stable pool of fake players (seeded by faction so the list
+            // doesn't reshuffle across reloads). Each player has a name,
+            // a league tier (1..5) and a city-control count.
+            getLeaderPool() {
+                if (this._leaderPool) return this._leaderPool;
+                const names = [
+                    'Антон','Маша','Полина','Артём','Дима','Соня','Лена','Олег',
+                    'Юля','Кирилл','Настя','Игорь','Вова','Лиза','Саша','Никита',
+                    'Алина','Макс','Катя','Денис','Аня','Гриша','Карина','Слава',
+                    'Таня','Боря','Жанна','Витя','Рома','Степа','Илья','Стас',
+                    'Лёша','Юра','Глеб','Тимур','Лиля','Дина','Костя','Влад',
+                    'Марина','Павел','Серёжа','Лора','Лев','Мира','Тоша','Зоя',
+                    'Гера','Ева','Олеся','Ника','Кира','Феликс','Эля','Тёма'
+                ];
+                // Seed from the faction string so each faction gets its own
+                // stable order.
+                let seed = 1;
+                const fkey = (this.faction || 'rkn') + (this.themeKey || 'rkn');
+                for (let i = 0; i < fkey.length; i++) seed = (seed * 31 + fkey.charCodeAt(i)) >>> 0;
+                const rng = () => {
+                    seed = (seed * 1664525 + 1013904223) >>> 0;
+                    return seed / 0xffffffff;
+                };
+                // Counts per tier: roughly mirrors what the player would have
+                // when they reach that league.
+                const tierRanges = {
+                    1: [22, 60],
+                    2: [12, 28],
+                    3: [6,  16],
+                    4: [3,  9],
+                    5: [0,  4]
+                };
+                const tierWeights = [0, 0.06, 0.14, 0.22, 0.28, 0.30]; // idx 1..5
+                const pool = names.map((n, i) => {
+                    // Pick a tier by weighted draw.
+                    const r = rng();
+                    let acc = 0, tier = 5;
+                    for (let t = 1; t <= 5; t++) {
+                        acc += tierWeights[t];
+                        if (r <= acc) { tier = t; break; }
+                    }
+                    const [lo, hi] = tierRanges[tier];
+                    const count = Math.round(lo + rng() * (hi - lo));
+                    return { id: 'bot-' + i, name: n, tier, cities: count };
+                });
+                this._leaderPool = pool;
+                return pool;
+            }
+
+            getMyCityCount() {
+                return Object.keys(this.cityState || {}).filter(i => this.cityState[i].mine).length;
+            }
+
+            renderLeaders() {
+                const leagues = document.getElementById('leadersLeagues');
+                const feed    = document.getElementById('leadersFeed');
+                if (!leagues || !feed) return;
+                const tiers = [
+                    { idx: 1, name: 'Магистр',     icon: '💎' },
+                    { idx: 2, name: 'Командир',    icon: '🏆' },
+                    { idx: 3, name: 'Координатор', icon: '🎯' },
+                    { idx: 4, name: 'Оперативник', icon: '🕶️' },
+                    { idx: 5, name: 'Стажёр',      icon: '🌱' }
+                ];
+                if (this._leadersTier == null) this._leadersTier = this.getLeague().idx;
+
+                leagues.innerHTML = tiers.map(t =>
+                    `<button class="lg-chip ${this._leadersTier === t.idx ? 'active' : ''}" data-tier="${t.idx}">
+                        <span class="lg-chip-ico">${t.icon}</span>${t.name}
+                    </button>`
+                ).join('');
+                leagues.querySelectorAll('.lg-chip').forEach(chip => {
+                    this.tap(chip, () => {
+                        this._leadersTier = parseInt(chip.dataset.tier, 10);
+                        this.renderLeaders();
+                    });
+                });
+
+                const pool = this.getLeaderPool().filter(p => p.tier === this._leadersTier);
+                const myLeague = this.getLeague().idx;
+                const myCities = this.getMyCityCount();
+                const rows = pool.slice();
+                if (this._leadersTier === myLeague) {
+                    rows.push({ id: 'me', name: 'Вы', tier: myLeague, cities: myCities, isMe: true });
+                }
+                rows.sort((a, b) => b.cities - a.cities || a.name.localeCompare(b.name));
+
+                if (rows.length === 0) {
+                    feed.innerHTML = `<div class="news-empty">В этой лиге пока никого нет.</div>`;
+                    return;
+                }
+                feed.innerHTML = rows.map((p, i) => {
+                    const rank = i + 1;
+                    const cls = ['lb-row', 'rank-' + Math.min(rank, 99), p.isMe ? 'me' : ''].join(' ').trim();
+                    const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '#' + rank;
+                    return `<div class="${cls}">
+                        <div class="lb-rank">${medal}</div>
+                        <div class="lb-name">${p.name}</div>
+                        <div class="lb-cities"><span class="lb-cities-ico">📍</span>${p.cities}</div>
+                    </div>`;
+                }).join('');
             }
 
             // ---- Passive DNA income --------------------------------------
