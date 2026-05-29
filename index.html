@@ -7813,6 +7813,10 @@
                             resist: { name: 'Свобода', desc: 'Растяни сеть обхода. Прокопай туннели.' }
                         },
                         factionShort: { rkn: 'РКН', resist: 'ВПН' },
+                        factionCharacters: {
+                            rkn:    { defaultSrc: 'assets/rkn_friendly.png', tappedSrc: 'assets/rkn_angry.png' },
+                            resist: null
+                        },
                         roomNames: {
                             income:   { rkn: 'ТСПУ',                vpn: 'Серверная ферма' },
                             research: { rkn: 'DPI-лаборатория',     vpn: 'Лаборатория протоколов' },
@@ -7854,6 +7858,27 @@
                             resist: { name: 'Антивирус', desc: 'Сканируй сеть. Очищай заражённые узлы.' }
                         },
                         factionShort: { rkn: 'Вирус', resist: 'АВ' },
+                        factionCharacters: {
+                            rkn:    { defaultSrc: 'assets/virus.png',         tappedSrc: 'assets/virus.png' },
+                            resist: { defaultSrc: 'assets/antibody_blue.png', tappedSrc: 'assets/antibody_blue.png' }
+                        },
+                        factionPaletteOverride: {
+                            // Virus side — green casing instead of red РКН.
+                            rkn: {
+                                halo: '34, 197, 94',
+                                border:  '#0a2a16',
+                                rimDark: '#166534',
+                                rimMid:  '#22c55e',
+                                rimLite: '#bbf7d0',
+                                faceTop: '#dcfce7',
+                                faceMid: '#22c55e',
+                                faceBot: '#15803d',
+                                sparkle: '#fde047',
+                                innerRim:'rgba(187,247,208,0.85)',
+                                glow:    'rgba(74,222,128,0.6)'
+                            }
+                            // resist keeps the default blue palette.
+                        },
                         roomNames: {
                             income:   { rkn: 'Питательная среда', vpn: 'Серверы AV' },
                             research: { rkn: 'Лаборатория мутаций', vpn: 'Анализ сигнатур' },
@@ -9702,18 +9727,15 @@
                 const cls = variant === 'compact' ? 'virus-art' : 'home-node-svg';
                 let label, palette, characters = null;
                 const t = this.theme();
+                const chars = t && t.factionCharacters;
                 if (this.faction === 'resist') {
                     label = (t && t.tapLabel && t.tapLabel.resist) || 'VPN';
                     palette = this.factionPalette('resist');
+                    if (chars && chars.resist) characters = chars.resist;
                 } else if (this.faction === 'rkn') {
                     label = (t && t.tapLabel && t.tapLabel.rkn) || 'БЛОК!';
                     palette = this.factionPalette('rkn');
-                    // Friendly portrait by default, angry portrait while
-                    // the button is in its .tapped state.
-                    characters = {
-                        defaultSrc: 'assets/rkn_friendly.png',
-                        tappedSrc:  'assets/rkn_angry.png'
-                    };
+                    if (chars && chars.rkn) characters = chars.rkn;
                 } else {
                     // No faction yet — neutral tutorial button.
                     label = 'ТАП';
@@ -9725,6 +9747,9 @@
             // Home button palette: red for РКН, blue for ВПН (Свобода),
             // and a neutral green for the pre-faction tutorial state.
             factionPalette(faction) {
+                const t = this.theme();
+                const override = t && t.factionPaletteOverride && t.factionPaletteOverride[faction];
+                if (override) return override;
                 if (faction === 'rkn') {
                     return {
                         halo: '220, 38, 38',
