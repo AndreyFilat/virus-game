@@ -2395,12 +2395,12 @@
         html.theme-virus .faction-card .faction-char-rkn,
         body.theme-virus .faction-card .faction-char-rkn {
             background-image: url('assets/virus.png');
-            background-size: 170% auto;
+            background-size: 220% auto;
         }
         html.theme-virus .faction-card .faction-char-resist,
         body.theme-virus .faction-card .faction-char-resist {
             background-image: url('assets/antibody_blue.png');
-            background-size: 108% auto;
+            background-size: 92% auto;
         }
         /* Position the background to crop one character per card. */
         .faction-card .faction-char-rkn    { background-position: 19% 30%; }
@@ -7821,6 +7821,7 @@
                             rkn:    { defaultSrc: 'assets/rkn_friendly.png', tappedSrc: 'assets/rkn_angry.png' },
                             resist: null
                         },
+                        resourceNoun: { genitive: 'Пакетов', short: 'пак' },
                         roomNames: {
                             income:   { rkn: 'ТСПУ',                vpn: 'Серверная ферма' },
                             research: { rkn: 'DPI-лаборатория',     vpn: 'Лаборатория протоколов' },
@@ -7854,8 +7855,8 @@
                         loadingImage: 'assets/loading_virus.png',
                         resourceIcon: '🧬',
                         tapLabel:    { rkn: 'ЗАРАЗА!',  resist: 'СКАН!' },
-                        captureVerb: { rkn: 'Заразить', resist: 'Излечить' },
-                        captureToast:{ rkn: 'Город заражён', resist: 'Город излечён' },
+                        captureVerb: { rkn: 'Заразить', resist: 'Привить' },
+                        captureToast:{ rkn: 'Город заражён', resist: 'Город привит' },
                         captureIcon: { rkn: '🦠', resist: '💊' },
                         factionPicker: {
                             rkn:    { name: 'Вирус',     desc: 'Заражай клетки. Распространяй штамм.' },
@@ -7863,20 +7864,24 @@
                         },
                         factionShort: { rkn: 'Вирус', resist: 'АВ' },
                         factionCharacters: {
-                            // Square-ish sprites with transparent padding — fit
-                            // them fully inside the button face and centre.
+                            // Virus sprite has lots of transparent padding —
+                            // use `slice` over a big rect to zoom past it and
+                            // fill the button face.
                             rkn:    { defaultSrc: 'assets/virus.png',
                                       tappedSrc:  'assets/virus.png',
-                                      rect: { x: 24, y: 24, width: 172, height: 172 },
-                                      preserveAspectRatio: 'xMidYMid meet' },
+                                      rect: { x: 8, y: 8, width: 204, height: 204 },
+                                      preserveAspectRatio: 'xMidYMid slice' },
+                            // Antibody sprite is tight — fit it fully inside a
+                            // smaller rect so it doesn't dominate the button.
                             resist: { defaultSrc: 'assets/antibody_blue.png',
                                       tappedSrc:  'assets/antibody_blue.png',
-                                      rect: { x: 30, y: 30, width: 160, height: 160 },
+                                      rect: { x: 50, y: 50, width: 120, height: 120 },
                                       preserveAspectRatio: 'xMidYMid meet' }
                         },
                         factionPaletteOverride: {
-                            // Virus side — green casing instead of red РКН.
-                            rkn: {
+                            // Antivirus side — green casing (a "medicine" green)
+                            // instead of the default blue resist palette.
+                            resist: {
                                 halo: '34, 197, 94',
                                 border:  '#0a2a16',
                                 rimDark: '#166534',
@@ -7889,15 +7894,23 @@
                                 innerRim:'rgba(187,247,208,0.85)',
                                 glow:    'rgba(74,222,128,0.6)'
                             }
-                            // resist keeps the default blue palette.
+                            // rkn (virus) keeps the default red palette.
                         },
+                        resourceNoun: { genitive: 'ДНК', short: 'ДНК' },
                         roomNames: {
-                            income:   { rkn: 'Питательная среда', vpn: 'Серверы AV' },
-                            research: { rkn: 'Лаборатория мутаций', vpn: 'Анализ сигнатур' },
-                            attack:   { rkn: 'Штамм атаки',       vpn: 'Сканер' },
-                            contrib:  { rkn: 'Колонизация',       vpn: 'Антитела' },
-                            defense:  { rkn: 'Капсид',            vpn: 'Брандмауэр' },
-                            hp:       { rkn: 'Размножение',       vpn: 'Иммунитет' }
+                            income:   { rkn: 'Питательная среда',  vpn: 'Лаборатория антител' },
+                            research: { rkn: 'Лаборатория мутаций', vpn: 'Анализ образцов' },
+                            attack:   { rkn: 'Штамм атаки',         vpn: 'Сканер' },
+                            contrib:  { rkn: 'Колонизация',         vpn: 'Антитела' },
+                            defense:  { rkn: 'Капсид',              vpn: 'Иммунный барьер' },
+                            hp:       { rkn: 'Размножение',         vpn: 'Иммунитет' }
+                        },
+                        roomIcons: {
+                            income: '🧫', research: '🧪', attack: '🦠',
+                            contrib: '⚡', defense: '🧬', hp: '❤️'
+                        },
+                        roomDescs: {
+                            income: 'Базовый доход ДНК/сек'
                         },
                         techBranchNames: {
                             rkn:    { block: 'Заражение',  watch: 'Скрытность', reg:   'Стойкость' },
@@ -8348,7 +8361,7 @@
                 if (!this.isTechAvailable(branchId, i)) return;
                 const cost = this.techCost[i];
                 if (this.dnaPoints < cost) {
-                    this.showToast('Не хватает Пакетов', `Нужно ${cost}`, 'above-map', '🚫');
+                    this.showToast(`Не хватает ${this.resourceNounGenitive()}`, `Нужно ${cost}`, 'above-map', '🚫');
                     return;
                 }
                 this.dnaPoints -= cost;
@@ -8616,6 +8629,17 @@
                         if (def && nm) { def.rkn = nm.rkn; def.vpn = nm.vpn; }
                     });
                 }
+                // Optional per-theme room icon / description overrides.
+                if (t.roomIcons && this.roomDefs) {
+                    Object.keys(t.roomIcons).forEach(id => {
+                        if (this.roomDefs[id]) this.roomDefs[id].icon = t.roomIcons[id];
+                    });
+                }
+                if (t.roomDescs && this.roomDefs) {
+                    Object.keys(t.roomDescs).forEach(id => {
+                        if (this.roomDefs[id]) this.roomDefs[id].desc = t.roomDescs[id];
+                    });
+                }
                 // Override tech branch names + node labels per faction.
                 ['rkn','resist'].forEach(f => {
                     const arr = this.techTreeDefs && this.techTreeDefs[f];
@@ -8650,6 +8674,17 @@
             resourceIcon() {
                 const t = this.theme();
                 return (t && t.resourceIcon) || '📦';
+            }
+            // Genitive form of the resource noun ("Пакетов" / "ДНК") used in
+            // phrases like "Не хватает Пакетов" / "доход Пакетов".
+            resourceNounGenitive() {
+                const t = this.theme();
+                return (t && t.resourceNoun && t.resourceNoun.genitive) || 'Пакетов';
+            }
+            // Short rate-suffix form ("пак" / "ДНК") used in stat readouts.
+            resourceNounShort() {
+                const t = this.theme();
+                return (t && t.resourceNoun && t.resourceNoun.short) || 'пак';
             }
             factionShortName(side) {
                 const t = this.theme();
@@ -11762,7 +11797,7 @@
                     lethality_mult:    'разрушение',
                     severity_mult:     'давление',
                     spread_speed_mult: 'скорость роста',
-                    income_mult:       'доход Пакетов',
+                    income_mult:       `доход ${this.resourceNounGenitive()}`,
                     upgrade_cost_mult: 'стоимость улучш.'
                 };
                 return `${sign}${pct}% ${labels[buff.type] || buff.type}`;
@@ -11892,7 +11927,7 @@
                 if (!room || room.unlocked) return;
                 const cost = this.roomUnlockCost(id);
                 if (this.dnaPoints < cost) {
-                    this.showToast('Не хватает Пакетов', `Нужно ${cost}`, 'above-map', '🚫');
+                    this.showToast(`Не хватает ${this.resourceNounGenitive()}`, `Нужно ${cost}`, 'above-map', '🚫');
                     return;
                 }
                 this.dnaPoints -= cost;
@@ -11913,7 +11948,7 @@
             roomEffectText(id, levelOverride) {
                 const lvl = (levelOverride !== undefined) ? levelOverride : this.rooms[id].level;
                 switch (id) {
-                    case 'income':   return `+${(lvl * 0.5).toFixed(1)} пак/сек`;
+                    case 'income':   return `+${(lvl * 0.5).toFixed(1)} ${this.resourceNounShort()}/сек`;
                     case 'research': return `−${Math.min(60, lvl * 0.6).toFixed(0)}% времени`;
                     case 'attack':   return `ATK ${30 + lvl * 8}`;
                     case 'contrib':  return `+${(lvl * 5)}%/ч энергии, лимит +${Math.floor(lvl / 10)}`;
@@ -12059,7 +12094,7 @@
                 if (room.level >= this.MAX_ROOM_LEVEL) return;
                 const cost = this.roomCost(id);
                 if (this.dnaPoints < cost) {
-                    this.showToast('Не хватает Пакетов', `Нужно ${cost}`, 'above-map', '🚫');
+                    this.showToast(`Не хватает ${this.resourceNounGenitive()}`, `Нужно ${cost}`, 'above-map', '🚫');
                     return;
                 }
                 this.dnaPoints -= cost;
