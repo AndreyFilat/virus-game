@@ -430,6 +430,24 @@
             opacity: 0.65;
         }
         .debug-reset:active { background: #b91c1c; transform: scale(0.94); }
+        .theme-switch {
+            position: fixed;
+            top: calc(env(safe-area-inset-top, 0px) + 8px);
+            left: 95px;
+            z-index: 99999;
+            padding: 4px 8px;
+            font-size: 14px;
+            color: #fff;
+            background: rgba(168, 85, 247, 0.85);
+            border: 1px solid rgba(221, 214, 254, 0.7);
+            border-radius: 6px;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(168, 85, 247, 0.35);
+            pointer-events: auto !important;
+            opacity: 0.7;
+            line-height: 1;
+        }
+        .theme-switch:active { background: #6d28d9; transform: scale(0.94); }
 
         /* ===== Loading screen ===== */
         .loading-screen {
@@ -2363,6 +2381,10 @@
                                          transparent 100%);
             filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.55));
             animation: faction-icon-bob 3.6s ease-in-out infinite;
+        }
+        html.theme-virus .faction-card .faction-char,
+        body.theme-virus .faction-card .faction-char {
+            background-image: url('assets/loading_virus.png');
         }
         /* Position the background to crop one character per card. */
         .faction-card .faction-char-rkn    { background-position: 19% 30%; }
@@ -5531,7 +5553,23 @@
         <img class="loading-image" src="assets/loading_vs.png" alt="Загрузка"
              onerror="this.style.display='none'"/>
     </div>
+    <script>
+        // Apply theme-specific loading image / resource icon as early as possible
+        // so the user sees the right visuals before the main script boots.
+        (function(){
+            try {
+                var t = localStorage.getItem('vg_theme');
+                if (t === 'virus') {
+                    document.documentElement.classList.add('theme-virus');
+                    document.body && document.body.classList.add('theme-virus');
+                    var img = document.querySelector('.loading-image');
+                    if (img) img.src = 'assets/loading_virus.png';
+                }
+            } catch (e) {}
+        })();
+    </script>
     <button id="debugResetBtn" class="debug-reset" title="Сбросить прогресс">⟲ DEBUG v14</button>
+    <button id="themeSwitchBtn" class="theme-switch" title="Сменить сеттинг">🎨</button>
 
     <!-- Post-tutorial guided tour: dim overlay, finger and tooltip
          that walk the player from the world map → Base tab → first
@@ -7745,6 +7783,87 @@
                     hp:       { rkn: 'PR-отдел',            vpn: 'Чаты пользователей',     icon: '❤️',
                                 desc: 'HP — резерв прочности', stat: 'hp' }
                 };
+
+                // ===== Two interchangeable settings ("themes"). The PvP
+                // mechanics + globe stay identical; only labels, images
+                // and copy switch. The DEBUG-area 🎨 toggle rotates the
+                // active key in localStorage and reloads. =====
+                this.THEMES = {
+                    rkn: {
+                        loadingImage: 'assets/loading_vs.png',
+                        resourceIcon: '📦',
+                        tapLabel:    { rkn: 'БЛОК!',         resist: 'VPN' },
+                        captureVerb: { rkn: 'Заблокировать', resist: 'Разблокировать' },
+                        captureToast:{ rkn: 'Город заблокирован', resist: 'Город разблокирован' },
+                        captureIcon: { rkn: '🔒', resist: '🔓' },
+                        roomNames: {
+                            income:   { rkn: 'ТСПУ',                vpn: 'Серверная ферма' },
+                            research: { rkn: 'DPI-лаборатория',     vpn: 'Лаборатория протоколов' },
+                            attack:   { rkn: 'Аналитический центр', vpn: 'Маршрутизация' },
+                            contrib:  { rkn: 'Регуляторный отдел',  vpn: 'Раздача ключей' },
+                            defense:  { rkn: 'Реестр запрещённого', vpn: 'Маскировка трафика' },
+                            hp:       { rkn: 'PR-отдел',            vpn: 'Чаты пользователей' }
+                        },
+                        techBranchNames: {
+                            rkn:    { block: 'Блокировки', watch: 'Слежка',     reg:   'Регуляции' },
+                            resist: { proto: 'Протоколы',  mask:  'Маскировка', infra: 'Инфраструктура' }
+                        },
+                        techBranchIcons: {
+                            rkn:    { block: '⛔', watch: '👁️', reg:   '⚖️' },
+                            resist: { proto: '🛰️', mask:  '🎭', infra: '🗄️' }
+                        },
+                        techNodes: {
+                            rkn: {
+                                block: ['IP-фильтр', 'SNI-блок', 'DPI v2', 'QUIC-блок'],
+                                watch: ['Метаданные', 'Анти-Tor', 'Поведенческий анализ', 'AI-детекция'],
+                                reg:   ['Реестр', 'Штрафы', 'Сертификация', 'Технадзор']
+                            },
+                            resist: {
+                                proto: ['OpenVPN', 'WireGuard', 'Shadowsocks', 'V2Ray/Reality'],
+                                mask:  ['Обфускация', 'CDN-туннель', 'Domain Fronting', 'Stealth-mode'],
+                                infra: ['Резервные серверы', 'Multi-hop', 'Кластеры', 'Mesh-сеть']
+                            }
+                        }
+                    },
+                    virus: {
+                        loadingImage: 'assets/loading_virus.png',
+                        resourceIcon: '🧬',
+                        tapLabel:    { rkn: 'ЗАРАЗА!',  resist: 'СКАН!' },
+                        captureVerb: { rkn: 'Заразить', resist: 'Излечить' },
+                        captureToast:{ rkn: 'Город заражён', resist: 'Город излечён' },
+                        captureIcon: { rkn: '🦠', resist: '💊' },
+                        roomNames: {
+                            income:   { rkn: 'Питательная среда', vpn: 'Серверы AV' },
+                            research: { rkn: 'Лаборатория мутаций', vpn: 'Анализ сигнатур' },
+                            attack:   { rkn: 'Штамм атаки',       vpn: 'Сканер' },
+                            contrib:  { rkn: 'Колонизация',       vpn: 'Антитела' },
+                            defense:  { rkn: 'Капсид',            vpn: 'Брандмауэр' },
+                            hp:       { rkn: 'Размножение',       vpn: 'Иммунитет' }
+                        },
+                        techBranchNames: {
+                            rkn:    { block: 'Заражение',  watch: 'Скрытность', reg:   'Стойкость' },
+                            resist: { proto: 'Сигнатуры',  mask:  'Карантин',   infra: 'Защита' }
+                        },
+                        techBranchIcons: {
+                            rkn:    { block: '🦠', watch: '🥷', reg:   '🧪' },
+                            resist: { proto: '🛡️', mask:  '🧹', infra: '🛰️' }
+                        },
+                        techNodes: {
+                            rkn: {
+                                block: ['Адгезия', 'Проникновение', 'Мутация', 'Эпидемия'],
+                                watch: ['Маскировка', 'Латентность', 'Полиморфизм', 'Стелс-код'],
+                                reg:   ['Капсид', 'Резистентность', 'Регенерация', 'Бессмертие']
+                            },
+                            resist: {
+                                proto: ['Эвристика', 'База сигнатур', 'ML-анализ', 'Облачный AV'],
+                                mask:  ['Песочница', 'Изоляция', 'Виртуализация', 'Honeypot'],
+                                infra: ['Файрволл', 'IDS', 'SIEM', 'Zero Trust']
+                            }
+                        }
+                    }
+                };
+                this.themeKey = (localStorage.getItem('vg_theme') === 'virus') ? 'virus' : 'rkn';
+                this.applyThemeToData();
                 // Per-room runtime state. Every room starts locked; the
                 // player unlocks them instantly (a fee, no idle timer).
                 this.rooms = {};
@@ -7898,6 +8017,7 @@
             init() {
                 this.loadState();
                 this.loadFaction();
+                this.applyThemeStaticIcons();
                 this.bindEvents();
                 this.bindFactionPicker();
                 this.applyFactionTheme();
@@ -8230,7 +8350,7 @@
                             state = 'active';
                             const left = Math.max(0, this.techActive.endsAt - now);
                             sub = this.fmtDuration(left);
-                        } else if (available) { state = 'avail'; sub = `📦 ${this.techCost[i]}`; }
+                        } else if (available) { state = 'avail'; sub = `${this.resourceIcon()} ${this.techCost[i]}`; }
                         else if (this.techChainMet(br.id, i) && !this.techRoomMet(br.id, i)) {
                             // Gated by base-room level — show the required level.
                             sub = `🏠 ${this.techRoomReq[i]}`;
@@ -8320,7 +8440,7 @@
                     lvlText = `Тир ${i + 1} / 4`;
                     const cost = this.techCost[i];
                     const afford = this.dnaPoints >= cost && !this.techActive;
-                    const sub = this.techActive ? 'Лаборатория занята' : `Исследовать · 📦 ${cost} · ⏳ ${this.fmtDuration(this.techDuration(i))}`;
+                    const sub = this.techActive ? 'Лаборатория занята' : `Исследовать · ${this.resourceIcon()} ${cost} · ⏳ ${this.fmtDuration(this.techDuration(i))}`;
                     action = `<button class="rs-action" data-research ${afford ? '' : 'disabled'}>${sub}</button>`;
                 } else {
                     lvlText = `Тир ${i + 1} / 4`;
@@ -8424,12 +8544,58 @@
 
             // Faction-specific verbs / icons for the map spread button and
             // the city plate action.
+            // ===== Theme helpers =====
+            theme() { return this.THEMES[this.themeKey] || this.THEMES.rkn; }
+            applyThemeToData() {
+                const t = this.theme();
+                if (!t) return;
+                // Override room display names per faction.
+                if (t.roomNames && this.roomDefs) {
+                    Object.keys(t.roomNames).forEach(id => {
+                        const def = this.roomDefs[id];
+                        const nm = t.roomNames[id];
+                        if (def && nm) { def.rkn = nm.rkn; def.vpn = nm.vpn; }
+                    });
+                }
+                // Override tech branch names + node labels per faction.
+                ['rkn','resist'].forEach(f => {
+                    const arr = this.techTreeDefs && this.techTreeDefs[f];
+                    if (!arr) return;
+                    arr.forEach(b => {
+                        const bn = t.techBranchNames && t.techBranchNames[f] && t.techBranchNames[f][b.id];
+                        const bi = t.techBranchIcons && t.techBranchIcons[f] && t.techBranchIcons[f][b.id];
+                        const nodes = t.techNodes && t.techNodes[f] && t.techNodes[f][b.id];
+                        if (bn)   b.name = bn;
+                        if (bi)   b.icon = bi;
+                        if (nodes) b.nodes = nodes.slice();
+                    });
+                });
+            }
             factionActionLabel() {
-                return this.faction === 'resist' ? 'Разблокировать' : 'Заблокировать';
+                const t = this.theme();
+                const key = this.faction === 'resist' ? 'resist' : 'rkn';
+                return (t && t.captureVerb && t.captureVerb[key]) || (key === 'resist' ? 'Разблокировать' : 'Заблокировать');
             }
             // Label for the city-capture button on the control plate.
-            factionCaptureLabel() {
-                return this.faction === 'resist' ? 'Разблокировать' : 'Заблокировать';
+            factionCaptureLabel() { return this.factionActionLabel(); }
+            captureToastLabel() {
+                const t = this.theme();
+                const key = this.faction === 'resist' ? 'resist' : 'rkn';
+                return (t && t.captureToast && t.captureToast[key]) || (key === 'resist' ? 'Город разблокирован' : 'Город заблокирован');
+            }
+            captureToastIcon() {
+                const t = this.theme();
+                const key = this.faction === 'resist' ? 'resist' : 'rkn';
+                return (t && t.captureIcon && t.captureIcon[key]) || (key === 'resist' ? '🔓' : '🔒');
+            }
+            resourceIcon() {
+                const t = this.theme();
+                return (t && t.resourceIcon) || '📦';
+            }
+            applyThemeStaticIcons() {
+                // Swap any HTML-baked icons that aren't re-rendered by JS later.
+                const ico = this.resourceIcon();
+                document.querySelectorAll('.dna-icon').forEach(el => { el.textContent = ico; });
             }
             factionActionIcon() {
                 return this.faction === 'resist' ? '🛡️' : '🛑';
@@ -8500,7 +8666,7 @@
                     } else {
                         const affordable = this.dnaPoints >= cost;
                         disabled = !affordable;
-                        costHTML = `<div class="method-cost">📦 ${cost}</div>`;
+                        costHTML = `<div class="method-cost">${this.resourceIcon()} ${cost}</div>`;
                     }
                     if (disabled) btn.classList.add('disabled');
                     btn.innerHTML =
@@ -8570,7 +8736,7 @@
                 const cityName = city[0];
                 const arrive = () => {
                     this.infectContinent(targetId, 5, cityIdx);
-                    this.showToast(this.faction === 'resist' ? 'Город разблокирован' : 'Город заблокирован', cityName, 'above-map', this.faction === 'resist' ? '🔓' : '🔒');
+                    this.showToast(this.captureToastLabel(), cityName, 'above-map', this.captureToastIcon());
                     this.clearMapSelection();
                 };
                 if (sourceId) {
@@ -8915,8 +9081,8 @@
                 s.lastDom = mineKey;
                 this.infectContinent(c[4], 5, idx); // keep infection progression
                 this.pvpEvent({
-                    icon: this.faction === 'resist' ? '🔓' : '🔒',
-                    title: this.faction === 'resist' ? 'Город разблокирован' : 'Город заблокирован',
+                    icon: this.captureToastIcon(),
+                    title: this.captureToastLabel(),
                     sub: c[0],
                     tone: 'positive'
                 });
@@ -9492,11 +9658,12 @@
             buildFactionButton(variant) {
                 const cls = variant === 'compact' ? 'virus-art' : 'home-node-svg';
                 let label, palette, characters = null;
+                const t = this.theme();
                 if (this.faction === 'resist') {
-                    label = 'VPN';
+                    label = (t && t.tapLabel && t.tapLabel.resist) || 'VPN';
                     palette = this.factionPalette('resist');
                 } else if (this.faction === 'rkn') {
-                    label = 'БЛОК!';
+                    label = (t && t.tapLabel && t.tapLabel.rkn) || 'БЛОК!';
                     palette = this.factionPalette('rkn');
                     // Friendly portrait by default, angry portrait while
                     // the button is in its .tapped state.
@@ -9732,6 +9899,18 @@
                     };
                     debugReset.addEventListener('click', fire);
                     debugReset.addEventListener('touchend', fire, { passive: false });
+                }
+
+                const themeSwitch = document.getElementById('themeSwitchBtn');
+                if (themeSwitch) {
+                    const swap = (e) => {
+                        if (e) { e.preventDefault(); e.stopPropagation(); }
+                        const next = this.themeKey === 'virus' ? 'rkn' : 'virus';
+                        try { localStorage.setItem('vg_theme', next); } catch (err) {}
+                        location.reload();
+                    };
+                    themeSwitch.addEventListener('click', swap);
+                    themeSwitch.addEventListener('touchend', swap, { passive: false });
                 }
 
                 // Home: tap the central node image to collect Влияние
@@ -10031,7 +10210,7 @@
                 const sourceId = this.findNearestInfected(targetId);
                 const onArrive = () => {
                     this.infectContinent(targetId, 5, cityIdx);
-                    this.showToast(this.faction === 'resist' ? 'Город разблокирован' : 'Город заблокирован', cityName, 'above-map', this.faction === 'resist' ? '🔓' : '🔒');
+                    this.showToast(this.captureToastLabel(), cityName, 'above-map', this.captureToastIcon());
                     finish();
                 };
                 if (sourceId) {
@@ -11815,7 +11994,7 @@
                 const room = this.rooms[id];
                 if (!room.unlocked) {
                     const cost = this.roomUnlockCost(id);
-                    const label = cost > 0 ? `Открыть · 📦 ${cost}` : 'Открыть';
+                    const label = cost > 0 ? `Открыть · ${this.resourceIcon()} ${cost}` : 'Открыть';
                     return `<div class="room-dim">${this.buildRoomScene(id, 1)}</div>
                         <div class="room-lock">
                             <div class="lock-ico">🔒</div>
@@ -11926,7 +12105,7 @@
                     const canAfford = this.dnaPoints >= uCost;
                     lvlText = 'Закрыто';
                     statRows = `<div class="rs-stat"><span class="rs-k">При открытии</span><span class="rs-v next">${this.roomEffectText(id, 1)}</span></div>`;
-                    const label = uCost > 0 ? `Открыть · 📦 ${uCost}` : 'Открыть бесплатно';
+                    const label = uCost > 0 ? `Открыть · ${this.resourceIcon()} ${uCost}` : 'Открыть бесплатно';
                     action = `<button class="rs-action" data-unlock="${id}" ${canAfford ? '' : 'disabled'}>${label}</button>`;
                 } else {
                     lvlText = `ур. ${room.level} / ${this.MAX_ROOM_LEVEL}`;
@@ -11943,7 +12122,7 @@
                         progress = `<div class="rs-progress-wrap"><div class="rs-progress-bar" style="width:${pct.toFixed(1)}%"></div></div>`;
                         action = `<button class="rs-action busy" disabled>⏳ Идёт улучшение · ${this.fmtDuration(left)}</button>`;
                     } else {
-                        action = `<button class="rs-action" data-upgrade="${id}" ${affordable ? '' : 'disabled'}>Улучшить · 📦 ${cost}</button>`;
+                        action = `<button class="rs-action" data-upgrade="${id}" ${affordable ? '' : 'disabled'}>Улучшить · ${this.resourceIcon()} ${cost}</button>`;
                     }
                 }
 
@@ -11985,7 +12164,7 @@
                         `<div class="base-stat"><span class="bs-ico">⚔️</span>ATK <span class="bs-val">${this.getAttackPower()}</span></div>` +
                         `<div class="base-stat"><span class="bs-ico">🛡️</span>DEF <span class="bs-val">${this.getDefensePower()}</span></div>` +
                         `<div class="base-stat"><span class="bs-ico">❤️</span>HP <span class="bs-val">${this.getHP()}</span></div>` +
-                        `<div class="base-stat"><span class="bs-ico">📦</span><span class="bs-val">${this.roomIncomePerSec().toFixed(1)}</span>/сек</div>`;
+                        `<div class="base-stat"><span class="bs-ico">${this.resourceIcon()}</span><span class="bs-val">${this.roomIncomePerSec().toFixed(1)}</span>/сек</div>`;
                 }
                 // PvP league depends entirely on these stats — keep the
                 // home-screen badge in sync.
@@ -12288,9 +12467,7 @@
                 const dur = duration || 1700;
                 const toast = document.createElement('div');
                 toast.className = 'placement-toast' + (variant ? ' ' + variant : '');
-                // Default icon is a packet (📦); callers can override with a
-                // theme-specific glyph. No virus art ever shows in toasts.
-                const ico = icon || '📦';
+                const ico = icon || this.resourceIcon();
                 toast.innerHTML = `<div class="toast-icon">${ico}</div><div class="toast-title">${title}</div>${sub ? `<div class="toast-sub">${sub}</div>` : ''}`;
                 toast.style.animationDuration = dur + 'ms';
                 document.body.appendChild(toast);
