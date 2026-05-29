@@ -2400,7 +2400,7 @@
         html.theme-virus .faction-card .faction-char-resist,
         body.theme-virus .faction-card .faction-char-resist {
             background-image: url('assets/antibody_blue.png');
-            background-size: 92% auto;
+            background-size: 78% auto;
         }
         /* Position the background to crop one character per card. */
         .faction-card .faction-char-rkn    { background-position: 19% 30%; }
@@ -5065,6 +5065,33 @@
             animation: home-virus-breathe 6s ease-in-out infinite;
             will-change: transform;
             transition: filter 0.18s ease;
+        }
+        /* Virus theme home screen — subtle bio backdrop and per-faction
+           glow under the floating character. */
+        body.theme-virus .start-screen {
+            background:
+                radial-gradient(ellipse at 30% 25%, rgba(220, 38, 38, 0.20) 0%, transparent 60%),
+                radial-gradient(ellipse at 75% 80%, rgba( 34, 197, 94, 0.18) 0%, transparent 60%),
+                radial-gradient(ellipse at 50% 50%, #1a0f10 0%, #0a0e0b 55%, #04060a 100%);
+        }
+        body.theme-virus .start-screen::before {
+            background-image:
+                radial-gradient(circle at 10% 12%, rgba(220, 38, 38, 0.08) 0%, transparent 38%),
+                radial-gradient(circle at 88% 86%, rgba( 34, 197, 94, 0.07) 0%, transparent 42%),
+                radial-gradient(circle at 60% 30%, rgba(255, 255, 255, 0.03) 0%, transparent 30%);
+            background-size: 100% 100%;
+            opacity: 0.8;
+            mix-blend-mode: screen;
+        }
+        body.theme-virus.faction-resist .home-virus {
+            filter: drop-shadow(0 14px 36px rgba(0, 0, 0, 0.7))
+                    drop-shadow(0 0 28px rgba(74, 222, 128, 0.55));
+        }
+        body.theme-virus .home-virus.tapped {
+            animation: home-virus-pulse-rkn 0.36s ease-out;
+        }
+        body.theme-virus.faction-resist .home-virus.tapped {
+            animation: home-virus-pulse 0.36s ease-out;
         }
         .home-node-svg {
             display: block;
@@ -7854,6 +7881,9 @@
                     virus: {
                         loadingImage: 'assets/loading_virus.png',
                         resourceIcon: '🧬',
+                        // Render the Home / Network tap target as the bare
+                        // character sprite (no casual-button casing).
+                        bareCharacters: true,
                         tapLabel:    { rkn: 'ЗАРАЗА!',  resist: 'СКАН!' },
                         captureVerb: { rkn: 'Заразить', resist: 'Привить' },
                         captureToast:{ rkn: 'Город заражён', resist: 'Город привит' },
@@ -7862,7 +7892,7 @@
                             rkn:    { name: 'Вирус',     desc: 'Заражай клетки. Распространяй штамм.' },
                             resist: { name: 'Антивирус', desc: 'Уничтожай вирусы. Защищай организм.' }
                         },
-                        factionShort: { rkn: 'Вирус', resist: 'АВ' },
+                        factionShort: { rkn: 'Вирус', resist: 'Вакцина' },
                         factionCharacters: {
                             // Virus sprite has lots of transparent padding —
                             // use `slice` over a big rect to zoom past it and
@@ -9768,12 +9798,34 @@
                 else host.classList.remove('has-portrait');
             }
 
+            // Themes that opt into `bareCharacters` render the home / compact
+            // tap target as just the character sprite (no button casing,
+            // no label). The container element still drives the breathing /
+            // tap-pulse animation.
+            buildBareCharacter(variant) {
+                const cls = variant === 'compact' ? 'virus-art' : 'home-node-svg';
+                const t = this.theme();
+                const chars = (t && t.factionCharacters) || {};
+                let cfg;
+                if (this.faction === 'resist' && chars.resist) cfg = chars.resist;
+                else if (this.faction === 'rkn' && chars.rkn) cfg = chars.rkn;
+                else cfg = chars.rkn || { defaultSrc: 'assets/virus.png' };
+                const src = cfg.defaultSrc;
+                return `<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="${cls}">
+                    <image class="cb-char cb-char-default" href="${src}"
+                           x="0" y="0" width="220" height="220"
+                           preserveAspectRatio="xMidYMid meet"
+                           onerror="this.style.display='none'"/>
+                </svg>`;
+            }
+
             // Build the central button SVG for the current faction.
             // РКН → red БЛОК! button. Свобода → blue VPN button.
             buildFactionButton(variant) {
+                const t = this.theme();
+                if (t && t.bareCharacters) return this.buildBareCharacter(variant);
                 const cls = variant === 'compact' ? 'virus-art' : 'home-node-svg';
                 let label, palette, characters = null;
-                const t = this.theme();
                 const chars = t && t.factionCharacters;
                 if (this.faction === 'resist') {
                     label = (t && t.tapLabel && t.tapLabel.resist) || 'VPN';
