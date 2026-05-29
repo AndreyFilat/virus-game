@@ -2384,19 +2384,23 @@
         }
         html.theme-virus .faction-card .faction-char,
         body.theme-virus .faction-card .faction-char {
-            background-size: 120% auto;
-            background-position: center 45%;
+            background-repeat: no-repeat;
+            background-position: center center;
             -webkit-mask-image: none;
             mask-image: none;
             filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.55));
         }
+        /* virus.png has lots of transparent padding — scale it up to match
+           the antibody sprite's visible footprint inside the 86px circle. */
         html.theme-virus .faction-card .faction-char-rkn,
         body.theme-virus .faction-card .faction-char-rkn {
             background-image: url('assets/virus.png');
+            background-size: 170% auto;
         }
         html.theme-virus .faction-card .faction-char-resist,
         body.theme-virus .faction-card .faction-char-resist {
             background-image: url('assets/antibody_blue.png');
+            background-size: 108% auto;
         }
         /* Position the background to crop one character per card. */
         .faction-card .faction-char-rkn    { background-position: 19% 30%; }
@@ -7854,13 +7858,21 @@
                         captureToast:{ rkn: 'Город заражён', resist: 'Город излечён' },
                         captureIcon: { rkn: '🦠', resist: '💊' },
                         factionPicker: {
-                            rkn:    { name: 'Вирус',     desc: 'Заражай города. Распространяй штамм.' },
-                            resist: { name: 'Антивирус', desc: 'Сканируй сеть. Очищай заражённые узлы.' }
+                            rkn:    { name: 'Вирус',     desc: 'Заражай клетки. Распространяй штамм.' },
+                            resist: { name: 'Антивирус', desc: 'Уничтожай вирусы. Защищай организм.' }
                         },
                         factionShort: { rkn: 'Вирус', resist: 'АВ' },
                         factionCharacters: {
-                            rkn:    { defaultSrc: 'assets/virus.png',         tappedSrc: 'assets/virus.png' },
-                            resist: { defaultSrc: 'assets/antibody_blue.png', tappedSrc: 'assets/antibody_blue.png' }
+                            // Square-ish sprites with transparent padding — fit
+                            // them fully inside the button face and centre.
+                            rkn:    { defaultSrc: 'assets/virus.png',
+                                      tappedSrc:  'assets/virus.png',
+                                      rect: { x: 24, y: 24, width: 172, height: 172 },
+                                      preserveAspectRatio: 'xMidYMid meet' },
+                            resist: { defaultSrc: 'assets/antibody_blue.png',
+                                      tappedSrc:  'assets/antibody_blue.png',
+                                      rect: { x: 30, y: 30, width: 160, height: 160 },
+                                      preserveAspectRatio: 'xMidYMid meet' }
                         },
                         factionPaletteOverride: {
                             // Virus side — green casing instead of red РКН.
@@ -9813,18 +9825,20 @@
                           + "var h=this.closest('.home-virus,.virus-character');"
                           + "if(h){h.dataset.charFailed=(parseInt(h.dataset.charFailed||0)+1);"
                           + "if(parseInt(h.dataset.charFailed)>=2)h.classList.remove('has-portrait');}";
+                // Defaults match the РКН portraits (tall PNGs, slice from
+                // top). Themes can pass `rect` + `preserveAspectRatio` for
+                // centred / contained sprites like virus.png.
+                const rect = (characters && characters.rect) || { x: -14, y: -2, width: 248, height: 310 };
+                const aspect = (characters && characters.preserveAspectRatio) || 'xMidYMin slice';
                 const charLayer = hasChar ? `
-                    <!-- Character portrait clipped to the button face.
-                         Both layers are stacked (no cross-fade) so the red
-                         face never flashes through during the swap. -->
                     <g clip-path="url(#cb_face_clip_${variant})">
                         <image class="cb-char cb-char-default" href="${characters.defaultSrc}"
-                               x="-14" y="-2" width="248" height="310"
-                               preserveAspectRatio="xMidYMin slice"
+                               x="${rect.x}" y="${rect.y}" width="${rect.width}" height="${rect.height}"
+                               preserveAspectRatio="${aspect}"
                                onerror="${onerr}"/>
                         <image class="cb-char cb-char-tapped" href="${characters.tappedSrc}"
-                               x="-14" y="-2" width="248" height="310"
-                               preserveAspectRatio="xMidYMin slice"
+                               x="${rect.x}" y="${rect.y}" width="${rect.width}" height="${rect.height}"
+                               preserveAspectRatio="${aspect}"
                                onerror="${onerr}"/>
                     </g>` : '';
                 // Label is hidden via .has-portrait when a portrait is in
