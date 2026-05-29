@@ -7882,6 +7882,7 @@
                             resist: null
                         },
                         resourceNoun: { genitive: 'Пакетов', short: 'пак' },
+                        speechBubble: 'Запретить!',
                         roomNames: {
                             income:   { rkn: 'ТСПУ',                vpn: 'Серверная ферма' },
                             research: { rkn: 'DPI-лаборатория',     vpn: 'Лаборатория протоколов' },
@@ -7960,6 +7961,44 @@
                             // rkn (virus) keeps the default red palette.
                         },
                         resourceNoun: { genitive: 'ДНК', short: 'ДНК' },
+                        speechBubble: null,
+                        memeMessages: [
+                            'Вирус опять мутировал на завтрак.',
+                            'Антитела ушли в отпуск.',
+                            'Этот штамм не входит в стандартный набор.',
+                            'Иммунная система проверяет паспорт.',
+                            'Капсид треснул, но держится на честном слове.',
+                            'Вакцина обнаружена. Бежим.',
+                            'Лаборатория опять не закрыла дверь.',
+                            'Это не насморк. Это эволюция.',
+                            'Антитело сегодня в плохом настроении.',
+                            'Бустер активирован. Возможны побочки оптимизма.',
+                            'Вирус прикинулся бактерией. Никто не повёлся.',
+                            'Сигнатура штамма уже в облаке.',
+                            'Клетка вежливо отказала во входе.',
+                            'Иммунитет сегодня на работе с похмельем.',
+                            'Капля антител стоит литра паники.',
+                            'Заражение прошло успешно. Извините за неудобства.',
+                            'Бактерии всё ещё считают себя главными.',
+                            'Антибиотик задержался в пробке.',
+                            'Карантин держится на трёх рулонах туалетки.',
+                            'Лимфоциты собрались на планёрку.',
+                            'Биологи внезапно снова стали популярными.',
+                            'Штамм залётный, но обаятельный.',
+                            'Прививка повторно открыла третий глаз.',
+                            'Иммунный ответ ушёл в овертайм.',
+                            'Лаборатория мутаций сегодня переработала.',
+                            'Антитело потеряло Y-форму. Срочно ищем.',
+                            'Вирус подал заявку на гражданство в клетке.',
+                            'Иммунитет согласился на компромисс.',
+                            'Маска снова в моде. Который сезон подряд.',
+                            'Вирусная нагрузка снизилась до приемлемой.',
+                            'Колония растёт быстрее, чем я успеваю смотреть.',
+                            'Эпидемия пошла по плану. Чьему — неясно.',
+                            'Микробы устроили забастовку.',
+                            'Пациент сам себе биолог.',
+                            'Сыворотка готова. Почти.'
+                        ],
                         roomNames: {
                             income:   { rkn: 'Питательная среда',  vpn: 'Лаборатория антител' },
                             research: { rkn: 'Лаборатория мутаций', vpn: 'Анализ образцов' },
@@ -7999,6 +8038,9 @@
                 };
                 this.themeKey = (localStorage.getItem('vg_theme') === 'virus') ? 'virus' : 'rkn';
                 this.applyThemeToData();
+                // Themed joke-toast list, if the active theme ships one.
+                const themeMemes = this.THEMES[this.themeKey] && this.THEMES[this.themeKey].memeMessages;
+                if (themeMemes && themeMemes.length) this.memeMessages = themeMemes.slice();
                 // Per-room runtime state. Every room starts locked; the
                 // player unlocks them instantly (a fee, no idle timer).
                 this.rooms = {};
@@ -12755,13 +12797,16 @@
             }
 
             // Comic speech bubble that pops from the character on tap.
-            // Suppressed before a faction is picked, and for the ВПН (Свобода)
-            // faction — only РКН shows the "Запретить!" outburst.
+            // Suppressed before a faction is picked, and when the active
+            // theme doesn't define a speechBubble line (e.g. virus theme).
             showCharacterSpeech(x, y) {
                 if (!this.faction || this.faction === 'resist') return;
+                const t = this.theme();
+                const line = t && t.speechBubble;
+                if (!line) return;
                 const el = document.createElement('div');
                 el.className = 'char-speech';
-                el.textContent = 'Запретить!';
+                el.textContent = line;
                 el.style.left = (x + 70) + 'px';
                 el.style.top  = (y - 70) + 'px';
                 document.body.appendChild(el);
