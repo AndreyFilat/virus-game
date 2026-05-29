@@ -5746,10 +5746,10 @@
                 </div>
                 <div class="wb-legend">
                     <span class="wb-side wb-leg-rkn">
-                        <span class="wb-dot wb-d-rkn"></span>РКН <span id="wbRknPct">50%</span>
+                        <span class="wb-dot wb-d-rkn"></span><span id="wbRknLabel">РКН</span> <span id="wbRknPct">50%</span>
                     </span>
                     <span class="wb-side wb-leg-vpn">
-                        <span id="wbVpnPct">50%</span> ВПН<span class="wb-dot wb-d-vpn"></span>
+                        <span id="wbVpnPct">50%</span> <span id="wbVpnLabel">ВПН</span><span class="wb-dot wb-d-vpn"></span>
                     </span>
                 </div>
             </div>
@@ -7812,6 +7812,7 @@
                             rkn:    { name: 'РКН',     desc: 'Распространяй блокировки. Глуши свободу.' },
                             resist: { name: 'Свобода', desc: 'Растяни сеть обхода. Прокопай туннели.' }
                         },
+                        factionShort: { rkn: 'РКН', resist: 'ВПН' },
                         roomNames: {
                             income:   { rkn: 'ТСПУ',                vpn: 'Серверная ферма' },
                             research: { rkn: 'DPI-лаборатория',     vpn: 'Лаборатория протоколов' },
@@ -7852,6 +7853,7 @@
                             rkn:    { name: 'Вирус',     desc: 'Заражай города. Распространяй штамм.' },
                             resist: { name: 'Антивирус', desc: 'Сканируй сеть. Очищай заражённые узлы.' }
                         },
+                        factionShort: { rkn: 'Вирус', resist: 'АВ' },
                         roomNames: {
                             income:   { rkn: 'Питательная среда', vpn: 'Серверы AV' },
                             research: { rkn: 'Лаборатория мутаций', vpn: 'Анализ сигнатур' },
@@ -8612,6 +8614,11 @@
                 const t = this.theme();
                 return (t && t.resourceIcon) || '📦';
             }
+            factionShortName(side) {
+                const t = this.theme();
+                const key = side === 'resist' ? 'resist' : 'rkn';
+                return (t && t.factionShort && t.factionShort[key]) || (key === 'resist' ? 'ВПН' : 'РКН');
+            }
             applyThemeStaticIcons() {
                 // Swap any HTML-baked icons that aren't re-rendered by JS later.
                 const ico = this.resourceIcon();
@@ -8957,8 +8964,8 @@
                 const rknPct = Math.round(ctrl.rkn);
                 pcRkn.style.width = ctrl.rkn.toFixed(1) + '%';
                 pcVpn.style.width = ctrl.vpn.toFixed(1) + '%';
-                pcRknTxt.textContent = `РКН ${rknPct}%`;
-                pcVpnTxt.textContent = `ВПН ${100 - rknPct}%`;
+                pcRknTxt.textContent = `${this.factionShortName('rkn')} ${rknPct}%`;
+                pcVpnTxt.textContent = `${this.factionShortName('resist')} ${100 - rknPct}%`;
 
                 const victWrap = document.getElementById('pcVictories');
                 if (s.mine) {
@@ -11024,6 +11031,8 @@
                 setW('wbVpn', (100 - rknPct).toFixed(1) + '%');
                 set('wbRknPct', Math.round(rknPct) + '%');
                 set('wbVpnPct', vpnPct + '%');
+                set('wbRknLabel', this.factionShortName('rkn'));
+                set('wbVpnLabel', this.factionShortName('resist'));
             }
 
             pickDefaultCityForContinent(continentId) {
