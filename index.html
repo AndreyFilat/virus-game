@@ -2384,7 +2384,19 @@
         }
         html.theme-virus .faction-card .faction-char,
         body.theme-virus .faction-card .faction-char {
-            background-image: url('assets/loading_virus.png');
+            background-size: 120% auto;
+            background-position: center 45%;
+            -webkit-mask-image: none;
+            mask-image: none;
+            filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.55));
+        }
+        html.theme-virus .faction-card .faction-char-rkn,
+        body.theme-virus .faction-card .faction-char-rkn {
+            background-image: url('assets/virus.png');
+        }
+        html.theme-virus .faction-card .faction-char-resist,
+        body.theme-virus .faction-card .faction-char-resist {
+            background-image: url('assets/antibody_blue.png');
         }
         /* Position the background to crop one character per card. */
         .faction-card .faction-char-rkn    { background-position: 19% 30%; }
@@ -7796,6 +7808,10 @@
                         captureVerb: { rkn: 'Заблокировать', resist: 'Разблокировать' },
                         captureToast:{ rkn: 'Город заблокирован', resist: 'Город разблокирован' },
                         captureIcon: { rkn: '🔒', resist: '🔓' },
+                        factionPicker: {
+                            rkn:    { name: 'РКН',     desc: 'Распространяй блокировки. Глуши свободу.' },
+                            resist: { name: 'Свобода', desc: 'Растяни сеть обхода. Прокопай туннели.' }
+                        },
                         roomNames: {
                             income:   { rkn: 'ТСПУ',                vpn: 'Серверная ферма' },
                             research: { rkn: 'DPI-лаборатория',     vpn: 'Лаборатория протоколов' },
@@ -7832,6 +7848,10 @@
                         captureVerb: { rkn: 'Заразить', resist: 'Излечить' },
                         captureToast:{ rkn: 'Город заражён', resist: 'Город излечён' },
                         captureIcon: { rkn: '🦠', resist: '💊' },
+                        factionPicker: {
+                            rkn:    { name: 'Вирус',     desc: 'Заражай города. Распространяй штамм.' },
+                            resist: { name: 'Антивирус', desc: 'Сканируй сеть. Очищай заражённые узлы.' }
+                        },
                         roomNames: {
                             income:   { rkn: 'Питательная среда', vpn: 'Серверы AV' },
                             research: { rkn: 'Лаборатория мутаций', vpn: 'Анализ сигнатур' },
@@ -8596,6 +8616,22 @@
                 // Swap any HTML-baked icons that aren't re-rendered by JS later.
                 const ico = this.resourceIcon();
                 document.querySelectorAll('.dna-icon').forEach(el => { el.textContent = ico; });
+                const t = this.theme();
+                const fp = t && t.factionPicker;
+                if (fp) {
+                    const cards = [
+                        { sel: '.faction-rkn-card',    key: 'rkn' },
+                        { sel: '.faction-resist-card', key: 'resist' }
+                    ];
+                    cards.forEach(({ sel, key }) => {
+                        const card = document.querySelector(sel);
+                        if (!card || !fp[key]) return;
+                        const nameEl = card.querySelector('.faction-name');
+                        const descEl = card.querySelector('.faction-desc');
+                        if (nameEl) nameEl.textContent = fp[key].name;
+                        if (descEl) descEl.textContent = fp[key].desc;
+                    });
+                }
             }
             factionActionIcon() {
                 return this.faction === 'resist' ? '🛡️' : '🛑';
